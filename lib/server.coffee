@@ -10,7 +10,7 @@ wrap = require 'asset-wrap'
 
 # helpers
 package_dir = (id, version) ->
-  path.resolve "#{__dirname}/../../pkg/#{id}/#{version}"
+  path.resolve "#{__dirname}/../../../pkg/#{id}/#{version}"
 
 read_package = (id, version) ->
   root = package_dir id, version
@@ -36,7 +36,7 @@ exports = module.exports = (cfg) ->
 
   # watch for file changes
   if not prod
-    pkg_path = path.resolve "#{__dirname}/../../pkg"
+    pkg_path = path.resolve "#{__dirname}/../../../pkg"
     console.log pkg_path
     watcher = chokidar.watch pkg_path, {
       ignored: /(^\.|\.swp$|\.tmp$|~$)/
