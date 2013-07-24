@@ -1,0 +1,23 @@
+{
+  "author": "Bryant Williams <b.n.williams@gmail.com>",
+  "config": {
+    "port": 3001
+  },
+  "dependencies": {
+    "asset-wrap": "0.3.3",
+    "chokidar": "0.6.2",
+    "coffee-script": "1.4.0",
+    "cson": "1.4.2",
+    "express": "3.3.3",
+    "firebase": "0.5.x",
+    "lru-cache": "2.3.0"
+  },
+  "description": "LessThan3 Custom Package Repository",
+  "main": "./lib/server",
+  "name": "lessthan3",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/lessthan3/lessthan3.git"
+  },
+  "version": "0.1.1"
+}
