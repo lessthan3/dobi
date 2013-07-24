@@ -15,3 +15,4 @@ app.use express.errorHandler {dumpExceptions: true, showStack: true}
 
 # listen
 app.listen pkg.config.port
+console.log "listening: #{pkg.config.port}"
