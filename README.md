@@ -3,21 +3,27 @@
 ## Table of Contents
 
  - [General Information](#general-information)
+  - [Prerequisites](#prerequisites)
   - [Tools](#tools)
-  - Getting Started
-  - LessThan3 Website Layout
- - Packages
-  - Types
-  - Configuration
-  - Routes
-  - API
-  - Examples
- - Development Server
-  - Overview
-  - How It Works
-  - Example
+  - [Getting Started](#getting-started)
+  - [LessThan3 Website Layout](#lessthan3-website-layout)
+ - [Packages](#packages)
+  - [Types](#types)
+  - [Configuration](#configuration)
+  - [Routes](#routes)
+  - [API](#api)
+  - [Examples](#examples)
+ - [Development Server](#development-server)
+  - [Overview](#overview)
+  - [How It Works](#how-it-works)
+  - [Example](#example)
 
 ## General Information
+
+### Prerequisites
+LessThan3 Package Development/Deployment is currently in beta. Developers
+must be registered before the development kit will work on a live site.
+Contact bryant@lessthan3.com if you'd like more information on getting started.
 
 ### Tools
 
