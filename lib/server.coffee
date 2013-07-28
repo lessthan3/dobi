@@ -232,6 +232,7 @@ exports = module.exports = (cfg) ->
       file = req.params[0]
       res.sendfile "#{package_dir id, version}/public/#{file}"
 
+
     # api calls
     router.route 'GET', '/pkg/:id/:version/api/:method', (req, res, next) ->
       id = req.params.id
@@ -245,6 +246,7 @@ exports = module.exports = (cfg) ->
         req: req
         res: res
       }
+
 
     # execute routes
     router._dispatch req, res, next
