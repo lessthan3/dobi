@@ -27,6 +27,7 @@
   - CSS, SASS, and LESS will be supported in the future, but stylus/nib is encouraged
 
 ## Page Layout
+```
   - html
     - head
     - body
@@ -38,54 +39,60 @@
               - pages
                 - page (current page rendered here)
         - footer (footer package rendered here)
+```
 
 ## Package Types
+
  - app: An app is a dynamic section of code in the app
  - header: A header is static code at the top of the page
  - footer: A footer is static code at the bottom of the page
  - theme: A theme allows for full customization over the style of a site
 
 ### Example App
+
 app.coffee
+```
+class exports.App extends lt3.App
 
-  class exports.App extends lt3.App
+  load: (next) ->
+    next()
 
-    load: (next) ->
-      next()
-
-    template: ->
-      div class: 'pages'
+  template: ->
+    div class: 'pages'
+```
 
 package.cson
-
-  {
-    author: 'Bryant Williams'
-    changelog:
-      '0.1.1': 'test app'
-    contact: 'bryant@lessthan3.com'
-    description: 'My First App'
-    id: 'bryant-cool-app'
-    pages:
-      index:
-        title: 'string'
-      monkey:
-        kind: 'string'
-        name: 'string'
-        description: 'string'
-        image: 'string'
-    name: 'My First App'
-    type: 'app'
-    version: '0.1.1'
-  }
+```
+{
+  author: 'Bryant Williams'
+  changelog:
+    '0.1.1': 'test app'
+  contact: 'bryant@lessthan3.com'
+  description: 'My First App'
+  id: 'bryant-cool-app'
+  pages:
+    index:
+      title: 'string'
+    monkey:
+      kind: 'string'
+      name: 'string'
+      description: 'string'
+      image: 'string'
+  name: 'My First App'
+  type: 'app'
+  version: '0.1.1'
+}
+```
 
 style.styl
-
-  .exports
-    .some-div
-      padding 36px 50px
+```
+.exports
+  .some-div
+    padding 36px 50px
+```
 
 pages/monkey.coffee
-
+```
 class exports.Page extends lt3.Page
 
   # events
@@ -152,12 +159,14 @@ class exports.Page extends lt3.Page
 
     div class: 'content', ->
       @content
+```
 
 ### Example Header
 ### Example Footer
 ### Example Theme
 
-## package.cson tips
+## package.cson (your package config)
+```
 {
   author: 'Your Name'
   category: 'footer'
@@ -220,74 +229,76 @@ Let’s now look at the above example in our simplified syntax
       foo: {type: ‘string’}
       bar: {type: ‘string’}
     }
-
+```
 
 # LessThan3 Development Server
+```
+# dependencies
+express = require 'express'
+lessthan3 = require '../../lib/server' # require 'lessthan3'
+pkg = require './package'
 
-  # dependencies
-  express = require 'express'
-  lessthan3 = require '../../lib/server' # require 'lessthan3'
-  pkg = require './package'
+# configuration
+app = express()
+app.use express.logger()
+app.use express.bodyParser()
+app.use express.methodOverride()
+app.use express.cookieParser()
+app.use lessthan3 {
+  pkg_dir: "#{__dirname}/pkg"
+}
+app.use app.router
+app.use express.errorHandler {dumpExceptions: true, showStack: true}
 
-  # configuration
-  app = express()
-  app.use express.logger()
-  app.use express.bodyParser()
-  app.use express.methodOverride()
-  app.use express.cookieParser()
-  app.use lessthan3 {
-    pkg_dir: "#{__dirname}/pkg"
-  }
-  app.use app.router
-  app.use express.errorHandler {dumpExceptions: true, showStack: true}
-
-  # listen
-  app.listen pkg.config.port
-  console.log "listening: #{pkg.config.port}"
-
+# listen
+app.listen pkg.config.port
+console.log "listening: #{pkg.config.port}"
+```
 
 ### Package Routes
+```
+# get package details
+http://localhost:3001/pkg/bryant-cool-app/0.1.1/package.json
 
-  # get package details
-  http://localhost:3001/pkg/bryant-cool-app/0.1.1/package.json
+# get package javascript
+http://localhost:3001/pkg/bryant-cool-app/0.1.1/main.js
 
-  # get package javascript
-  http://localhost:3001/pkg/bryant-cool-app/0.1.1/main.js
+# get package stylesheet
+http://localhost:3001/pkg/bryant-cool-app/0.1.1/style.css
 
-  # get package stylesheet
-  http://localhost:3001/pkg/bryant-cool-app/0.1.1/style.css
+# get public/static file
+http://localhost:3001/pkg/bryant-cool-app/0.1.1/public/test.txt
 
-  # get public/static file
-  http://localhost:3001/pkg/bryant-cool-app/0.1.1/public/test.txt
-
-  # make api call
-  http://localhost:3001/pkg/bryant-cool-app/0.1.1/api/foo
+# make api call
+http://localhost:3001/pkg/bryant-cool-app/0.1.1/api/foo
+```
 
 ## Example Package API
+```
+module.exports =
+  foo: ->
+    # this will cache /pkg/bryant-cool-app/0.1.1/api/foo
+    @cache {age: '10 minutes'}, (next) =>
+      next 'bar'
 
-  module.exports =
-    foo: ->
-      # this will cache /pkg/bryant-cool-app/0.1.1/api/foo
-      @cache {age: '10 minutes'}, (next) =>
-        next 'bar'
+  hello: ->
+    @res.send 'world'
 
-    hello: ->
-      @res.send 'world'
-
-    ping: ->
-      # this will cache /pkg/bryant-cool-app/0.1.1/api/ping?hello=world
-      @cache {age: '10 minutes', qs: true}, (next) =>
-        next 'ack'
+  ping: ->
+    # this will cache /pkg/bryant-cool-app/0.1.1/api/ping?hello=world
+    @cache {age: '10 minutes', qs: true}, (next) =>
+      next 'ack'
+```
 
 ### Package API Call Context
-
-  {
-    cache: (options, next) ->
-      # options.age can be '10 minutes' or 600
-      # options.qs can be true|false to include the query params in the cache key
-      # passing data to "next" will cache and return the data
-    req: req
-    res: res
-  }
-
+```
+{
+  cache: (options, next) ->
+    # options.age can be '10 minutes' or 600
+    # options.qs can be true|false to include the query params in the cache key
+    # passing data to "next" will cache and return the data
+  req: req
+  res: res
+}
+```
 
