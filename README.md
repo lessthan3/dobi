@@ -179,14 +179,32 @@ modules (or in our case, lessthan3 packages) this way.
 
 ```
 When specifying modules dependencies: use 1.0.x syntax
-Until recently, I was guilty of not following this guideline: I continued to use the >= 0.2.0 syntax illustrated above in the naive.package.json example. At first glance there doesn't seem to be anything wrong with that style. You're saying "If there are changes in the future I want them."
-The problem arises because authors are conveying meaning in their versions. Not every version will be completely backwards compatible with the particular version you were using when you wrote your application. This is conveyed in the version string:
+
+Until recently, I was guilty of not following this guideline: I continued to use
+the >= 0.2.0 syntax illustrated above in the naive.package.json example. At 
+first glance there doesn't seem to be anything wrong with that style. You're 
+saying "If there are changes in the future I want them."
+
+The problem arises because authors are conveying meaning in their versions. Not
+every version will be completely backwards compatible with the particular
+version you were using when you wrote your application. This is conveyed in the
+version string:
+
 e.g.: 0.3.18
 Major Version (0)
 Minor Version (3)
 Patch Version (18)
-Changes to the major and minor parts of the version mean that changes have happened, although there is no convention to convey they are breaking. Changes to patch versions are used to express that a fix has been made and it is (usually) safe to upgrade.
-Conversely, when using the 0.2.x syntax you're saying: "If there are patch changes in the future I want them, but no minor or major versions." Given the description of the meaning conveyed by each of the version components above this means you won't be tearing your hair out over breaking changes in a module you depend on.
+
+Changes to the major and minor parts of the version mean that changes have
+happened, although there is no convention to convey they are breaking. Changes
+to patch versions are used to express that a fix has been made and it
+is (usually) safe to upgrade.
+
+Conversely, when using the 0.2.x syntax you're saying: "If there are patch
+changes in the future I want them, but no minor or major versions." Given the
+description of the meaning conveyed by each of the version components above
+this means you won't be tearing your hair out over breaking changes in a
+module you depend on.
 ```
 
 ### Routes
