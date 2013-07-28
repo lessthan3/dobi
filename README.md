@@ -168,7 +168,7 @@ Let’s now look at the above example in our simplified syntax
 ```
 
 ### Versioning
-LessThan3 packages should be versioned as "major.minor.path". Dependencies right
+LessThan3 packages should be versioned as "major.minor.patch". Dependencies right
 now must define an exact version, but we'll moved towards the npm model in the
 future and it's good practice.
 
