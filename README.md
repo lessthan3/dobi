@@ -11,6 +11,7 @@
  - [Packages](#packages)
   - [Types](#types)
   - [Configuration](#configuration)
+  - [Versioning](#versioning)
   - [Routes](#routes)
   - [API](#api)
   - [Examples](#examples)
@@ -73,6 +74,8 @@ Contact bryant@lessthan3.com if you'd like more information on getting started.
   - http://learnboost.github.io/stylus/
   - http://visionmedia.github.io/nib/
   - CSS, SASS, and LESS will be supported in the future, but stylus/nib is encouraged
+ - get a good text editor
+  - we recommend vim or sublime, but any editor/IDE could work
 
 ### LessThan3 Website Layout
 ```
@@ -162,6 +165,28 @@ Let’s now look at the above example in our simplified syntax
       foo: {type: ‘string’}
       bar: {type: ‘string’}
     }
+```
+
+### Versioning
+LessThan3 packages should be versioned as "major.minor.path". Dependencies right
+now must define an exact version, but we'll moved towards the npm model in the
+future and it's good practice.
+
+Here's a brief explaination from Nodejitsu about why to version your node
+modules (or in our case, lessthan3 packages) this way.
+
+ - http://blog.nodejitsu.com/package-dependencies-done-right#best-practices
+
+```
+When specifying modules dependencies: use 1.0.x syntax
+Until recently, I was guilty of not following this guideline: I continued to use the >= 0.2.0 syntax illustrated above in the naive.package.json example. At first glance there doesn't seem to be anything wrong with that style. You're saying "If there are changes in the future I want them."
+The problem arises because authors are conveying meaning in their versions. Not every version will be completely backwards compatible with the particular version you were using when you wrote your application. This is conveyed in the version string:
+e.g.: 0.3.18
+Major Version (0)
+Minor Version (3)
+Patch Version (18)
+Changes to the major and minor parts of the version mean that changes have happened, although there is no convention to convey they are breaking. Changes to patch versions are used to express that a fix has been made and it is (usually) safe to upgrade.
+Conversely, when using the 0.2.x syntax you're saying: "If there are patch changes in the future I want them, but no minor or major versions." Given the description of the meaning conveyed by each of the version components above this means you won't be tearing your hair out over breaking changes in a module you depend on.
 ```
 
 ### Routes
