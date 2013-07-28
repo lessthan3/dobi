@@ -26,7 +26,7 @@
   - http://visionmedia.github.io/nib/
   - CSS, SASS, and LESS will be supported in the future, but stylus/nib is encouraged
 
-## Page Layout
+## LessThan3 Website Layout
 ```
   - html
     - head
@@ -162,8 +162,40 @@ class exports.Page extends lt3.Page
 ```
 
 ### Example Header
+
+header.coffee
+```
+```
+
+package.cson
+```
+```
+
+style.styl
+```
+```
+
 ### Example Footer
+footer.coffee
+```
+```
+
+package.cson
+```
+```
+
+style.styl
+```
+```
+
 ### Example Theme
+package.cson
+```
+```
+
+style.styl
+```
+```
 
 ## package.cson (your package config)
 ```
