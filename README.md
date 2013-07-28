@@ -492,7 +492,8 @@ Deploy your package
 ### Deployment to a CDN
 A CDN can only host files, so by deploying to a CDN, your app
 will not be able to take advantage of custom API calls. This is fine
-for 90% of packages.
+for 90% of packages because you still get real-time updates on data
+entered through the admin interface, and can query public APIs.
 
 Define your remote
 ```
