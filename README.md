@@ -3,7 +3,8 @@
 ## Table of Contents
 
  - [General Information](#general-information)
-  - [Prerequisites](#prerequisites)
+  - [General Overview](#general-overview)
+  - [Beta](#beta)
   - [Tools](#tools)
   - [Getting Started](#getting-started)
   - [LessThan3 Website Layout](#lessthan3-website-layout)
@@ -20,7 +21,23 @@
 
 ## General Information
 
-### Prerequisites
+### General Overview
+This kit is made for developers planning to build/maintain sites running on the
+LessThan3 Network. All of the sites have a common structure, but allow for 
+complete customization.
+
+Benefits of the LessThan3 Platform.
+
+ - Strong caching is built into the core of the infrastructure
+ - Any dynamic site data, by default, can be updated real-time. Alternatively,
+   apps can define which data to listen for updates on
+ - By defining a simple data model for your package, a simple, intuitive
+   administration interface is provided to your user
+ - Develop in coffee-script and stylus
+ - All of this allows you to build/test/deploy/reuse/sell apps extremely
+   efficiently to our growing network of clients
+
+### Beta
 LessThan3 Package Development/Deployment is currently in beta. Developers
 must be registered before the development kit will work on a live site.
 Contact bryant@lessthan3.com if you'd like more information on getting started.
@@ -362,7 +379,8 @@ ability to add any other custom functionality to your server that you want.
 When you login to a site on the LessThan3 platform, it will check whether you
 are a developer or not.  If you are a developer, it checks if you have a local
 development server running.  If you do, it will connect your browser client to
-your development server, and refresh your applications as code is updated.
+your development server, load code locally instead of from production, and
+refresh your applications as code is updated.
 
 ### Example Server
 ```
@@ -387,6 +405,4 @@ app.use express.errorHandler {dumpExceptions: true, showStack: true}
 app.listen pkg.config.port
 console.log "listening: #{pkg.config.port}"
 ```
-
-### How It Works
 
