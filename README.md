@@ -519,7 +519,8 @@ Define your remote
 Note that you can also host your (non-api) packages on a server without node
 and deploy with ftp by providing the build parameter.  Build will compile
 the config, javascript, and stylesheet assets for your package and upload those
-directly, along with any public files.
+directly, along with any public files. The "build" parameter is automatically
+included if the method is "amazon-s3" or "rackspace-cloudfiles".
 
 
 
