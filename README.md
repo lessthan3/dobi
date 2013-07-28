@@ -469,7 +469,7 @@ Make sure it's running
 ```lpm prod status```
 
 Define your remote (where the server lives) in your server config.cson.
-Your deployment can be done with ssh, ftp, or git
+Your deployment can be done with ssh, ftp
 ```
 {
   remote:
@@ -483,9 +483,6 @@ Your deployment can be done with ssh, ftp, or git
       host: 'ftp.mydomain.com'
       port: '21'
       path: '/u/apps/my-lt3-package-server'
-    prod3:
-      method: 'git'
-      url: 'ssh://deploy@my-server/u/apps-my-lt3-package-server'
 }
 ```
 
