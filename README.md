@@ -1,6 +1,25 @@
 # LessThan3 Development Kit
 
-## Tools
+## Table of Contents
+
+ - [General Information](#general-information)
+  - [Tools](#tools)
+  - Getting Started
+  - LessThan3 Website Layout
+ - Packages
+  - Types
+  - Configuration
+  - Routes
+  - API
+  - Examples
+ - Development Server
+  - Overview
+  - How It Works
+  - Example
+
+## General Information
+
+### Tools
 
  - lessthan3 development server
 
@@ -13,7 +32,7 @@
   - assists with package deployment to personal lt3 package server
 
 
-## Getting Started
+### Getting Started
 
  - install node.js
   - http://howtonode.org/how-to-install-nodejs
@@ -26,7 +45,7 @@
   - http://visionmedia.github.io/nib/
   - CSS, SASS, and LESS will be supported in the future, but stylus/nib is encouraged
 
-## LessThan3 Website Layout
+### LessThan3 Website Layout
 ```
   - html
     - head
@@ -41,14 +60,131 @@
         - footer (footer package rendered here)
 ```
 
-## Package Types
+## Packages
+
+### Types
 
  - app: An app is a dynamic section of code in the app
  - header: A header is static code at the top of the page
  - footer: A footer is static code at the bottom of the page
  - theme: A theme allows for full customization over the style of a site
 
-### Example App
+### Configuration
+```
+{
+  author: 'Your Name'
+  category: 'footer'
+  changelog:
+    'major.minor.patch': ‘initial commit'
+  contact: ‘me@domain.com'
+  description: 'description of this package'
+  id: 'namespace-name'
+  name: 'readable name’
+  pages:
+    type1: {DATA_MODEL_SCHEMA}
+    type2: {DATA_MODEL_SCHEMA}
+  settings: {DATA_MODEL_SCHEMA}
+  tags: [
+    ‘tag1’
+    ‘tag2’
+  ]
+  type: 'app'
+  version: 'major.minor.patch'
+}
+
+Full Verbose Schema Example
+  settings:
+    str: {type: ‘string’}
+    str_enum: {type: ‘string’, enum: [‘foo’, ‘bar’]}
+    str_long: {type: ‘string’, editor: ‘textarea’}
+    bool: {type: ‘boolean’}
+    int: {type: ‘integer’}
+    arr: {
+      type: ‘array’
+      legend: ‘foo’
+      items:
+        foo: {type: ‘string’}
+        bar: {type: ‘string’}
+    }
+    obj: {
+      type: ‘object’
+      properties:
+        foo: {type: ‘string’}
+        bar: {type: ‘string’}
+    }
+
+3 Rules to simplify your syntax
+ 1. if typeof value is a string, then that string is the type of that property.
+ 2. if typeof value is an object, then that object is assumed to be type == ‘object’
+ 3. if typeof value is an array, then that object is assumed to be type == ‘array’
+
+Let’s now look at the above example in our simplified syntax
+  settings:
+    str: ‘string’
+    str_enum: {type: ‘string’, enum: [‘foo’, ‘bar’]}
+    str_long: {type: ‘string’, editor: ‘textarea’}
+    bool: ‘boolean’
+    int: ‘integer’
+    arr: [
+      foo: {type: ‘string’, legend: true}
+      bar: ‘string’
+    ]
+    obj: {
+      foo: {type: ‘string’}
+      bar: {type: ‘string’}
+    }
+```
+
+### Routes
+```
+# get package details
+http://localhost:3001/pkg/bryant-cool-app/0.1.1/package.json
+
+# get package javascript
+http://localhost:3001/pkg/bryant-cool-app/0.1.1/main.js
+
+# get package stylesheet
+http://localhost:3001/pkg/bryant-cool-app/0.1.1/style.css
+
+# get public/static file
+http://localhost:3001/pkg/bryant-cool-app/0.1.1/public/test.txt
+
+# make api call
+http://localhost:3001/pkg/bryant-cool-app/0.1.1/api/foo
+```
+
+### API
+```
+module.exports =
+  foo: ->
+    # this will cache /pkg/bryant-cool-app/0.1.1/api/foo
+    @cache {age: '10 minutes'}, (next) =>
+      next 'bar'
+
+  hello: ->
+    @res.send 'world'
+
+  ping: ->
+    # this will cache /pkg/bryant-cool-app/0.1.1/api/ping?hello=world
+    @cache {age: '10 minutes', qs: true}, (next) =>
+      next 'ack'
+```
+
+#### Call Context
+```
+{
+  cache: (options, next) ->
+    # options.age can be '10 minutes' or 600
+    # options.qs can be true|false to include the query params in the cache key
+    # passing data to "next" will cache and return the data
+  req: req
+  res: res
+}
+```
+
+### Examples
+
+#### App
 
 app.coffee
 ```
@@ -161,7 +297,7 @@ class exports.Page extends lt3.Page
       @content
 ```
 
-### Example Header
+#### Header
 
 header.coffee
 ```
@@ -175,7 +311,7 @@ style.styl
 ```
 ```
 
-### Example Footer
+#### Footer
 footer.coffee
 ```
 ```
@@ -188,7 +324,7 @@ style.styl
 ```
 ```
 
-### Example Theme
+#### Theme
 package.cson
 ```
 ```
@@ -197,73 +333,32 @@ style.styl
 ```
 ```
 
-## package.cson (your package config)
-```
-{
-  author: 'Your Name'
-  category: 'footer'
-  changelog:
-    'major.minor.patch': ‘initial commit'
-  contact: ‘me@domain.com'
-  description: 'description of this package'
-  id: 'namespace-name'
-  name: 'readable name’
-  pages:
-    type1: {DATA_MODEL_SCHEMA}
-    type2: {DATA_MODEL_SCHEMA}
-  settings: {DATA_MODEL_SCHEMA}
-  tags: [
-    ‘tag1’
-    ‘tag2’
-  ]
-  type: 'app'
-  version: 'major.minor.patch'
-}
 
-Full Verbose Schema Example
-  settings:
-    str: {type: ‘string’}
-    str_enum: {type: ‘string’, enum: [‘foo’, ‘bar’]}
-    str_long: {type: ‘string’, editor: ‘textarea’}
-    bool: {type: ‘boolean’}
-    int: {type: ‘integer’}
-    arr: {
-      type: ‘array’
-      legend: ‘foo’
-      items:
-        foo: {type: ‘string’}
-        bar: {type: ‘string’}
-    }
-    obj: {
-      type: ‘object’
-      properties:
-        foo: {type: ‘string’}
-        bar: {type: ‘string’}
-    }
+## Development Server
 
-3 Rules to simplify your syntax
- 1. if typeof value is a string, then that string is the type of that property.
- 2. if typeof value is an object, then that object is assumed to be type == ‘object’
- 3. if typeof value is an array, then that object is assumed to be type == ‘array’
+### Overview
+Development on the LessThan3 Platform is ran on live sites. By running a local
+server, your browser client can redirect loading code from your local server
+instead of production.  This allows you to run your code in an isolated sandbox
+or on production data.
 
-Let’s now look at the above example in our simplified syntax
-  settings:
-    str: ‘string’
-    str_enum: {type: ‘string’, enum: [‘foo’, ‘bar’]}
-    str_long: {type: ‘string’, editor: ‘textarea’}
-    bool: ‘boolean’
-    int: ‘integer’
-    arr: [
-      foo: {type: ‘string’, legend: true}
-      bar: ‘string’
-    ]
-    obj: {
-      foo: {type: ‘string’}
-      bar: {type: ‘string’}
-    }
-```
+Updating data is pushed live automatically for headers, footers, and pages.
+Apps can also choose to define their own real-time data update logic instead
+of the default though.
 
-# LessThan3 Development Server
+When running the development server, you get the benefit on hot code-pushes as
+well to speed up your efficiency while updating templates and stylesheets.
+
+Because the LessThan3 package routes are just express middleware, you have the
+ability to add any other custom functionality to your server that you want.
+
+### How It Works
+When you login to a site on the LessThan3 platform, it will check whether you
+are a developer or not.  If you are a developer, it checks if you have a local
+development server running.  If you do, it will connect your browser client to
+your development server, and refresh your applications as code is updated.
+
+### Example Server
 ```
 # dependencies
 express = require 'express'
@@ -287,50 +382,5 @@ app.listen pkg.config.port
 console.log "listening: #{pkg.config.port}"
 ```
 
-### Package Routes
-```
-# get package details
-http://localhost:3001/pkg/bryant-cool-app/0.1.1/package.json
-
-# get package javascript
-http://localhost:3001/pkg/bryant-cool-app/0.1.1/main.js
-
-# get package stylesheet
-http://localhost:3001/pkg/bryant-cool-app/0.1.1/style.css
-
-# get public/static file
-http://localhost:3001/pkg/bryant-cool-app/0.1.1/public/test.txt
-
-# make api call
-http://localhost:3001/pkg/bryant-cool-app/0.1.1/api/foo
-```
-
-## Example Package API
-```
-module.exports =
-  foo: ->
-    # this will cache /pkg/bryant-cool-app/0.1.1/api/foo
-    @cache {age: '10 minutes'}, (next) =>
-      next 'bar'
-
-  hello: ->
-    @res.send 'world'
-
-  ping: ->
-    # this will cache /pkg/bryant-cool-app/0.1.1/api/ping?hello=world
-    @cache {age: '10 minutes', qs: true}, (next) =>
-      next 'ack'
-```
-
-### Package API Call Context
-```
-{
-  cache: (options, next) ->
-    # options.age can be '10 minutes' or 600
-    # options.qs can be true|false to include the query params in the cache key
-    # passing data to "next" will cache and return the data
-  req: req
-  res: res
-}
-```
+### How It Works
 
