@@ -1,4 +1,4 @@
-# dependencies
+# Dependencies
 chokidar = require 'chokidar'
 CSON = require 'cson'
 Firebase = require 'firebase'
@@ -9,11 +9,11 @@ path = require 'path'
 wrap = require 'asset-wrap'
 
 
-# exports
+# Exports
 exports = module.exports = (cfg) ->
 
 
-  # settings
+  # Settings
   _cache = new LRU {max: 50, maxAge: 1000*60*5}
   prod = process.env.LT3_ENV == 'prod'
   logger = if prod then 'default' else 'dev'
@@ -22,12 +22,12 @@ exports = module.exports = (cfg) ->
   pkg_dir = cfg.pkg_dir or path.resolve "#{__dirname}/../../../pkg"
 
 
-  # local deveopment variables
+  # Local Deveopment Variables
   firebase = null
   user = null
 
 
-  # watch for file changes
+  # Watch For File Changes
   if not prod
     watcher = chokidar.watch pkg_dir, {
       ignored: /(^\.|\.swp$|\.tmp$|~$)/
@@ -46,10 +46,10 @@ exports = module.exports = (cfg) ->
         ref.set pkg
  
 
-  # middleware
+  # Middleware
   (req, res, next) ->
 
-    # helpers
+    # Helpers
     package_dir = (id, version) ->
       path.resolve "#{pkg_dir}/#{id}/#{version}"
 
@@ -109,17 +109,15 @@ exports = module.exports = (cfg) ->
       res.send code, msg
 
 
-    # routes
+    # Routes
     router = new express.Router()
 
-
-    # access control allow origin
+    # Access Control Allow Origin
     router.route 'GET', '*', (req, res, next) ->
       res.header "Access-Control-Allow-Origin", "*"
       next()
 
-
-    # development token
+    # Development Token
     router.route 'GET', '/local-dev/setToken', (req, res, next) ->
       token = req.query.token
       firebase = new Firebase 'https://lessthan3.firebaseio.com'
@@ -128,15 +126,13 @@ exports = module.exports = (cfg) ->
         user = req.query.user._id
         res.send 200
 
-
-    # package info
+    # Package Info
     router.route 'GET', '/pkg/:id/:version/package.json', (req, res, next) ->
       contentType 'application/json'
       cache {age: '10 minutes'}, (next) =>
         next read_package req.params.id, req.params.version
 
-
-    # package javascript
+    # Package Javascript
     router.route 'GET', '/pkg/:id/:version/main.js', (req, res, next) ->
       contentType 'text/javascript'
       cache {age: '10 minutes'}, (next) =>
@@ -144,6 +140,8 @@ exports = module.exports = (cfg) ->
           root = package_dir id, version
           pkg = read_package id, version
           js = []
+          
+          return js if not pkg
           if pkg.dependencies
             js = js.concat(build(k, v)) for k, v of pkg.dependencies
 
@@ -189,8 +187,7 @@ exports = module.exports = (cfg) ->
           catch err
             error 500, err.stack
 
-
-    # package stylesheet
+    # Package Stylesheet
     router.route 'GET', '/pkg/:id/:version/style.css', (req, res, next) ->
       contentType 'text/css'
       cache {age: '10 minutes'}, (next) =>
@@ -201,6 +198,8 @@ exports = module.exports = (cfg) ->
           pkg = read_package id, version
           pkg.main ?= {css: 'style.styl'}
           css = []
+
+          return css if not pkg
           if pkg.dependencies
             css = css.concat(build(k, v)) for k, v of pkg.dependencies
           if pkg.main.css
@@ -224,16 +223,14 @@ exports = module.exports = (cfg) ->
           catch err
             error 500, err.stack
 
-
-    # public/static files
+    # Public/Static Files
     router.route 'GET', '/pkg/:id/:version/public/*', (req, res, next) ->
       id = req.params.id
       version = req.params.version
       file = req.params[0]
       res.sendfile "#{package_dir id, version}/public/#{file}"
 
-
-    # api calls
+    # API Calls
     router.route 'GET', '/pkg/:id/:version/api/:method', (req, res, next) ->
       id = req.params.id
       method = req.params.method
@@ -247,6 +244,5 @@ exports = module.exports = (cfg) ->
         res: res
       }
 
-
-    # execute routes
+    # Execute Routes
     router._dispatch req, res, next
