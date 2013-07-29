@@ -1,6 +1,7 @@
 **v0.1.5** (2013-07-29)
 
  - prefer config.cson to package.cson
+ - add some example packages
 
 **v0.1.4** (2013-07-29)
 
