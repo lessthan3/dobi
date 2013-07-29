@@ -1,0 +1,22 @@
+{
+  author: 'Bryant Williams'
+  category: 'default'
+  changelog:
+    '0.1.0': 'image + link'
+    '0.1.1': 'add social buttons'
+    '0.1.2': 'use link instead of click event so links are more obvious'
+  contact: 'bryant@lessthan3.com'
+  dependencies:
+    'socialite': '2.0'
+  description: 'This application renders a static image app'
+  id: 'lt3-image-app'
+  name: 'Image Application'
+  pages:
+    index:
+      image: 'string'
+      social: {type: 'boolean', default: false}
+      twitter_text: 'string'
+      url: 'string'
+  type: 'app'
+  version: '0.1.2'
+}

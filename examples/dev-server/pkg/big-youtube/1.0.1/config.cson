@@ -1,0 +1,12 @@
+exports.package =
+  author: 'Bryant Williams'
+  changelog:
+    '1.0.1': 'initial import'
+  contact: 'b.n.williams@gmail.com'
+  id: 'big-youtube'
+  main:
+    js: 'main.coffee'
+    css: null
+  name: 'Big Youtube'
+  type: 'library'
+  version: '1.0.1'

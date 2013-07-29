@@ -270,7 +270,7 @@ class exports.App extends lt3.App
     div class: 'pages'
 ```
 
-package.cson
+config.cson
 ```
 {
   author: 'Bryant Williams'
@@ -329,7 +329,7 @@ class exports.Page extends lt3.Page
   #
   # load may be called prior to rendering if more data is needed.
   # by default, you will be provided with the data as specified in
-  # package.cson, but sometimes you need to query an external api for
+  # config.cson, but sometimes you need to query an external api for
   # extra data before rendering the page
   #
   # store any extra data in the @_ variable. This variable becomes the
@@ -376,7 +376,7 @@ header.coffee
 ```
 ```
 
-package.cson
+config.cson
 ```
 ```
 
@@ -389,7 +389,7 @@ footer.coffee
 ```
 ```
 
-package.cson
+config.cson
 ```
 ```
 
@@ -398,7 +398,7 @@ style.styl
 ```
 
 #### Theme
-package.cson
+config.cson
 ```
 ```
 

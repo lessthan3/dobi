@@ -55,6 +55,8 @@ exports = module.exports = (cfg) ->
 
     read_package = (id, version) ->
       root = package_dir id, version
+      if fs.existsSync "#{root}/config.cson"
+        return CSON.parseFileSync "#{root}/config.cson"
       if fs.existsSync "#{root}/package.cson"
         return CSON.parseFileSync "#{root}/package.cson"
       else if fs.existsSync "#{root}/package.coffee"

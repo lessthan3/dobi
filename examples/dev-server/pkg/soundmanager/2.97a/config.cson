@@ -1,0 +1,10 @@
+exports.package =
+  changelog:
+    '2.97a': 'initial import'
+  id: 'soundmanager'
+  main:
+    js: 'soundmanager2.js'
+    css: null
+  name: 'SoundManager'
+  type: 'library'
+  version: '2.97a'
