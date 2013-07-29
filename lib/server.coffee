@@ -240,6 +240,7 @@ exports = module.exports = (cfg) ->
       svr[method].apply {
         cache: cache
         error: error
+        query: req.query
         req: req
         res: res
       }

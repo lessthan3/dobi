@@ -249,6 +249,7 @@ module.exports =
     # options.age can be '10 minutes' or 600
     # options.qs can be true|false to include the query params in the cache key
     # passing data to "next" will cache and return the data
+  query: req.query
   req: req
   res: res
 }
