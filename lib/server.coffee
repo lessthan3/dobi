@@ -27,6 +27,20 @@ exports = module.exports = (cfg) ->
   user = null
 
 
+  # Helpers
+  package_dir = (id, version) ->
+    path.resolve "#{pkg_dir}/#{id}/#{version}"
+
+  read_package = (id, version) ->
+    root = package_dir id, version
+    if fs.existsSync "#{root}/config.cson"
+      return CSON.parseFileSync "#{root}/config.cson"
+    if fs.existsSync "#{root}/package.cson"
+      return CSON.parseFileSync "#{root}/package.cson"
+    else if fs.existsSync "#{root}/package.coffee"
+      return require("#{root}/package.coffee").package
+
+
   # Watch For File Changes
   if not prod
     watcher = chokidar.watch pkg_dir, {
@@ -50,18 +64,6 @@ exports = module.exports = (cfg) ->
   (req, res, next) ->
 
     # Helpers
-    package_dir = (id, version) ->
-      path.resolve "#{pkg_dir}/#{id}/#{version}"
-
-    read_package = (id, version) ->
-      root = package_dir id, version
-      if fs.existsSync "#{root}/config.cson"
-        return CSON.parseFileSync "#{root}/config.cson"
-      if fs.existsSync "#{root}/package.cson"
-        return CSON.parseFileSync "#{root}/package.cson"
-      else if fs.existsSync "#{root}/package.coffee"
-        return require("#{root}/package.coffee").package
-
     cacheHeaders = (age) ->
       val = "private, max-age=0, no-cache, no-store, must-revalidate"
       if useCache

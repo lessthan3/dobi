@@ -1,3 +1,7 @@
+**v0.1.6** (2013-07-30)
+
+ - move read_package higher up to fix watcher
+
 **v0.1.5** (2013-07-29)
 
  - prefer config.cson to package.cson
