@@ -1,3 +1,7 @@
+**v0.1.7** (2013-07-30)
+
+ - rename package to config. leaving package for backwards compatibility
+
 **v0.1.6** (2013-07-30)
 
  - move read_package higher up to fix watcher

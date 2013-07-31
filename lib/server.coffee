@@ -131,10 +131,16 @@ exports = module.exports = (cfg) ->
         res.send 200
 
     # Package Info
+    router.route 'GET', '/pkg/:id/:version/config.json', (req, res, next) ->
+      contentType 'application/json'
+      cache {age: '10 minutes'}, (next) =>
+        next read_package req.params.id, req.params.version
+
     router.route 'GET', '/pkg/:id/:version/package.json', (req, res, next) ->
       contentType 'application/json'
       cache {age: '10 minutes'}, (next) =>
         next read_package req.params.id, req.params.version
+
 
     # Package Javascript
     router.route 'GET', '/pkg/:id/:version/main.js', (req, res, next) ->
@@ -181,6 +187,7 @@ exports = module.exports = (cfg) ->
                 header += check(x) + check(y)
                 header += check(z) if a.pkg.type == 'app'
                 header += "#{y}.package = #{JSON.stringify a.pkg};"
+                header += "#{y}.config = #{JSON.stringify a.pkg};"
               a.data = a.data.replace 'exports.App', "#{y}.App"
               a.data = a.data.replace 'exports.Header', "#{y}.Header"
               a.data = a.data.replace 'exports.Footer', "#{y}.Footer"
