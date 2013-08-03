@@ -37,7 +37,7 @@ exports = module.exports = (cfg) ->
       return CSON.parseFileSync "#{root}/config.cson"
     if fs.existsSync "#{root}/package.cson"
       return CSON.parseFileSync "#{root}/package.cson"
-    else if fs.existsSync "#{root}/package.coffee"
+    if fs.existsSync "#{root}/package.coffee"
       return require("#{root}/package.coffee").package
 
 
@@ -122,7 +122,7 @@ exports = module.exports = (cfg) ->
       next()
 
     # Development Token
-    router.route 'GET', '/local-dev/setToken', (req, res, next) ->
+    router.route 'GET', '/connect', (req, res, next) ->
       token = req.query.token
       firebase = new Firebase 'https://lessthan3.firebaseio.com'
       firebase.auth token, (err, data) ->
@@ -149,9 +149,9 @@ exports = module.exports = (cfg) ->
         build = (id, version) ->
           root = package_dir id, version
           pkg = read_package id, version
+          return [] if not pkg
           js = []
           
-          return js if not pkg
           if pkg.dependencies
             js = js.concat(build(k, v)) for k, v of pkg.dependencies
 
@@ -207,10 +207,11 @@ exports = module.exports = (cfg) ->
         build = (id, version) ->
           root = package_dir id, version
           pkg = read_package id, version
+          return [] if not pkg
+
           pkg.main ?= {css: 'style.styl'}
           css = []
 
-          return css if not pkg
           if pkg.dependencies
             css = css.concat(build(k, v)) for k, v of pkg.dependencies
           if pkg.main.css

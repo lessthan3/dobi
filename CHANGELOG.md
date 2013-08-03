@@ -1,3 +1,8 @@
+**v0.1.8** (2013-08-03)
+
+ - watch out for errors in bad packages
+ - change /local-dev/setToken to /connect
+
 **v0.1.7** (2013-07-30)
 
  - rename package to config. leaving package for backwards compatibility

@@ -25,6 +25,8 @@
   - [Manage your packages](#manage-your-packages)
   - [Manage your production server](#manage-your-production-server)
  - [Deployment](#deployment)
+ - [Other Topics](#other-topics)
+  - [Coding Style Guide](#coding-style-guide)
 
 ## General Information
 
@@ -74,8 +76,16 @@ Contact bryant@lessthan3.com if you'd like more information on getting started.
   - http://learnboost.github.io/stylus/
   - http://visionmedia.github.io/nib/
   - CSS, SASS, and LESS will be supported in the future, but stylus/nib is encouraged
+ - learn coffeecup (coffee-script html templates)
+  - https://github.com/gradus/coffeecup
  - get a good text editor
-  - we recommend vim or sublime, but any editor/IDE could work
+  - vim
+    - stylus syntax highlighting
+    - coffee-script syntax highlighting
+  - Sublime Text 2 (http://www.sublimetext.com/2)
+    - Sidebar Enhancements (git clone -b st3 git://github.com/titoBouzout/SideBarEnhancements.git "SideBarEnhancements")
+    - Stylus Syntax Highlighting (https://gist.github.com/csanz/1076584)
+    - Coffee-Script syntax highlighting (https://gist.github.com/liamdon/2467603)
 
 ### LessThan3 Website Layout
 ```
@@ -586,5 +596,11 @@ included if the method is "amazon-s3" or "rackspace-cloudfiles".
 
 
 
+## Other Topics
+
+### Coding Style Guide
+
+ - coffee-script (https://github.com/polarmobile/coffeescript-style-guide)
+ - 
 
 
