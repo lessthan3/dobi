@@ -1,3 +1,7 @@
+**v0.1.9** (2013-08-03)
+
+  - return available local packages when connecting
+
 **v0.1.8** (2013-08-03)
 
  - watch out for errors in bad packages

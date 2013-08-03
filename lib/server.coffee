@@ -128,7 +128,13 @@ exports = module.exports = (cfg) ->
       firebase.auth token, (err, data) ->
         return res.send 400 if err
         user = req.query.user._id
-        res.send 200
+
+        pkg = {}
+        for i, id of fs.readdirSync pkg_dir
+          pkg[id] = {}
+          for i, version of fs.readdirSync "#{pkg_dir}/#{id}"
+            pkg[id][version] = 1
+        res.send pkg
 
     # Package Info
     router.route 'GET', '/pkg/:id/:version/config.json', (req, res, next) ->
