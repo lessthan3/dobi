@@ -107,14 +107,22 @@ Contact bryant@lessthan3.com if you'd like more information on getting started.
 
  - [node](http://nodejs.org/): javascript web server
   - LessThan3 servers and your local development server run on node.js 
+ - [backbone](http://backbonejs.org/): javascript MVC
+  - Lessthan3 Apps, Pages, Headers, and Footers are all backbone Views 
  - [bootstrap](http://getbootstrap.com/2.3.2/): front-end framework
   - it is encouraged to build your theme on top of bootstrap so all apps can take advantage of its features
  - [coffee-script](http://coffeescript.org/): a little language that compiles to javascript
   - [github](https://github.com/jashkenas/coffee-script)
   - [little book on coffee-script](http://arcturo.github.io/library/coffeescript/)
- - [coffeecup](https://github.com/gradus/coffeecup): html templating with coffe-script
+  - you can code in javascript, but coffee-script is strongly encouraged
+ - [coffeecup](https://github.com/gradus/coffeecup): html templating with coffee-script
+  - Views in LessThan3 have coffeecup built-in. it is strongly encouraged to utilize them 
  - [cson](https://github.com/bevry/cson): coffee-script object notation
+  - package config files use this syntax
+ - [head.js](http://headjs.com/): client-side javascript loader
+ - [modernizr](http://modernizr.com/): HTML5/CSS3 feature detection
  - [mongofb](https://github.com/scien/mongofb): MongoDB + Firebase = The LessThan3 Data-Store
+  - All data is accessed through mongofb. You can run custom queries to load extra data.
  - [nib](http://visionmedia.github.io/nib/): css3 extensions for stylus
  - [stylus](http://learnboost.github.io/stylus/): express, dynamic, robust CSS
  - [sublime text 2](http://www.sublimetext.com/2): a good text editor
