@@ -8,6 +8,7 @@
   - [Tools](#tools)
   - [Getting Started](#getting-started)
   - [LessThan3 Website Layout](#lessthan3-website-layout)
+  - [Resources](#resources)
  - [Packages](#packages)
   - [Types](#types)
   - [Configuration](#configuration)
@@ -101,6 +102,27 @@ Contact bryant@lessthan3.com if you'd like more information on getting started.
                 - page (current page rendered here)
         - footer (footer package rendered here)
 ```
+
+### Resources
+
+ - [node](http://nodejs.org/): javascript web server
+  - LessThan3 servers and your local development server run on node.js 
+ - [bootstrap](http://getbootstrap.com/2.3.2/): front-end framework
+  - it is encouraged to build your theme on top of bootstrap so all apps can take advantage of its features
+ - [coffee-script](http://coffeescript.org/): a little language that compiles to javascript
+  - [github](https://github.com/jashkenas/coffee-script)
+  - [little book on coffee-script](http://arcturo.github.io/library/coffeescript/)
+ - [coffeecup](https://github.com/gradus/coffeecup): html templating with coffe-script
+ - [cson](https://github.com/bevry/cson): coffee-script object notation
+ - [mongofb](https://github.com/scien/mongofb): MongoDB + Firebase = The LessThan3 Data-Store
+ - [nib](http://visionmedia.github.io/nib/): css3 extensions for stylus
+ - [stylus](http://learnboost.github.io/stylus/): express, dynamic, robust CSS
+ - [sublime text 2](http://www.sublimetext.com/2): a good text editor
+  - [stylus syntax highlighter](https://gist.github.com/liamdon/2467603)
+  - [coffee-script syntax highlighter](https://gist.github.com/liamdon/2467603)
+ - [vim](http://www.vim.org/): a fantastic text editor
+  - [stylus syntax highlighting](https://github.com/wavded/vim-stylus)
+  - [coffee-script syntax highlighting](https://github.com/kchmck/vim-coffee-script)
 
 ## Packages
 
