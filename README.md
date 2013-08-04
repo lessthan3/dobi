@@ -106,10 +106,11 @@ Contact bryant@lessthan3.com if you'd like more information on getting started.
 
 ### Types
 
- - app: An app is a dynamic section of code in the app
- - header: A header is static code at the top of the page
- - footer: A footer is static code at the bottom of the page
- - theme: A theme allows for full customization over the style of a site
+ - **app**: An app is a dynamic section of code in the app
+ - **header**: A header is static code at the top of the page
+ - **footer**: A footer is static code at the bottom of the page
+ - **theme**: A theme allows for full customization over the style of a site
+ - **library**: A library is any js/css you want
 
 ### Configuration
 ```
