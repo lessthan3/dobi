@@ -4,7 +4,7 @@
     "port": 3001
   },
   "dependencies": {
-    "asset-wrap": "0.3.3",
+    "asset-wrap": "0.3.x",
     "chokidar": "0.6.2",
     "coffee-script": "1.4.0",
     "cson": "1.4.2",

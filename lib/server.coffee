@@ -170,7 +170,9 @@ exports = module.exports = (cfg) ->
             js.push asset
 
           add "#{root}/main.coffee"
-          add "#{root}/#{pkg.type}.coffee"
+          add "#{root}/header.coffee"
+          add "#{root}/footer.coffee"
+          add "#{root}/app.coffee"
           add "#{root}/#{pkg.main?.js}"
           if pkg.type == 'app' and pkg.pages
             for type of pkg.pages
