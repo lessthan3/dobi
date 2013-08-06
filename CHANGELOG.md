@@ -1,3 +1,7 @@
+**v0.1.10** (2013-08-06)
+
+ - update asset-wrap
+
 **v0.1.9** (2013-08-03)
 
   - return available local packages when connecting
