@@ -137,16 +137,14 @@ Contact bryant@lessthan3.com if you'd like more information on getting started.
 ### Types
 
  - **app**: An app is a dynamic section of code in the app
- - **header**: A header is static code at the top of the page
- - **footer**: A footer is static code at the bottom of the page
- - **theme**: A theme allows for full customization over the style of a site
+ - **theme**: A theme allows for full customization over the style of a site as well as the header and footer elements
  - **library**: A library is any js/css you want
 
 ### Configuration
 ```
 {
   author: 'Your Name'
-  category: 'footer'
+  category: 'app'
   changelog:
     'major.minor.patch': ‘initial commit'
   contact: ‘me@domain.com'
@@ -427,33 +425,6 @@ class exports.Page extends lt3.Page
 
     div class: 'content', ->
       @content
-```
-
-#### Header
-
-header.coffee
-```
-```
-
-config.cson
-```
-```
-
-style.styl
-```
-```
-
-#### Footer
-footer.coffee
-```
-```
-
-config.cson
-```
-```
-
-style.styl
-```
 ```
 
 #### Theme
