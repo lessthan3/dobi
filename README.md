@@ -303,14 +303,10 @@ module.exports =
     - [jQuery-timeago](https://github.com/lessthan3/lessthan3/tree/master/examples/dev-server/pkg/jquery-timeago/1.1.0)
     - [soundmanager](https://github.com/lessthan3/lessthan3/tree/master/examples/dev-server/pkg/soundmanager/2.97a)
     - [big-youtube](https://github.com/lessthan3/lessthan3/tree/master/examples/dev-server/pkg/big-youtube/1.0.1)
-  - headers
-    - [lt3-basic-header](https://github.com/lessthan3/lessthan3/tree/master/examples/dev-server/pkg/lt3-basic-header/0.1.1)
   - apps
     - [lt3-image-app](https://github.com/lessthan3/lessthan3/tree/master/examples/dev-server/pkg/lt3-image-app/0.1.2)
     - [lt3-survey-monkey](https://github.com/lessthan3/lessthan3/tree/master/examples/dev-server/pkg/lt3-survey-monkey/0.1.0)
     - [lt3-beatport-app](https://github.com/lessthan3/lessthan3/tree/master/examples/dev-server/pkg/lt3-beatport-app/0.1.6)
-  - footers
-    - Coming Soon!
   - themes
     - Coming Soon!
 

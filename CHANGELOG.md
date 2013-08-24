@@ -1,3 +1,7 @@
+**v0.1.12** (2013-08-24)
+
+ - bug fixes
+
 **v0.1.11** (2013-08-24)
 
  - allow package api calls to be GET or POST

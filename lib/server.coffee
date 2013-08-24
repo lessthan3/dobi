@@ -186,13 +186,15 @@ exports = module.exports = (cfg) ->
           try
             header = ""
             for a in js.assets
+              v = "window.lt3"
+              w = "lt3.pkg"
               x = "lt3.pkg['#{a.pkg.id}']"
               y = "#{x}['#{a.pkg.version}']"
               z = "#{y}.Pages"
 
               check = (str) -> ";if(#{str}==null){#{str}={};};"
               if not a.page
-                header += check(x) + check(y)
+                header += check(v) + check(w) + check(x) + check(y)
                 header += check(z) if a.pkg.type == 'app'
                 header += "#{y}.package = #{JSON.stringify a.pkg};"
                 header += "#{y}.config = #{JSON.stringify a.pkg};"
@@ -232,6 +234,7 @@ exports = module.exports = (cfg) ->
 
         css = new wrap.Assets build(req.params.id, req.params.version), {
           compress: useCompression
+          vars: req.query
         }, (err) =>
           return error 500, err.toString() if err
           try
