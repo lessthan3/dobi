@@ -88,6 +88,9 @@ exports = module.exports = (cfg) ->
         fn = options
         options = {age: '10 minutes'}
 
+      if typeof options is 'string'
+        options = {age: options}
+
       # headers
       cacheHeaders options.age
 
@@ -211,7 +214,7 @@ exports = module.exports = (cfg) ->
     # Package Stylesheet
     router.route 'GET', '/pkg/:id/:version/style.css', (req, res, next) ->
       contentType 'text/css'
-      cache {age: '10 minutes'}, (next) =>
+      cache {age: '10 minutes', qs: true}, (next) =>
         # todo: build dependency graph to not have double imports
         # or import in the wrong order
         build = (id, version) ->

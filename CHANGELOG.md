@@ -1,3 +1,7 @@
+**v0.1.13** (2013-08-26)
+
+ - allow string parameter to cache (assumes string is age)
+
 **v0.1.12** (2013-08-24)
 
  - bug fixes
