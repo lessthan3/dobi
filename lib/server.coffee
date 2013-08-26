@@ -259,7 +259,7 @@ exports = module.exports = (cfg) ->
     # API Calls
     apiCallHandler = (req, res, next) ->
       id = req.params.id
-      method = req.params.method
+      method = req.params[0]
       version = req.params.version
       svr = require "#{package_dir id, version}/api.coffee"
       return error 404 if not svr?[method]
@@ -270,8 +270,8 @@ exports = module.exports = (cfg) ->
         req: req
         res: res
       }
-    router.route 'GET', '/pkg/:id/:version/api/:method', apiCallHandler
-    router.route 'POST', '/pkg/:id/:version/api/:method', apiCallHandler
+    router.route 'GET', '/pkg/:id/:version/api/*', apiCallHandler
+    router.route 'POST', '/pkg/:id/:version/api/*', apiCallHandler
 
     # Execute Routes
     router._dispatch req, res, next

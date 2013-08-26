@@ -1,3 +1,7 @@
+**v0.1.14** (2013-08-26)
+
+ - fix api method routing
+
 **v0.1.13** (2013-08-26)
 
  - allow string parameter to cache (assumes string is age)
