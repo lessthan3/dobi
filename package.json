@@ -9,7 +9,7 @@
     "coffee-script": "1.4.0",
     "cson": "1.4.2",
     "express": "3.3.3",
-    "firebase": "0.5.x",
+    "firebase": "0.6.x",
     "lru-cache": "2.3.0"
   },
   "description": "LessThan3 Custom Package Repository",
@@ -19,5 +19,5 @@
     "type": "git",
     "url": "git://github.com/lessthan3/lessthan3.git"
   },
-  "version": "0.1.14"
+  "version": "0.1.15"
 }

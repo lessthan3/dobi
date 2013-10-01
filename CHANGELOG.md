@@ -1,3 +1,7 @@
+**v0.1.15** (2013-10-01)
+
+ - bump firebase version to 0.6.x
+
 **v0.1.14** (2013-08-26)
 
  - fix api method routing
