@@ -238,6 +238,7 @@ exports = module.exports = (cfg) ->
         css = new wrap.Assets build(req.params.id, req.params.version), {
           compress: useCompression
           vars: req.query
+          vars_prefix: '$'
         }, (err) =>
           return error 500, err.toString() if err
           try

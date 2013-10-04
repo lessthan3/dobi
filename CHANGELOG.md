@@ -1,3 +1,7 @@
+**v0.1.16** (2013-10-04)
+
+ - use $ for prefix on stylus variables
+
 **v0.1.15** (2013-10-01)
 
  - bump firebase version to 0.6.x
