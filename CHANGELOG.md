@@ -1,3 +1,7 @@
+**v0.2.0** (2013-10-04)
+
+ - bump asset-wrap to 0.4.x
+
 **v0.1.16** (2013-10-04)
 
  - use $ for prefix on stylus variables
