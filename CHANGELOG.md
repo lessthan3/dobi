@@ -1,3 +1,7 @@
+**v0.2.1** (2013-10-07)
+
+ - begin work on CLI
+
 **v0.2.0** (2013-10-04)
 
  - bump asset-wrap to 0.4.x

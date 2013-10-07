@@ -1,8 +1,24 @@
 {
-  "author": "Bryant Williams <b.n.williams@gmail.com>",
+  "author": {
+    "name": "Bryant Williams",
+    "email": "b.n.williams@gmail.com"
+  },
+  "bin": {
+    "lt3": "./bin/lt3"
+  },
+  "bugs": {
+    "url": "https://github.com/lessthan3/lessthan3/issues",
+    "email": "bryant@lessthan3.com"
+  },
   "config": {
     "port": 3001
   },
+  "contributors": [
+    {
+      "name": "Bryant Williams",
+      "email": "b.n.williams@gmail.com"
+    }
+  ],
   "dependencies": {
     "asset-wrap": "0.4.x",
     "chokidar": "0.6.2",
@@ -10,14 +26,22 @@
     "cson": "1.4.2",
     "express": "3.3.3",
     "firebase": "0.6.x",
-    "lru-cache": "2.3.0"
+    "lru-cache": "2.3.0",
+    "optimist": "0.6.x"
   },
-  "description": "LessThan3 Custom Package Repository",
+  "description": "LessThan3 Developer Tools",
+  "directories": {
+    "lib": "./lib",
+    "bin": "./bin"
+  },
+  "homepage": "http://dev.lessthan3.com",
+  "keywords": "lessthan3",
   "main": "./lib/server",
   "name": "lessthan3",
+  "preferGlobal": true,
   "repository": {
     "type": "git",
     "url": "git://github.com/lessthan3/lessthan3.git"
   },
-  "version": "0.2.0"
+  "version": "0.2.1"
 }
