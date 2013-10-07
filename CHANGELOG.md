@@ -1,3 +1,7 @@
+**v0.2.3** (2013-10-07)
+
+ - add starting dev server to CLI
+
 **v0.2.2** (2013-10-07)
 
  - fix path to binary in package.json
