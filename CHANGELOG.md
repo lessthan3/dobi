@@ -1,3 +1,7 @@
+**v0.2.2** (2013-10-07)
+
+ - fix path to binary in package.json
+
 **v0.2.1** (2013-10-07)
 
  - begin work on CLI

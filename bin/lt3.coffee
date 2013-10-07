@@ -57,10 +57,10 @@ confirm = (msg, next) ->
   rl.question "#{msg}? [y/n] ", (answer) ->
     if answer.match(/^y(es)?$/i) then next() else exit()
 
-exit = ->
+exit = (bye=true)->
   #console.log 'so long, and thanks for all the fish'
   #console.log 'slatfatf'
-  console.log 'bye'
+  console.log('bye') if bye
   process.exit()
 
 
@@ -78,7 +78,8 @@ argv = optimist.argv
 main = ->
   command = argv._[0]
   if argv.help or not command
-    return optimist.showHelp()
+    optimist.showHelp()
+    exit false
 
   switch command
     when 'auth:login'
@@ -98,11 +99,11 @@ main = ->
         user.auth.token_expires = user.expires
         config.user = user.auth
         writeConfig config
-        process.exit()
+        exit()
     when 'auth:whoami'
       isLoggedIn ->
         console.log config.user
-        process.exit()
+        exit()
     when 'pkg:download'
       console.log 'start'
     when 'init'
