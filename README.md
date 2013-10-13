@@ -1,5 +1,9 @@
 # LessThan3 Development Kit
 
+## Documentation
+
+http://dev.lessthan3.com
+
 ## Table of Contents
 
  - [General Information](#general-information)

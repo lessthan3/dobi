@@ -1,3 +1,7 @@
+**v0.2.4** (in progress)
+
+ - fix non-package files in pkg (ex: .DS_STORE)
+
 **v0.2.3** (2013-10-07)
 
  - add starting dev server to CLI
