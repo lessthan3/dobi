@@ -135,8 +135,10 @@ exports = module.exports = (cfg) ->
         pkg = {}
         for i, id of fs.readdirSync pkg_dir
           pkg[id] = {}
-          for i, version of fs.readdirSync "#{pkg_dir}/#{id}"
-            pkg[id][version] = 1
+          pkg_path = "#{pkg_dir}/#{id}"
+          if fs.lstatSync(pkg_path).isDirectory()
+            for i, version of fs.readdirSync pkg_path
+              pkg[id][version] = 1
         res.send pkg
 
     # Package Info
