@@ -1,5 +1,6 @@
-**v0.2.4** (in progress)
+**v0.2.4** (2013-10-13)
 
+ - report error information in the console
  - fix non-package files in pkg (ex: .DS_STORE)
 
 **v0.2.3** (2013-10-07)

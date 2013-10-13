@@ -46,10 +46,10 @@ exports = module.exports = (cfg) ->
     watcher = chokidar.watch pkg_dir, {
       ignored: /(^\.|\.swp$|\.tmp$|~$)/
     }
-    watcher.on 'change', (path) ->
-      path = path.replace pkg_dir, ''
+    watcher.on 'change', (filepath) ->
+      filepath = filepath.replace pkg_dir, ''
       re = /^[\/\\]([^\/\\]*)[\/\\]([^\/\\]*)[\/\\].*$/
-      [path, id, version] = path.match(re) or []
+      [filepath, id, version] = filepath.match(re) or []
       console.log "#{id} v#{version} updated"
       if user
         pkg = read_package id, version
@@ -113,7 +113,18 @@ exports = module.exports = (cfg) ->
           when 400 then msg = 'Bad Request'
           when 404 then msg = 'Page Not Found'
           when 500 then msg = 'Internal Server Error'
+
+      console.error """
+
+      === ERROR: #{code} ===
+      """
       res.send code, msg
+      console.error """
+      ===
+      #{msg}
+      === END ERROR ===
+      
+      """
 
 
     # Routes
@@ -129,7 +140,7 @@ exports = module.exports = (cfg) ->
       token = req.query.token
       firebase = new Firebase 'https://lessthan3.firebaseio.com'
       firebase.auth token, (err, data) ->
-        return res.send 400 if err
+        return error 400 if err
         user = req.query.user._id
 
         pkg = {}
@@ -257,7 +268,12 @@ exports = module.exports = (cfg) ->
       id = req.params.id
       version = req.params.version
       file = req.params[0]
-      res.sendfile "#{package_dir id, version}/public/#{file}"
+      filepath = "#{package_dir id, version}/public/#{file}"
+      fs.exists filepath, (exists) ->
+        if exists
+          res.sendfile filepath
+        else
+          error 404, "File #{file} does not exists"
 
     # API Calls
     apiCallHandler = (req, res, next) ->
