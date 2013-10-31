@@ -136,21 +136,22 @@ exports = module.exports = (cfg) ->
       next()
 
     # Development Token
-    router.route 'GET', '/connect', (req, res, next) ->
-      token = req.query.token
-      firebase = new Firebase 'https://lessthan3.firebaseio.com'
-      firebase.auth token, (err, data) ->
-        return error 400 if err
-        user = req.query.user._id
+    if not prod
+      router.route 'GET', '/connect', (req, res, next) ->
+        token = req.query.token
+        firebase = new Firebase 'https://lessthan3.firebaseio.com'
+        firebase.auth token, (err, data) ->
+          return error 400 if err
+          user = req.query.user._id
 
-        pkg = {}
-        for i, id of fs.readdirSync pkg_dir
-          pkg[id] = {}
-          pkg_path = "#{pkg_dir}/#{id}"
-          if fs.lstatSync(pkg_path).isDirectory()
-            for i, version of fs.readdirSync pkg_path
-              pkg[id][version] = 1
-        res.send pkg
+          pkg = {}
+          for i, id of fs.readdirSync pkg_dir
+            pkg[id] = {}
+            pkg_path = "#{pkg_dir}/#{id}"
+            if fs.lstatSync(pkg_path).isDirectory()
+              for i, version of fs.readdirSync pkg_path
+                pkg[id][version] = 1
+          res.send pkg
 
     # Package Info
     router.route 'GET', '/pkg/:id/:version/config.json', (req, res, next) ->

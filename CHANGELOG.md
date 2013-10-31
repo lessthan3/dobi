@@ -1,3 +1,8 @@
+**v0.2.5** (2013-10-30)
+
+ - add public directory to dev server
+ - dont add connect path on prod
+
 **v0.2.4** (2013-10-13)
 
  - report error information in the console

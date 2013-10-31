@@ -4,6 +4,7 @@
     "email": "b.n.williams@gmail.com"
   },
   "bin": {
+    "lpm": "./bin/lpm.coffee"
     "lt3": "./bin/lt3.coffee"
   },
   "bugs": {
