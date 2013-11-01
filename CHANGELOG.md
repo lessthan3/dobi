@@ -1,4 +1,8 @@
-**v0.2.5** (2013-10-30)
+**v0.2.6** (2013-11-01)
+
+ - watch out for custom main.js in config
+
+**v0.2.5** (2013-11-01)
 
  - dont add connect path on prod
  - add version command to binaries

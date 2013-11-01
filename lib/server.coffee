@@ -177,13 +177,15 @@ exports = module.exports = (cfg) ->
           add = (src, page=null) ->
             return unless src
             return unless fs.existsSync src
+            return unless fs.lstatSync(src).isFile()
             asset = new wrap.Snockets {src: src}
             asset.pkg = pkg
             asset.page = page
             js.push asset
 
-          paths = ['main', 'header', 'footer', 'app', pkg.main?.js]
+          paths = ['main', 'header', 'footer', 'app']
           add path.join(root, "#{p}.coffee") for p in paths
+          add path.join(root, pkg.main?.js)
 
           if pkg.type == 'app' and pkg.pages
             for type of pkg.pages
