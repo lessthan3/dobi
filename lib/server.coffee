@@ -19,7 +19,7 @@ exports = module.exports = (cfg) ->
   logger = if prod then 'default' else 'dev'
   useCache = prod
   useCompression = prod
-  pkg_dir = cfg.pkg_dir or path.resolve "#{__dirname}/../../../pkg"
+  pkg_dir = cfg.pkg_dir or path.join __dirname, '..', '..', '..', 'pkg'
 
 
   # Local Deveopment Variables
@@ -29,20 +29,16 @@ exports = module.exports = (cfg) ->
 
   # Helpers
   package_dir = (id, version) ->
-    path.resolve "#{pkg_dir}/#{id}/#{version}"
+    path.join pkg_dir, id, version
 
   read_package = (id, version) ->
     root = package_dir id, version
-    if fs.existsSync "#{root}/config.cson"
-      return CSON.parseFileSync "#{root}/config.cson"
-    if fs.existsSync "#{root}/package.cson"
-      return CSON.parseFileSync "#{root}/package.cson"
-    if fs.existsSync "#{root}/package.coffee"
-      return require("#{root}/package.coffee").package
+    f = path.join root, 'config.cson'
+    CSON.parseFileSync f if fs.existsSync f
 
 
   # Watch For File Changes
-  if not prod
+  unless prod
     watcher = chokidar.watch pkg_dir, {
       ignored: /(^\.|\.swp$|\.tmp$|~$)/
     }
@@ -53,7 +49,7 @@ exports = module.exports = (cfg) ->
       console.log "#{id} v#{version} updated"
       if user
         pkg = read_package id, version
-        return if not pkg
+        return unless pkg
         delete pkg.changelog
         ref = firebase.child "users/#{user}/developer/listener"
         pkg.modified = Date.now()
@@ -84,7 +80,7 @@ exports = module.exports = (cfg) ->
 
     cache = (options, fn) ->
       # options
-      if not fn
+      unless fn
         fn = options
         options = {age: '10 minutes'}
 
@@ -108,7 +104,7 @@ exports = module.exports = (cfg) ->
       res.set 'Content-Type', type
 
     error = (code, msg) ->
-      if not msg
+      unless msg
         switch code
           when 400 then msg = 'Bad Request'
           when 404 then msg = 'Page Not Found'
@@ -136,7 +132,7 @@ exports = module.exports = (cfg) ->
       next()
 
     # Development Token
-    if not prod
+    unless prod
       router.route 'GET', '/connect', (req, res, next) ->
         token = req.query.token
         firebase = new Firebase 'https://lessthan3.firebaseio.com'
@@ -148,9 +144,9 @@ exports = module.exports = (cfg) ->
           for i, id of fs.readdirSync pkg_dir
             pkg[id] = {}
             pkg_path = "#{pkg_dir}/#{id}"
-            if fs.lstatSync(pkg_path).isDirectory()
-              for i, version of fs.readdirSync pkg_path
-                pkg[id][version] = 1
+            continue unless fs.lstatSync(pkg_path).isDirectory()
+            for i, version of fs.readdirSync pkg_path
+              pkg[id][version] = 1
           res.send pkg
 
     # Package Info
@@ -172,28 +168,26 @@ exports = module.exports = (cfg) ->
         build = (id, version) ->
           root = package_dir id, version
           pkg = read_package id, version
-          return [] if not pkg
+          return [] unless pkg
           js = []
           
           if pkg.dependencies
             js = js.concat(build(k, v)) for k, v of pkg.dependencies
 
           add = (src, page=null) ->
-            return if not src
-            return if not fs.existsSync src
+            return unless src
+            return unless fs.existsSync src
             asset = new wrap.Snockets {src: src}
             asset.pkg = pkg
             asset.page = page
             js.push asset
 
-          add "#{root}/main.coffee"
-          add "#{root}/header.coffee"
-          add "#{root}/footer.coffee"
-          add "#{root}/app.coffee"
-          add "#{root}/#{pkg.main?.js}"
+          paths = ['main', 'header', 'footer', 'app', pkg.main?.js]
+          add path.join(root, "#{p}.coffee") for p in paths
+
           if pkg.type == 'app' and pkg.pages
             for type of pkg.pages
-              add "#{root}/pages/#{type}.coffee", type
+              add path.join(root, 'pages', "#{type}.coffee"), type
           js
 
         js = new wrap.Assets build(req.params.id, req.params.version), {
@@ -210,7 +204,7 @@ exports = module.exports = (cfg) ->
               z = "#{y}.Pages"
 
               check = (str) -> ";if(#{str}==null){#{str}={};};"
-              if not a.page
+              unless a.page
                 header += check(v) + check(w) + check(x) + check(y)
                 header += check(z) if a.pkg.type == 'app'
                 header += "#{y}.package = #{JSON.stringify a.pkg};"
@@ -234,7 +228,7 @@ exports = module.exports = (cfg) ->
         build = (id, version) ->
           root = package_dir id, version
           pkg = read_package id, version
-          return [] if not pkg
+          return [] unless pkg
 
           pkg.main ?= {css: 'style.styl'}
           css = []
@@ -243,7 +237,7 @@ exports = module.exports = (cfg) ->
             css = css.concat(build(k, v)) for k, v of pkg.dependencies
           if pkg.main.css
             asset = new wrap.Stylus {
-              src: "#{root}/#{pkg.main.css}"
+              src: path.join root, pkg.main.css
             }
             asset.pkg = pkg
             css.push asset
@@ -269,7 +263,7 @@ exports = module.exports = (cfg) ->
       id = req.params.id
       version = req.params.version
       file = req.params[0]
-      filepath = "#{package_dir id, version}/public/#{file}"
+      filepath = path.join "#{package_dir id, version}", 'public', file
       fs.exists filepath, (exists) ->
         if exists
           res.sendfile filepath
@@ -281,8 +275,8 @@ exports = module.exports = (cfg) ->
       id = req.params.id
       method = req.params[0]
       version = req.params.version
-      svr = require "#{package_dir id, version}/api.coffee"
-      return error 404 if not svr?[method]
+      svr = require path.join "#{package_dir id, version}", 'api.coffee'
+      return error 404 unless svr?[method]
       svr[method].apply {
         cache: cache
         error: error

@@ -1,5 +1,13 @@
 #!/usr/bin/env coffee
 
+###
+# Package Management for LessThan3 platform development
+#   - install existing packages
+#   - create new packages
+#   - deploy packages
+###
+
+
 # dependencies
 optimist = require 'optimist'
 CSON = require 'CSON'
@@ -20,6 +28,7 @@ where <command> [command-specific-options] is one of:
   info id
   install id[@version]
   publish id[@version]
+  version
 """
 
 rl = readline.createInterface {
@@ -89,6 +98,10 @@ main = ->
       console.log 'not yet available: install'
     when 'publish'
       console.log 'not yet available: publish'
+    when 'version'
+      pkg = require path.join '..', 'package'
+      console.log pkg.version
+      exit ''
     else
       exit()
       

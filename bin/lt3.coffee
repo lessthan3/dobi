@@ -1,10 +1,18 @@
 #!/usr/bin/env coffee
 
+###
+# Project Management for LessThan3 platform development
+#   - authenticate
+#   - create new websites/apps/pages
+#   - run a development server
+###
+
 # dependencies
 optimist = require 'optimist'
 CSON = require 'CSON'
 Firebase = require 'firebase'
 fs = require 'fs'
+path = require 'path'
 readline = require 'readline'
 
 
@@ -17,13 +25,12 @@ USAGE = """
 Usage: lt3 <command> [command-specific-options]
 
 where <command> [command-specific-options] is one of:
-  init
   auth:login
   auth:setToken -t TOKEN
   auth:whoami
   dev
-  theme:install
-  app:install
+  init
+  version
 """
 
 rl = readline.createInterface {
@@ -69,8 +76,8 @@ exit = (bye=true)->
 runDevServer = ->
   # dependencies
   express = require 'express'
-  lessthan3 = require '../lib/server'
-  pkg = require '../package'
+  lessthan3 = require path.join '..', 'lib', 'server'
+  pkg = require path.join '..', 'package'
 
   # configuration
   app = express()
@@ -80,7 +87,7 @@ runDevServer = ->
   app.use express.cookieParser()
   app.use express.static "#{CWD}/public", {maxAge: 604800000}
   app.use lessthan3 {
-    pkg_dir: "#{CWD}/pkg"
+    pkg_dir: path.join CWD, 'pkg'
   }
   app.use app.router
   app.use express.errorHandler {dumpExceptions: true, showStack: true}
@@ -112,7 +119,7 @@ main = ->
       console.log """
         1. go to http://www.lessthan3.com
         2. open javascript console
-        3. lt3.app.login(function(err, user){console.log(user.get('token').val());});
+        3. app.login(function(err, user){console.log(user.get('token').val());});
         4. copy token
         5. come back to terminal
         6. lt3 auth:setToken PASTE_TOKEN
@@ -130,16 +137,18 @@ main = ->
       isLoggedIn ->
         console.log config.user
         exit()
-    when 'pkg:download'
-      console.log 'start'
     when 'init'
       console.log 'initializing project'
       msg = "Are you sure you want to create a project in #{CWD}"
       confirm msg, ->
-        fs.mkdirSync "#{CWD}/pkg"
+        fs.mkdirSync path.join CWD, 'pkg'
         console.log 'confirmed'
     when 'dev'
       runDevServer()
+    when 'version'
+      pkg = require path.join '..', 'package'
+      console.log pkg.version
+      exit ''
     else
       exit()
       

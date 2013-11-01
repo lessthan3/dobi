@@ -1,7 +1,9 @@
 **v0.2.5** (2013-10-30)
 
- - add public directory to dev server
  - dont add connect path on prod
+ - add version command to binaries
+ - make paths Windows safe
+ - remove package.cson and package.coffee support
 
 **v0.2.4** (2013-10-13)
 
