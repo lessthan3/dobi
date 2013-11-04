@@ -1,3 +1,7 @@
+**v0.2.7** (2013-11-04)
+
+ - add req.body shortcut
+
 **v0.2.6** (2013-11-01)
 
  - watch out for custom main.js in config

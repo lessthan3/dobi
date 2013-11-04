@@ -1,0 +1,28 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'node', '/usr/local/bin/npm', 'install', '-g', '.' ]
+2 info using npm@1.2.2
+3 info using node@v0.8.18
+4 verbose read json /usr/local/lib/package.json
+5 verbose read json /usr/local/lib/package.json
+6 verbose cache add [ '.', null ]
+7 verbose cache add name=undefined spec="." args=[".",null]
+8 verbose parsed url { pathname: '.', path: '.', href: '.' }
+9 silly lockFile 3a52ce78- .
+10 verbose lock . /Users/bryant/.npm/3a52ce78-.lock
+11 verbose read json package.json
+12 silly lockFile 3a52ce78- .
+13 error addLocal Could not install .
+14 error Error: ENOENT, open 'package.json'
+15 error If you need help, you may report this log at:
+15 error     <http://github.com/isaacs/npm/issues>
+15 error or email it to:
+15 error     <npm-@googlegroups.com>
+16 error System Darwin 11.4.2
+17 error command "node" "/usr/local/bin/npm" "install" "-g" "."
+18 error cwd /Users/bryant/dev/lessthan3/lessthan3/lib
+19 error node -v v0.8.18
+20 error npm -v 1.2.2
+21 error path package.json
+22 error code ENOENT
+23 error errno 34
+24 verbose exit [ 34, true ]
