@@ -280,7 +280,7 @@ exports = module.exports = (cfg) ->
       svr = require path.join "#{package_dir id, version}", 'api.coffee'
       return error 404 unless svr?[method]
       svr[method].apply {
-        box: req.body
+        body: req.body
         cache: cache
         error: error
         query: req.query

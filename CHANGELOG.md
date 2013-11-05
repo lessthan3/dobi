@@ -1,3 +1,7 @@
+**v0.2.8** (2013-11-04)
+
+ - typo in last update
+
 **v0.2.7** (2013-11-04)
 
  - add req.body shortcut
