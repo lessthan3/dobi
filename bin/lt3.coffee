@@ -143,6 +143,7 @@ main = ->
       confirm msg, ->
         fs.mkdirSync path.join CWD, 'pkg'
         console.log 'confirmed'
+        exit()
     when 'dev'
       runDevServer()
     when 'version'

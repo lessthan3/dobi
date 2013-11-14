@@ -1,6 +1,7 @@
 **v0.2.9** (in progress)
 
  - lowercase import for cson
+ - exit process after lt3 init
 
 **v0.2.8** (2013-11-04)
 
