@@ -10,7 +10,7 @@
 
 # dependencies
 optimist = require 'optimist'
-CSON = require 'CSON'
+CSON = require 'cson'
 Firebase = require 'firebase'
 fs = require 'fs'
 readline = require 'readline'

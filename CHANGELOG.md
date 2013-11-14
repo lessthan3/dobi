@@ -1,3 +1,7 @@
+**v0.2.9** (in progress)
+
+ - lowercase import for cson
+
 **v0.2.8** (2013-11-04)
 
  - typo in last update
