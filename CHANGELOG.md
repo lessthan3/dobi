@@ -1,7 +1,9 @@
-**v0.2.9** (in progress)
+**v0.2.9** (2013-12-02)
 
+ - fix path.join error for node 0.10.x
  - lowercase import for cson
  - exit process after lt3 init
+ - add basic create:entity support
 
 **v0.2.8** (2013-11-04)
 
