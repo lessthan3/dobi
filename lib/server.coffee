@@ -54,7 +54,7 @@ exports = module.exports = (cfg) ->
         ref = firebase.child "users/#{user}/developer/listener"
         pkg.modified = Date.now()
         ref.set pkg
- 
+
 
   # Middleware
   (req, res, next) ->
@@ -119,7 +119,7 @@ exports = module.exports = (cfg) ->
       ===
       #{msg}
       === END ERROR ===
-      
+
       """
 
 
@@ -170,7 +170,7 @@ exports = module.exports = (cfg) ->
           pkg = read_package id, version
           return [] unless pkg
           js = []
-          
+
           if pkg.dependencies
             js = js.concat(build(k, v)) for k, v of pkg.dependencies
 
@@ -185,7 +185,7 @@ exports = module.exports = (cfg) ->
 
           paths = ['main', 'header', 'footer', 'app']
           add path.join(root, "#{p}.coffee") for p in paths
-          add path.join(root, pkg.main?.js)
+          add path.join(root, pkg.main?.js or '')
 
           if pkg.type == 'app' and pkg.pages
             for type of pkg.pages
