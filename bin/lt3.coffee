@@ -12,6 +12,7 @@ optimist = require 'optimist'
 CSON = require 'cson'
 Firebase = require 'firebase'
 fs = require 'fs'
+mongofb = require 'mongofb'
 path = require 'path'
 readline = require 'readline'
 
@@ -28,6 +29,7 @@ where <command> [command-specific-options] is one of:
   auth:login
   auth:setToken -t TOKEN
   auth:whoami
+  create:entity
   dev
   init
   version
@@ -56,6 +58,7 @@ getFirebaseTime = (next) ->
     next Date.now() + offset
 
 isLoggedIn = (next) ->
+  console.log 'authenticating'
   if not config.user
     throw "You must login. lt3 auth:login"
   getFirebaseTime (server_time) ->
@@ -67,12 +70,22 @@ confirm = (msg, next) ->
   rl.question "#{msg}? [y/n] ", (answer) ->
     if answer.match(/^y(es)?$/i) then next() else exit()
 
-exit = (bye=true)->
-  #console.log 'so long, and thanks for all the fish'
-  #console.log 'slatfatf'
-  console.log('bye') if bye
+exit = (msg='bye')->
+  console.log(msg)
   process.exit()
 
+getDB = (next) =>
+  isLoggedIn ->
+    console.log 'connecting to database'
+    client = mongofb.client
+    db = new mongofb.client.Database {
+      server: 'http://www.lessthan3.com/db/1.0'
+      firebase: 'https://lessthan3.firebaseio.com'
+    }
+    db.cache = false
+    db.auth config.user.token, ->
+      next db
+  
 runDevServer = ->
   # dependencies
   express = require 'express'
@@ -137,6 +150,33 @@ main = ->
       isLoggedIn ->
         console.log config.user
         exit()
+    when 'create:entity'
+      exit("must specify slug") if argv._.length < 2
+      getDB (db) ->
+        slug = argv._[1]
+        db.get('entities').findOne {slug :slug}, (err, entity) ->
+          throw err if err
+          exit('slug is already taken. please choose another') if entity
+          data = {
+            account:
+              home_page: ''
+              hosting:
+                web: "www.lessthan3.com/#{slug}"
+              private: true
+            slug: slug
+            theme:
+              package:
+                id: 'ahq-theme'
+                version: '1.0.0'
+            created: Date.now()
+            users: {}
+          }
+          data.users[config.user.id] = 'admin'
+          console.log config.user
+          db.get('entities').insert data, (err, entity) ->
+            throw err if err
+            console.log entity.val()
+            exit()
     when 'init'
       console.log 'initializing project'
       msg = "Are you sure you want to create a project in #{CWD}"

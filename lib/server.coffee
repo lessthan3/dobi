@@ -235,14 +235,15 @@ exports = module.exports = (cfg) ->
           pkg.main ?= {css: 'style.styl'}
           css = []
 
-          if pkg.dependencies
-            css = css.concat(build(k, v)) for k, v of pkg.dependencies
+          # import current stylus first in case of font imports
           if pkg.main.css
             asset = new wrap.Stylus {
               src: path.join root, pkg.main.css
             }
             asset.pkg = pkg
             css.push asset
+          if pkg.dependencies
+            css = css.concat(build(k, v)) for k, v of pkg.dependencies
           css
 
         css = new wrap.Assets build(req.params.id, req.params.version), {

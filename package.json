@@ -28,6 +28,7 @@
     "express": "3.3.3",
     "firebase": "0.6.x",
     "lru-cache": "2.3.0",
+    "mongofb": "0.3.x",
     "optimist": "0.6.x"
   },
   "description": "LessThan3 Developer Tools",
