@@ -1,3 +1,7 @@
+**v0.2.10** (2013-12-17)
+
+ - add maxAge header for /public files
+
 **v0.2.9** (2013-12-02)
 
  - fix path.join error for node 0.10.x
