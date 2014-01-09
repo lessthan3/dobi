@@ -7,194 +7,311 @@
 #   - run a development server
 ###
 
+
 # dependencies
-optimist = require 'optimist'
-CSON = require 'cson'
-Firebase = require 'firebase'
-fs = require 'fs'
-mongofb = require 'mongofb'
-path = require 'path'
-readline = require 'readline'
+{
+  command, args, config, exit,
+  getDB, getFB, getPackageJSON,
+  initWorkspace, isLoggedIn,
+  log, pkg_config, open, rl, runServer, saveConfig
+} = require '../lib/bin_utils'
 
 
-# constants
-CWD = process.cwd()
-FIREBASE_URL = 'https://lessthan3.firebaseio.com'
-USER_HOME = process.env.HOME or process.env.HOMEPATH or process.env.USERPROFILE
-CONFIG_PATH = "#{USER_HOME}/.lt3_config"
+# usage
 USAGE = """
 Usage: lt3 <command> [command-specific-options]
 
 where <command> [command-specific-options] is one of:
-  auth:login
-  auth:setToken -t TOKEN
-  auth:whoami
-  create:entity
-  dev
-  init
-  version
+  add:admin <site> <facebook_id>          add a new admin to a site
+  add:app <site> <app> <id>@<version>     add an app package to a site
+  add:page <site> <app> <page> <type>     add a new page to a site's app
+  create <site>                           create your own website
+  deploy                                  deploy a package to production
+  help                                    show usage
+  init                                    initialize a new lessthan3 workspace
+  login                                   authenticate your user
+  open [<site>] [<app>] [<page>]          open a site
+  run                                     run a development server
+  start                                   daemonize a development server
+  stop                                    stop a daemonized devevelopment server
+  version                                 check your lt3 version
+  whoami                                  check your local user
 """
-
-rl = readline.createInterface {
-  input: process.stdin
-  output: process.stdout
-}
-
-
-# helpers
-writeConfig = (config) ->
-  fs.writeFileSync CONFIG_PATH, JSON.stringify config
-
-readConfig = ->
-  if not fs.existsSync CONFIG_PATH
-    writeConfig {}
-  JSON.parse fs.readFileSync CONFIG_PATH
-
-getFirebaseTime = (next) ->
-  fb = new Firebase FIREBASE_URL
-  ref = fb.child '.info/serverTimeOffset'
-  ref.once 'value', (snapshot) ->
-    offset = snapshot.val()
-    next Date.now() + offset
-
-isLoggedIn = (next) ->
-  console.log 'authenticating'
-  if not config.user
-    throw "You must login. lt3 auth:login"
-  getFirebaseTime (server_time) ->
-    if server_time < config.user.expires
-      throw "Token has expired. please login. lt3 auth:login"
-    next()
-
-confirm = (msg, next) ->
-  rl.question "#{msg}? [y/n] ", (answer) ->
-    if answer.match(/^y(es)?$/i) then next() else exit()
-
-exit = (msg='bye')->
-  console.log(msg)
-  process.exit()
-
-getDB = (next) =>
-  isLoggedIn ->
-    console.log 'connecting to database'
-    client = mongofb.client
-    db = new mongofb.client.Database {
-      server: 'http://www.lessthan3.com/db/1.0'
-      firebase: 'https://lessthan3.firebaseio.com'
-    }
-    db.cache = false
-    db.auth config.user.token, ->
-      next db
-  
-runDevServer = ->
-  # dependencies
-  express = require 'express'
-  lessthan3 = require path.join '..', 'lib', 'server'
-  pkg = require path.join '..', 'package'
-
-  # configuration
-  app = express()
-  app.use express.logger()
-  app.use express.bodyParser()
-  app.use express.methodOverride()
-  app.use express.cookieParser()
-  app.use express.static "#{CWD}/public", {maxAge: 604800000}
-  app.use lessthan3 {
-    pkg_dir: path.join CWD, 'pkg'
-  }
-  app.use app.router
-  app.use express.errorHandler {dumpExceptions: true, showStack: true}
-
-  # listen
-  app.listen pkg.config.port
-  console.log "listening: #{pkg.config.port}"
-
-
-# command line arguments
-optimist = optimist
-  .alias('h', 'help')
-  .alias('i', 'id')
-  .alias('t', 'token')
-  .alias('v', 'version')
-  .usage(USAGE)
-argv = optimist.argv
 
 
 # execute selected command
-main = ->
-  command = argv._[0]
-  if argv.help or not command
-    optimist.showHelp()
-    exit false
+switch command
 
-  switch command
-    when 'auth:login'
-      console.log """
-        1. go to http://www.lessthan3.com
-        2. open javascript console
-        3. app.login(function(err, user){console.log(user.get('token').val());});
-        4. copy token
-        5. come back to terminal
-        6. lt3 auth:setToken PASTE_TOKEN
-      """
-    when 'auth:setToken'
-      fb = new Firebase FIREBASE_URL
-      fb.auth argv.token, (err, user) ->
+
+  # add an admin to a site
+  when 'add:admin'
+
+    # parse arguments
+    site_slug = args[0]
+    fb_id = args[1]
+    exit("must specify site slug") unless site_slug
+    exit("must specify admin facebook id") unless fb_id
+
+    getDB (db) ->
+
+      # make sure site exists
+      db.get('entities').findOne {slug: site_slug}, (err, site) ->
         throw err if err
-        user.auth.token = argv.token
-        user.auth.token_expires = user.expires
-        config.user = user.auth
-        writeConfig config
-        exit()
-    when 'auth:whoami'
-      isLoggedIn ->
-        console.log config.user
-        exit()
-    when 'create:entity'
-      exit("must specify slug") if argv._.length < 2
-      getDB (db) ->
-        slug = argv._[1]
-        db.get('entities').findOne {slug :slug}, (err, entity) ->
+        exit('site does not exist') unless site
+
+        # add admin to site
+        site.get("users.#{fb_id}").set 'admin', (err) ->
           throw err if err
-          exit('slug is already taken. please choose another') if entity
-          data = {
-            account:
-              home_page: ''
-              hosting:
-                web: "www.lessthan3.com/#{slug}"
-              private: true
-            slug: slug
-            theme:
-              package:
-                id: 'ahq-theme'
-                version: '1.0.0'
-            created: Date.now()
-            users: {}
-          }
-          data.users[config.user.id] = 'admin'
-          console.log config.user
-          db.get('entities').insert data, (err, entity) ->
-            throw err if err
-            console.log entity.val()
-            exit()
-    when 'init'
-      console.log 'initializing project'
-      msg = "Are you sure you want to create a project in #{CWD}"
-      confirm msg, ->
-        fs.mkdirSync path.join CWD, 'pkg'
-        console.log 'confirmed'
-        exit()
-    when 'dev'
-      runDevServer()
-    when 'version'
-      pkg = require path.join '..', 'package'
-      console.log pkg.version
-      exit ''
+          exit "#{fb_id} is now an admin of #{site_slug}"
+
+
+  # add an app to a site
+  when 'add:app'
+
+    # parse arguments
+    site_slug = args[0]
+    app_slug = args[1]
+    pkg = args[2]
+    exit("must specify site slug") unless site_slug
+    exit("must specify app slug") unless app_slug
+    if pkg
+      [pkg_id, pkg_version] = pkg.split '@'
+    else if pkg_config
+      pkg_id = pkg_config.id
+      pkg_version = pkg_config.version
     else
-      exit()
+      exit 'must specify package id@version or run from inside a package'
+
+    getDB (db) ->
+
+      # make sure site exists
+      db.get('entities').findOne {slug: site_slug}, (err, site) ->
+        throw err if err
+        exit('site does not exist') unless site
+
+        # make sure app location isn't taken  
+        db.get('apps').findOne {
+          'entity._id': site.get('_id').val()
+          slug: app_slug
+        }, (err, app) ->
+          throw err if err
+          exit('app already exists at this location') if app
+
+          # insert app
+          db.get('apps').insert {
+            active: true
+            entity:
+              _id: site.get('_id').val()
+              _ref: 'entities'
+            name: app_slug
+            package:
+              id: pkg_id
+              version: pkg_version
+            slug: app_slug
+          }, (err, app) ->
+            throw err if err
+            log "#{app_slug} is now an app of #{site_slug}"
+
+            # add index page
+            db.get('pages').insert {
+              active: true
+              app:
+                _id: app.get('_id').val()
+                _ref: 'apps'
+              data: {}
+              entity:
+                _id: site.get('_id').val()
+                _ref: 'entities'
+              meta:
+                description: ''
+                keywords: ''
+                name: app_slug
+                image: ''
+              slug: ''
+              type: 'index'
+            }, (err, doc) ->
+              throw err if err
+              log "index page added to #{site_slug}"
+              exit "to view: lt3 open #{site_slug} #{app_slug}"
+
+
+
+  # add a page to a site
+  when 'add:page'
+
+    # parse arguments
+    site_slug = args[0]
+    app_slug = args[1]
+    page_slug = args[2]
+    page_type = args[3]
+    exit("must specify site slug") unless site_slug
+    exit("must specify app slug") unless app_slug
+    exit("must specify page slug") unless page_slug
+    exit("must specify page type") unless page_type
+    page_slug = page_slug.replace /^\/(.*)/, '$1'
+
+    getDB (db) ->
       
+      # make sure site exists
+      db.get('entities').findOne {
+        slug: site_slug
+      }, (err, site) ->
+        throw err if err
+        exit('site does not exist') unless site
 
-# start script
-config = readConfig()
-main()
+        # make sure app exists
+        db.get('apps').findOne {
+          'entity._id': site.get('_id').val()
+          slug: app_slug
+        }, (err, app) ->
+          throw err if err
+          exit('app does not exist') unless app
 
+          # make sure page location isn't taken
+          db.get('pages').findOne {
+            'entity._id': site.get('_id').val()
+            'app._id': app.get('_id').val()
+            slug: app_slug
+          }, (err, page) ->
+            throw err if err
+            exit('page already exists at this location') if page
+
+            # insert new page
+            db.get('pages').insert {
+              active: true
+              app:
+                _id: app.get('_id').val()
+                _ref: 'apps'
+              data: {}
+              entity:
+                _id: site.get('_id').val()
+                _ref: 'entities'
+              meta:
+                description: ''
+                keywords: ''
+                name: page_slug
+                image: ''
+              slug: page_slug
+              type: page_type
+            }, (err, page) ->
+              throw err if err
+              log "page added to #{site_slug}"
+              exit "to view: lt3 open #{site_slug} #{app_slug} #{page_slug}"
+
+
+  # create a new site
+  when 'create'
+
+    # parse arguments
+    site_slug = args[0]
+    exit("must specify site slug") unless site_slug
+
+    getDB (db) ->
+
+      # make sure site location isn't taken
+      db.get('entities').findOne {slug: site_slug}, (err, site) ->
+        throw err if err
+        exit('slug is already taken. please choose another') if site
+        data = {
+          account:
+            home_page: ''
+            hosting:
+              web: "www.lessthan3.com/#{site_slug}"
+            meta:
+              name: site_slug
+            private: true
+          slug: site_slug
+          theme:
+            package:
+              id: 'ahq-theme'
+              version: '1.0.0'
+          created: Date.now()
+          users: {}
+        }
+
+        # add self as admin
+        data.users[config.user.id] = 'admin'
+
+        # insert into database
+        db.get('entities').insert data, (err, entity) ->
+          throw err if err
+          log entity.val()
+          exit()
+
+
+  # create lessthan3 workspace
+  when 'init'
+    log 'initializing workspace'
+    initWorkspace()
+  
+  # authenticate the user
+  when 'login'
+    open 'http://dev.lessthan3.com/auth'
+    rl.question "Enter Token: ", (token) ->
+      fb = getFB()
+      fb.auth token, (err, data) ->
+        throw err if err
+        config.user = data.auth
+        config.token = token
+        config.token_expires = data.expires
+        saveConfig()
+        exit()
+
+
+  # open a page in the browser
+  when 'open'
+    url = "http://www.lessthan3.com"
+    for n in [0..2]
+      url += "/#{args[n]}" if args[n]
+    open url
+    exit "opening url: #{url}"
+
+  
+  # run a development server
+  when 'run', 'dev'
+    runServer()
+
+
+  # daemonize a development server
+  when 'start'
+    if config.pid
+      try process.kill config.pid, 'SIGHUP'
+      config.pid = null
+      saveConfig()
+    cp = require('child_process')
+    child = cp.spawn 'coffee', ["#{__dirname}/lt3.coffee", 'run'], {
+      detached: true
+      stdio: [ 'ignore', 'ignore', 'ignore']
+    }
+    child.unref()
+    config.pid = child.pid
+    saveConfig()
+    exit ''
+
+  # stop a daemonized development server
+  when 'stop'
+    if config.pid
+      process.kill config.pid
+      config.pid = null
+      saveConfig()
+    exit()
+
+
+  # check the current version of lt3
+  when 'v', 'version'
+    pkg = getPackageJSON()
+    log pkg.version
+    exit ''
+
+  
+  # check your login status
+  when 'whoami'
+    isLoggedIn ->
+      log config.user
+      exit()
+
+
+  # invalid command
+  else
+    exit USAGE
+    

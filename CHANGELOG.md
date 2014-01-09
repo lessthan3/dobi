@@ -1,3 +1,13 @@
+**v0.3.0** (2014-01-08)
+
+ - add admin to site
+ - add app to site
+ - add page to site app
+ - create a new site
+ - initialize a new workspace
+ - new login workflow
+ - daemonize dev server
+
 **v0.2.10** (2013-12-17)
 
  - add maxAge header for /public files

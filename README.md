@@ -5,7 +5,7 @@
 http://dev.lessthan3.com
 
 ## Table of Contents
-
+ - [Usage](#usage)
  - [General Information](#general-information)
   - [General Overview](#general-overview)
   - [Beta](#beta)
@@ -32,6 +32,48 @@ http://dev.lessthan3.com
  - [Deployment](#deployment)
  - [Other Topics](#other-topics)
   - [Coding Style Guide](#coding-style-guide)
+
+## Usage
+
+#### lt3
+
+~~~ sh
+
+Usage: lt3 <command> [command-specific-options]
+
+where <command> [command-specific-options] is one of:
+  add:admin <site> <facebook_id>          add a new admin to a site
+  add:app <site> <app> <id>@<version>     add an app package to a site
+  add:page <site> <app> <page> <type>     add a new page to a site's app
+  create <site>                           create your own website
+  help                                    show usage
+  init                                    initialize a new lessthan3 workspace
+  login                                   authenticate your user
+  open [<site>] [<app>] [<page>]          open a site
+  run                                     run a development server
+  start                                   daemonize a development server
+  stop                                    stop a daemonized devevelopment server
+  version                                 check your lt3 version
+  whoami                                  check your local user
+~~~
+
+#### lpm
+
+~~~ sh
+Usage: lpm <command> [command-specific-options]
+
+where <command> [command-specific-options] is one of:
+  deploy                                deploy a package to production
+  get <id>[@<version>]                  download a package
+  help                                  show usage
+  info <id>[@<version>]                 get info about a package 
+  init <id> <version>                   create a new package
+  login                                 authenticate your user
+  stage                                 deploy a package to staging
+  version                               check your lpm version
+  whoami                                check your local user
+~~~
+
 
 ## General Information
 
