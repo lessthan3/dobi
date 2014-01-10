@@ -1,3 +1,8 @@
+**v0.3.1** (2014-01-10)
+
+ - fix error in usage dialog
+ - disallow creating workspaces within other workspaces
+
 **v0.3.0** (2014-01-08)
 
  - add admin to site

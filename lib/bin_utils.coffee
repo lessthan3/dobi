@@ -78,6 +78,8 @@ exports.getWorkspacePath = ->
       current = parent
 
 exports.initWorkspace = ->
+  if exports.WORKSPACE_PATH
+    exports.exit "you are already in a workspace: #{exports.WORKSPACE_PATH}"
   fs.mkdir path.join(exports.CWD, 'pkg'), (err) ->
     fs.writeFileSync path.join(exports.CWD, 'workspace.json'), JSON.stringify {}
     exports.exit()

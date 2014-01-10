@@ -26,7 +26,6 @@ where <command> [command-specific-options] is one of:
   add:app <site> <app> <id>@<version>     add an app package to a site
   add:page <site> <app> <page> <type>     add a new page to a site's app
   create <site>                           create your own website
-  deploy                                  deploy a package to production
   help                                    show usage
   init                                    initialize a new lessthan3 workspace
   login                                   authenticate your user
