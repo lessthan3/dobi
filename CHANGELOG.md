@@ -1,3 +1,7 @@
+**v0.3.2** (2014-02-12)
+
+ - add --dev option to open to force local dev load
+
 **v0.3.1** (2014-01-10)
 
  - fix error in usage dialog

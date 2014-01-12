@@ -135,7 +135,10 @@ exports.parseArgs = ->
   argv = optimist.argv._
   command = argv[0]
   args = argv[1...argv.length]
-  [command, args]
+  opts = optimist.argv
+  delete opts['$0']
+  delete opts._
+  [command, args, opts]
 
 #setup a readline interface
 exports.rl = readline.createInterface {
@@ -153,5 +156,5 @@ exports.WORKSPACE_PATH = exports.getWorkspacePath()
 exports.PACKAGE_PATH = exports.getPackagePath()
 exports.pkg_config = exports.getPackageConfig()
 exports.config = exports.readConfig()
-[exports.command, exports.args] = exports.parseArgs()
+[exports.command, exports.args, exports.opts] = exports.parseArgs()
 

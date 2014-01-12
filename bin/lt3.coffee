@@ -10,7 +10,7 @@
 
 # dependencies
 {
-  command, args, config, exit,
+  command, args, opts, config, exit,
   getDB, getFB, getPackageJSON,
   initWorkspace, isLoggedIn,
   log, pkg_config, open, rl, runServer, saveConfig
@@ -131,7 +131,7 @@ switch command
             }, (err, doc) ->
               throw err if err
               log "index page added to #{site_slug}"
-              exit "to view: lt3 open #{site_slug} #{app_slug}"
+              exit "to view: lt3 open #{site_slug} #{app_slug} --dev"
 
 
 
@@ -195,7 +195,7 @@ switch command
             }, (err, page) ->
               throw err if err
               log "page added to #{site_slug}"
-              exit "to view: lt3 open #{site_slug} #{app_slug} #{page_slug}"
+              exit "to view: lt3 open #{site_slug} #{app_slug} #{page_slug} --dev"
 
 
   # create a new site
@@ -262,6 +262,7 @@ switch command
     url = "http://www.lessthan3.com"
     for n in [0..2]
       url += "/#{args[n]}" if args[n]
+    url = "#{url}?dev=1" if opts.dev
     open url
     exit "opening url: #{url}"
 
@@ -312,5 +313,8 @@ switch command
 
   # invalid command
   else
+    console.log command
+    console.log args
+    console.log opts
     exit USAGE
     
