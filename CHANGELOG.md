@@ -1,4 +1,8 @@
-**v0.3.2** (2014-02-12)
+**v0.3.3** (2014-01-20)
+
+ - add initial lpm commands
+
+**v0.3.2** (2014-01-12)
 
  - add --dev option to open to force local dev load
 

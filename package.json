@@ -26,9 +26,10 @@
     "coffee-script": "1.4.0",
     "cson": "1.4.2",
     "express": "3.3.3",
+    "findit": "1.1.x",
     "firebase": "0.6.x",
     "lru-cache": "2.3.0",
-    "mongofb": "0.3.x",
+    "mongofb": "0.5.x",
     "open": "0.0.x",
     "optimist": "0.6.x"
   },
@@ -46,5 +47,5 @@
     "type": "git",
     "url": "git://github.com/lessthan3/lessthan3.git"
   },
-  "version": "0.3.2"
+  "version": "0.3.3"
 }

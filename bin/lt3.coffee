@@ -88,7 +88,7 @@ switch command
         throw err if err
         exit('site does not exist') unless site
 
-        # make sure app location isn't taken  
+        # make sure app location isn't taken
         db.get('apps').findOne {
           'entity._id': site.get('_id').val()
           slug: app_slug
@@ -243,6 +243,7 @@ switch command
     log 'initializing workspace'
     initWorkspace()
   
+
   # authenticate the user
   when 'login'
     open 'http://dev.lessthan3.com/auth'
@@ -307,14 +308,11 @@ switch command
   # check your login status
   when 'whoami'
     isLoggedIn ->
-      log config.user
-      exit()
+      log JSON.stringify config.user, null, 2
+      exit ''
 
 
   # invalid command
   else
-    console.log command
-    console.log args
-    console.log opts
     exit USAGE
     

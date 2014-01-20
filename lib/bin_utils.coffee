@@ -77,6 +77,97 @@ exports.getWorkspacePath = ->
       return null if current == parent
       current = parent
 
+# initialize an empty package directory
+exports.initPackageDir = (id, version, next) ->
+
+  # make sure the user is in a workspace
+  if not exports.WORKSPACE_PATH
+    exports.exit 'must be in a workspace to initialize a package'
+
+  # make sure the user is logged in
+  exports.isLoggedIn ->
+
+    # create directories
+    pkg_path = path.join exports.WORKSPACE_PATH, 'pkg', id
+    fs.mkdir pkg_path, (err) ->
+      pkg_path = path.join pkg_path, version
+      fs.mkdir pkg_path, (err) ->
+        fs.mkdir path.join(pkg_path, 'pages'), (err) ->
+          next pkg_path
+
+# initialize an empty new package
+exports.initPackage = (id, version) ->
+
+  exports.log 'initializing package'
+
+  exports.initPackageDir id, version, (pkg_path) ->
+
+    # config
+    config = {
+      author: "#{exports.config.user.name} <#{exports.config.user.email}>"
+      category: 'default'
+      changelog: {}
+      contact: exports.config.user.email
+      description: "#{id}@#{version}"
+      developers: {}
+      id: id
+      name: "#{id}@#{version}"
+      pages:
+        index:
+          title: 'string'
+      private: false
+      type: 'app'
+      version: version
+    }
+    config.changelog[version] = 'initialize package'
+    config.developers[exports.config.user.username] = 'admin'
+    config = CSON.stringifySync(config).replace /\n\n/g, '\n'
+    fs.writeFileSync path.join(pkg_path, 'config.cson'), config
+
+    # app.coffee
+    fs.writeFileSync path.join(pkg_path, 'app.coffee'), """
+      class exports.App extends lt3.App
+    """
+
+    # style.styl
+    fs.writeFileSync path.join(pkg_path, 'style.styl'), """
+      @import 'nib'
+
+      .exports
+        margin 0px
+    """
+
+    # pages/index.coffee
+    fs.writeFileSync path.join(pkg_path, 'pages', 'index.coffee'), """
+      class exports.Page extends lt3.Page
+        events:
+          'click .greeting': 'onClickGreeting'
+
+        onClickGreeting: (e) ->
+          $.alert 'Welcome to the World!'
+
+        render: ->
+          super()
+
+        template: ->
+
+          h2 class: 'greeting', ->
+            "Dear World,"
+
+          p class: 'body', ->
+            "hello"
+
+          p class: 'closing', ->
+            "Yours Truly,"
+
+          p class: 'signature', ->
+            "#{exports.config.user.name}"
+    """
+
+    exports.exit "package successfully created: #{pkg_path}"
+
+
+
 exports.initWorkspace = ->
   if exports.WORKSPACE_PATH
     exports.exit "you are already in a workspace: #{exports.WORKSPACE_PATH}"
@@ -95,7 +186,10 @@ exports.isLoggedIn = (next) ->
 
 exports.confirm = (msg, next) ->
   exports.rl.question "#{msg}? [y/n] ", (answer) ->
-    if answer.match(/^y(es)?$/i) then next() else exports.exit()
+    if answer.match /^y(es)?$/i
+      next()
+    else
+      exports.exit()
 
 exports.log = (msg) ->
   console.log msg
