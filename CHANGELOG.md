@@ -1,3 +1,7 @@
+**v0.3.4** (2014-02-01)
+
+ - do not cache api.coffee files on dev servers
+
 **v0.3.3** (2014-01-20)
 
  - add initial lpm commands

@@ -278,7 +278,18 @@ exports = module.exports = (cfg) ->
       id = req.params.id
       method = req.params[0]
       version = req.params.version
-      svr = require path.join "#{package_dir id, version}", 'api.coffee'
+
+      package_path = path.join "#{package_dir id, version}"
+      api_path = path.join package_path, 'api.coffee'
+
+      # don't cache api.coffee files on dev
+      if not prod
+        if require.cache[api_path]
+          for child in require.cache[api_path].children
+            delete require.cache[child.id]
+          delete require.cache[api_path]
+
+      svr = require api_path
       return error 404 unless svr?[method]
       svr[method].apply {
         body: req.body
