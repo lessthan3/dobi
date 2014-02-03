@@ -1,3 +1,7 @@
+**v0.3.5** (2014-02-02)
+
+ - bump asset-wrap version to 0.5.x
+
 **v0.3.4** (2014-02-01)
 
  - do not cache api.coffee files on dev servers
