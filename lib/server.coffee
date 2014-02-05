@@ -195,7 +195,7 @@ exports = module.exports = (cfg) ->
         js = new wrap.Assets build(req.params.id, req.params.version), {
           compress: useCompression
         }, (err) =>
-          return error 500, err.toString() if err
+          return error 400, err.toString() if err
           try
             header = ""
             for a in js.assets
@@ -251,7 +251,7 @@ exports = module.exports = (cfg) ->
           vars: req.query
           vars_prefix: '$'
         }, (err) =>
-          return error 500, err.toString() if err
+          return error 400, err.toString() if err
           try
             for a in css.assets
               v = ".#{a.pkg.id}.v#{a.pkg.version.replace /\./g, '-'}"

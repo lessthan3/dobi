@@ -1,3 +1,11 @@
+**v0.4.1** (2014-02-04)
+
+ - css or javascript compile errors are now 400 instead of 500 errors
+
+**v0.4.0** (2014-02-03)
+
+ - update dependencies
+
 **v0.3.5** (2014-02-02)
 
  - bump asset-wrap version to 0.5.x
