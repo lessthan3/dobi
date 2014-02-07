@@ -203,14 +203,16 @@ exports.runServer = ->
     exports.exit 'must be in a workspace to run a development server'
 
   # dependencies
+  connect = require 'connect'
   express = require 'express'
   lessthan3 = require './server'
   pkg = require path.join '..', 'package'
 
   # configuration
   app = express()
-  app.use express.logger()
-  app.use express.bodyParser()
+  app.use express.logger '[:date] :status :method :url'
+  app.use connect.urlencoded()
+  app.use connect.json()
   app.use express.methodOverride()
   app.use express.cookieParser()
   app.use lessthan3 {

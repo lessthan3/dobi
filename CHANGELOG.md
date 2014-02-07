@@ -1,3 +1,7 @@
+**v0.4.2** (2014-02-07)
+
+ - replace express bodyParser per expressjs 3.x request
+
 **v0.4.1** (2014-02-04)
 
  - css or javascript compile errors are now 400 instead of 500 errors

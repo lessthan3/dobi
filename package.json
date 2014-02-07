@@ -21,17 +21,18 @@
     }
   ],
   "dependencies": {
-    "asset-wrap": "0.6.x",
-    "chokidar": "0.8.x",
-    "coffee-script": "1.4.x",
-    "cson": "1.4.x",
-    "express": "3.4.x",
-    "findit": "1.1.x",
-    "firebase": "1.0.x",
-    "lru-cache": "2.5.x",
-    "mongofb": "0.5.x",
-    "open": "0.0.x",
-    "optimist": "0.6.x"
+    "asset-wrap":     "0.6.x",
+    "chokidar":       "0.8.x",
+    "coffee-script":  "1.4.x",
+    "connect":        "2.4.x"
+    "cson":           "1.4.x",
+    "express":        "3.4.x",
+    "findit":         "1.1.x",
+    "firebase":       "1.0.x",
+    "lru-cache":      "2.5.x",
+    "mongofb":        "0.6.x",
+    "open":           "0.0.x",
+    "optimist":       "0.6.x"
   },
   "description": "LessThan3 Developer Tools",
   "directories": {
@@ -47,5 +48,5 @@
     "type": "git",
     "url": "git://github.com/lessthan3/lessthan3.git"
   },
-  "version": "0.4.1"
+  "version": "0.4.2"
 }
