@@ -24,7 +24,7 @@
     "asset-wrap":     "0.6.x",
     "chokidar":       "0.8.x",
     "coffee-script":  "1.4.x",
-    "connect":        "2.4.x"
+    "connect":        "2.4.x",
     "cson":           "1.4.x",
     "express":        "3.4.x",
     "findit":         "1.1.x",
