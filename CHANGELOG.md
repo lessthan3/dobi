@@ -1,3 +1,8 @@
+**v0.5.0-beta** (2014-02-12)
+
+ - read in individual schema files
+ - make all fs calls async for better performance and error handling
+
 **v0.4.2** (2014-02-07)
 
  - replace express bodyParser per expressjs 3.x request

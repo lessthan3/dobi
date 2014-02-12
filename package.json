@@ -22,6 +22,7 @@
   ],
   "dependencies": {
     "asset-wrap":     "0.6.x",
+    "async":          "0.2.x",
     "chokidar":       "0.8.x",
     "coffee-script":  "1.4.x",
     "connect":        "2.4.x",
