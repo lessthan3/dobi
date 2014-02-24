@@ -1,3 +1,7 @@
+**v0.5.7** (2014-02-24)
+
+ - simpler css asset sorting
+
 **v0.5.6** (2014-02-24)
 
  - import entire style directory for style.css
