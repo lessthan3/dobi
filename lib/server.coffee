@@ -136,9 +136,9 @@ exports = module.exports = (cfg) ->
             next()
 
         checkDirectory '', ->
-          checkDirectory 'presenters', ->
-            checkDirectory 'views', ->
-              checkDirectory 'templates', ->
+          checkDirectory 'templates', ->
+            checkDirectory 'presenters', ->
+              checkDirectory 'views', ->
                 checkDirectory 'pages', ->
                   next null, assets
 
