@@ -1,3 +1,7 @@
+**v0.5.3** (2014-02-23)
+
+ - change View to Presenter
+
 **v0.5.2** (2014-02-23)
 
  - ignore api.coffee for main.js compilation

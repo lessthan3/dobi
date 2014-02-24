@@ -120,7 +120,7 @@ exports = module.exports = (cfg) ->
           asset = new wrap.Snockets {src: src}
           asset.pkg = pkg
           asset.page = path.basename src, '.coffee' # TODO: deprecate
-          asset.view = path.basename src, '.coffee'
+          asset.name = path.basename src, '.coffee'
           assets.push asset
 
         # if main.js defined, only load that
@@ -129,24 +129,18 @@ exports = module.exports = (cfg) ->
           next null, assets
           return
 
-        # all .coffee files in current directory
-        fs.readdir root, (err, files) ->
-          return next err if err
-          files ?= []
-          add path.join(root, f) for f in files
-
-          # all .coffee files in views directory
-          fs.readdir path.join(root, 'views'), (err, files) ->
+        checkDirectory = (d, next) ->
+          fs.readdir path.join(root, d), (err, files) ->
             files ?= []
-            add path.join(root, 'views', f) for f in files
+            add path.join(root, d, f) for f in files
+            next()
 
-            # all .coffee files in pages directory (backwards compatibility)
-            fs.readdir path.join(root, 'pages'), (err, files) ->
-              files ?= []
-              add path.join(root, 'pages', f) for f in files
-
-              # return assets
-              next null, assets
+        checkDirectory '', ->
+          checkDirectory 'presenters', ->
+            checkDirectory 'views', ->
+              checkDirectory 'templates', ->
+                checkDirectory 'pages', ->
+                  next null, assets
 
   wrapJS = (list, next) ->
     js = new wrap.Assets list, {
@@ -168,26 +162,22 @@ exports = module.exports = (cfg) ->
           v = "lt3.pkg"
           w = "lt3.pkg['#{a.pkg.id}']"
           x = "#{w}['#{a.pkg.version}']"
-          y = "#{x}.Views"
-          z = "#{x}.Pages" # TODO: deprecate
+          y = "#{x}.Presenters"
+          z = "#{x}.Templates"
+          z2 = "#{x}.Pages" # TODO: deprecate
 
           header += check(u) + check(v) + check(w) + check(x) + check(y)
           header += check("#{x}.config", a.pkg)
-          header += check(z) # TODO: deprecate
+          header += check(z)
+          header += check(z2) # TODO: deprecate
 
           substitutions = [
-            # for next deploy, but this is breaking changes
-            #['exports.App', "#{y}['#{a.view}']"]
-            #['exports.Page', "#{y}['#{a.view}']"]
-            #['exports.Component', "#{y}['#{a.view}']"]
-            #['exports.Footer', "#{y}['#{a.view}']"]
-            #['exports.Header', "#{y}['#{a.view}']"]
-            
-            ['exports.App', "#{y}['#{a.view}'] = #{x}.App"]
-            ['exports.Header', "#{y}['#{a.view}'] = #{x}.Header"]
-            ['exports.Footer', "#{y}['#{a.view}'] = #{x}.Footer"]
-            ['exports.Component', "#{y}['#{a.view}'] = #{x}.Component"]
-            ['exports.Page', "#{y}['#{a.view}'] = #{z}['#{a.view}']"]
+            ['exports.App', "#{y}['#{a.name}'] = #{x}.App"]
+            ['exports.Header', "#{y}['#{a.name}'] = #{x}.Header"]
+            ['exports.Footer', "#{y}['#{a.name}'] = #{x}.Footer"]
+            ['exports.Component', "#{y}['#{a.name}'] = #{x}.Component"]
+            ['exports.Template', "#{z}['#{a.name}']"]
+            ['exports.Page', "#{y}['#{a.name}'] = #{z2}['#{a.name}']"]
           ]
           for sub in substitutions
             a.data = a.data.replace sub[0], sub[1]
