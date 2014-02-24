@@ -239,10 +239,10 @@ exports = module.exports = (cfg) ->
           assets.sort (a, b) ->
             x = path.basename(a.src)
             y = path.basename(b.src)
-            if x in ['theme.styl', 'app.styl']
-              return 1 if y is 'theme.styl'
-              return -1
-            return 1 if y in ['theme.styl', 'app.styl']
+            return -1 if x is 'theme.styl'
+            return 1 if y is 'theme.styl'
+            return -1 if x is 'app.styl'
+            return 1 if y is 'app.styl'
             return 0
           next null, assets
 
