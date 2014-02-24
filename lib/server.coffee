@@ -207,19 +207,44 @@ exports = module.exports = (cfg) ->
       ), (err, dep_assets) ->
         return next err if err
 
-        assets = []
-        config.main ?= {css: 'style.styl'}
-        if config.main.css
-          asset = new wrap.Stylus {
-            src: path.join root, config.main.css
-          }
+        add = (src) ->
+          return unless src
+          return unless fs.existsSync src
+          return unless fs.lstatSync(src).isFile()
+          return unless path.extname(src) in ['.css', '.styl']
+
+          ext = path.extname(src)
+          if ext is '.css'
+            asset = new wrap.CSS {src: src}
+          else if ext is '.styl'
+            asset = new wrap.Stylus {src: src}
           asset.config = config
           assets.push asset
 
-        # TODO: pull in all view stylesheets from /style
+        assets = []
+        config.main ?= {css: 'style.styl'}
+        add path.join(root, config.main.css) if config.main.css
 
-        assets = assets.concat a for a in dep_assets
-        next null, assets
+        checkDirectory = (d, next) ->
+          fs.readdir path.join(root, d), (err, files) ->
+            files ?= []
+            add path.join(root, d, f) for f in files
+            next()
+        
+        checkDirectory 'style', ->
+          assets = assets.concat a for a in dep_assets
+
+          # sort so that theme.styl and app.styl are first
+          # so that they can import fonts
+          assets.sort (a, b) ->
+            x = path.basename(a.src)
+            y = path.basename(b.src)
+            if x in ['theme.styl', 'app.styl']
+              return 1 if y is 'theme.styl'
+              return -1
+            return 1 if y in ['theme.styl', 'app.styl']
+            return 0
+          next null, assets
 
   wrapCSS = (list, query, next) ->
     css = new wrap.Assets list, {

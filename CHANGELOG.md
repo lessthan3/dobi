@@ -1,3 +1,8 @@
+**v0.5.6** (2014-02-24)
+
+ - import entire style directory for style.css
+ - fix .css package dependencies
+
 **v0.5.5** (2014-02-23)
 
  - separate config and schema for packages
