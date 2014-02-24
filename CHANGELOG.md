@@ -1,3 +1,7 @@
+**v0.5.5** (2014-02-23)
+
+ - separate config and schema for packages
+
 **v0.5.4** (2014-02-23)
 
  - change load order for main.js compilation

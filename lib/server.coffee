@@ -45,30 +45,26 @@ exports = module.exports = (cfg) ->
     root = path.join pkgDir(id, version)
     readCSON path.join(root, 'config.cson'), (err, config) ->
       return next err if err
+      next null, config
 
-      # check for models
-      readConfigModels root, 'models', config, (err) ->
-        return next err if err
-        readConfigModels root, 'schema', config, (err) ->
-          return next err if err
-
-          # support old syntax
-          if config.pages
-            config.schema = config.pages
-            delete config.pages
-          if config.settings
-            config.schema = config.settings
-            delete config.settings
-          next null, config
+  # read package schema
+  readSchema = (id, version, next) ->
+    root = path.join pkgDir(id, version)
+    schema = {}
+    readConfig id, version, (err, config) ->
+      return next err if err
       
-  # read a single model config
-  readConfigModel = (file, next) ->
-    key = path.basename file, '.cson'
-    readCSON file, (err, schema) ->
-      next err, [key, schema]
+      # TODO (remove): backwards compatibility
+      schema = config.pages if config.pages
+      schema = config.settings if config.settings
 
-  # read model configs into the package config
-  readConfigModels = (root, dir, config, next) ->
+      readSchemaDirectory root, 'models', schema, (err) ->
+        readSchemaDirectory root, 'schema', schema, (err) ->
+          return next err if err
+          next null, schema
+      
+  # read all schema files from a direcotory
+  readSchemaDirectory = (root, dir, schema, next) ->
 
     # check for models directory
     fs.exists path.join(root, dir), (exists) ->
@@ -78,13 +74,14 @@ exports = module.exports = (cfg) ->
       fs.readdir path.join(root, dir), (err, files) ->
         return next err if err
         files = (path.join(root, dir, file) for file in files)
-        async.map files, readConfigModel, (err, models) ->
+        async.each files, ((file, next) ->
+          key = path.basename file, '.cson'
+          readCSON file, (err, model) ->
+            schema[key] = model
+            next err
+        ), (err) ->
           return next err if err
-          config.schema ?= {}
-          for [key, schema] in models
-            config.schema[key] = schema
           next()
-
 
   # create a list of Snockets instances for the needed files
   gatherJS = (ignore, id, version, next) ->
@@ -92,55 +89,58 @@ exports = module.exports = (cfg) ->
       return next(null, []) if [id, version] is i
 
     # read config
-    readConfig id, version, (err, pkg) ->
-      return next err, null if err
-
-      root = pkgDir id, version
-
-      # get dependencies
-      ignore.push [id, version]
-      pkg.dependencies ?= {}
-      deps = ([id, version] for id, version of pkg.dependencies)
-
-      async.map deps, (([id, version], callback) ->
-        gatherJS ignore, id, version, callback
-      ), (err, dep_assets) ->
+    readConfig id, version, (err, config) ->
+      return next err if err
+      readSchema id, version, (err, schema) ->
         return next err if err
-        
-        assets = []
-        assets = assets.concat a for a in dep_assets
 
-        add = (src) ->
-          return unless src
-          return unless fs.existsSync src
-          return unless fs.lstatSync(src).isFile()
-          return unless path.extname(src) in ['.js', '.coffee']
-          return if path.basename(src) in ['api.coffee']
+        root = pkgDir id, version
 
-          asset = new wrap.Snockets {src: src}
-          asset.pkg = pkg
-          asset.page = path.basename src, '.coffee' # TODO: deprecate
-          asset.name = path.basename src, '.coffee'
-          assets.push asset
+        # get dependencies
+        ignore.push [id, version]
+        config.dependencies ?= {}
+        deps = ([id, version] for id, version of config.dependencies)
 
-        # if main.js defined, only load that
-        if pkg.main?.js
-          add path.join(root, pkg.main?.js or '')
-          next null, assets
-          return
+        async.map deps, (([id, version], callback) ->
+          gatherJS ignore, id, version, callback
+        ), (err, dep_assets) ->
+          return next err if err
+          
+          assets = []
+          assets = assets.concat a for a in dep_assets
 
-        checkDirectory = (d, next) ->
-          fs.readdir path.join(root, d), (err, files) ->
-            files ?= []
-            add path.join(root, d, f) for f in files
-            next()
+          add = (src) ->
+            return unless src
+            return unless fs.existsSync src
+            return unless fs.lstatSync(src).isFile()
+            return unless path.extname(src) in ['.js', '.coffee']
+            return if path.basename(src) in ['api.coffee']
 
-        checkDirectory '', ->
-          checkDirectory 'templates', ->
-            checkDirectory 'presenters', ->
-              checkDirectory 'views', ->
-                checkDirectory 'pages', ->
-                  next null, assets
+            asset = new wrap.Snockets {src: src}
+            asset.config = config
+            asset.schema = schema
+            asset.page = path.basename src, '.coffee' # TODO: deprecate
+            asset.name = path.basename src, '.coffee'
+            assets.push asset
+
+          # if main.js defined, only load that
+          if config.main?.js
+            add path.join(root, config.main?.js or '')
+            next null, assets
+            return
+
+          checkDirectory = (d, next) ->
+            fs.readdir path.join(root, d), (err, files) ->
+              files ?= []
+              add path.join(root, d, f) for f in files
+              next()
+
+          checkDirectory '', ->
+            checkDirectory 'templates', ->
+              checkDirectory 'presenters', ->
+                checkDirectory 'views', ->
+                  checkDirectory 'pages', ->
+                    next null, assets
 
   wrapJS = (list, next) ->
     js = new wrap.Assets list, {
@@ -160,14 +160,15 @@ exports = module.exports = (cfg) ->
         for a in js.assets
           u = "window.lt3"
           v = "lt3.pkg"
-          w = "lt3.pkg['#{a.pkg.id}']"
-          x = "#{w}['#{a.pkg.version}']"
+          w = "lt3.pkg['#{a.config.id}']"
+          x = "#{w}['#{a.config.version}']"
           y = "#{x}.Presenters"
           z = "#{x}.Templates"
           z2 = "#{x}.Pages" # TODO: deprecate
 
           header += check(u) + check(v) + check(w) + check(x) + check(y)
-          header += check("#{x}.config", a.pkg)
+          header += check("#{x}.config", a.config)
+          header += check("#{x}.schema", a.schema)
           header += check(z)
           header += check(z2) # TODO: deprecate
 
@@ -192,27 +193,27 @@ exports = module.exports = (cfg) ->
 
 
     # read config
-    readConfig id, version, (err, pkg) ->
+    readConfig id, version, (err, config) ->
       return next err, null if err
 
       root = pkgDir id, version
 
       # get dependencies
       ignore.push [id, version]
-      pkg.dependencies ?= {}
-      deps = ([id, version] for id, version of pkg.dependencies)
+      config.dependencies ?= {}
+      deps = ([id, version] for id, version of config.dependencies)
       async.map deps, (([id, version], callback) ->
         gatherCSS ignore, id, version, callback
       ), (err, dep_assets) ->
         return next err if err
 
         assets = []
-        pkg.main ?= {css: 'style.styl'}
-        if pkg.main.css
+        config.main ?= {css: 'style.styl'}
+        if config.main.css
           asset = new wrap.Stylus {
-            src: path.join root, pkg.main.css
+            src: path.join root, config.main.css
           }
-          asset.pkg = pkg
+          asset.config = config
           assets.push asset
 
         # TODO: pull in all view stylesheets from /style
@@ -229,7 +230,7 @@ exports = module.exports = (cfg) ->
       return next err if err
       try
         for a in css.assets
-          v = ".#{a.pkg.id}.v#{a.pkg.version.replace /\./g, '-'}"
+          v = ".#{a.config.id}.v#{a.config.version.replace /\./g, '-'}"
           a.data = a.data.replace /.exports/g, v
         asset = css.merge (err) ->
           next err, asset.data
@@ -248,12 +249,12 @@ exports = module.exports = (cfg) ->
       [filepath, id, version] = filepath.match(re) or []
       console.log "#{id} v#{version} updated"
       if user
-        readConfig id, version, (err, pkg) ->
+        readConfig id, version, (err, config) ->
           return error 400, err if err
-          delete pkg.changelog
+          delete config.changelog
           ref = firebase.child "users/#{user}/developer/listener"
-          pkg.modified = Date.now()
-          ref.set pkg
+          config.modified = Date.now()
+          ref.set config
 
 
   # Middleware
@@ -340,16 +341,16 @@ exports = module.exports = (cfg) ->
           return error 400 if err
           user = req.query.user._id
 
-          pkg = {}
+          pkgs = {}
           for i, id of fs.readdirSync pkg_dir
-            pkg[id] = {}
+            pkgs[id] = {}
             pkg_path = "#{pkg_dir}/#{id}"
             continue unless fs.lstatSync(pkg_path).isDirectory()
             for i, version of fs.readdirSync pkg_path
-              pkg[id][version] = 1
-          res.send pkg
+              pkgs[id][version] = 1
+          res.send pkgs
 
-    # Package Info
+    # Package Config
     router.route 'GET', '/pkg/:id/:version/config.json', (req, res, next) ->
       contentType 'application/json'
       cache {age: '10 minutes'}, (next) =>
@@ -357,6 +358,13 @@ exports = module.exports = (cfg) ->
           return error 400, err if err
           res.send data
 
+    # Package Schema
+    router.route 'GET', '/pkg/:id/:version/schema.json', (req, res, next) ->
+      contentType 'application/json'
+      cache {age: '10 minutes'}, (next) =>
+        readSchema req.params.id, req.params.version, (err, data) ->
+          return error 400, err if err
+          res.send data
 
     # Package Javascript
     router.route 'GET', '/pkg/:id/:version/main.js', (req, res, next) ->
