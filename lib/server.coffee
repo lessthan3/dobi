@@ -115,6 +115,7 @@ exports = module.exports = (cfg) ->
           return unless fs.existsSync src
           return unless fs.lstatSync(src).isFile()
           return unless path.extname(src) in ['.js', '.coffee']
+          return if path.basename(src) in ['api.coffee']
 
           asset = new wrap.Snockets {src: src}
           asset.pkg = pkg

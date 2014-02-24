@@ -1,3 +1,7 @@
+**v0.5.2** (2014-02-23)
+
+ - ignore api.coffee for main.js compilation
+
 **v0.5.1** (2014-02-23)
 
  - adding some backwards compatibility
