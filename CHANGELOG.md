@@ -1,3 +1,7 @@
+**v0.5.1** (2014-02-23)
+
+ - adding some backwards compatibility
+
 **v0.5.0-beta** (2014-02-12)
 
  - read in individual schema files
