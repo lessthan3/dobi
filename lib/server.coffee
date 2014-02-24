@@ -182,11 +182,11 @@ exports = module.exports = (cfg) ->
             #['exports.Footer', "#{y}['#{a.view}']"]
             #['exports.Header', "#{y}['#{a.view}']"]
             
-            ['exports.App', "#{x}.App"]
-            ['exports.Header', "#{x}.Header"]
-            ['exports.Footer', "#{x}.Footer"]
-            ['exports.Component', "#{x}.Component"]
-            ['exports.Page', "#{z}['#{a.view}']"]
+            ['exports.App', "#{y}['#{a.view}'] = #{x}.App"]
+            ['exports.Header', "#{y}['#{a.view}'] = #{x}.Header"]
+            ['exports.Footer', "#{y}['#{a.view}'] = #{x}.Footer"]
+            ['exports.Component', "#{y}['#{a.view}'] = #{x}.Component"]
+            ['exports.Page', "#{y}['#{a.view}'] = #{z}['#{a.view}']"]
           ]
           for sub in substitutions
             a.data = a.data.replace sub[0], sub[1]
@@ -392,7 +392,7 @@ exports = module.exports = (cfg) ->
       id = req.params.id
       version = req.params.version
       file = req.params[0]
-      filepath = path.join "#{package_dir id, version}", 'public', file
+      filepath = path.join "#{pkgDir id, version}", 'public', file
       fs.exists filepath, (exists) ->
         if exists
           res.sendfile filepath, {maxAge: 1000*60*5}
@@ -405,7 +405,7 @@ exports = module.exports = (cfg) ->
       method = req.params[0]
       version = req.params.version
 
-      package_path = path.join "#{package_dir id, version}"
+      package_path = path.join "#{pkgDir id, version}"
       api_path = path.join package_path, 'api.coffee'
 
       # don't cache api.coffee files on dev
