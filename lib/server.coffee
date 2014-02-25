@@ -270,15 +270,19 @@ exports = module.exports = (cfg) ->
     }
     watcher.on 'change', (filepath) ->
       filepath = filepath.replace pkg_dir, ''
-      re = /^[\/\\]([^\/\\]*)[\/\\]([^\/\\]*)[\/\\].*$/
-      [filepath, id, version] = filepath.match(re) or []
+      re = /^[\/\\]([^\/\\]*)[\/\\]([^\/\\]*)[\/\\](.*)$/
+      [filepath, id, version, file] = filepath.match(re) or []
       console.log "#{id} v#{version} updated"
       if user
         readConfig id, version, (err, config) ->
           return error 400, err if err
           delete config.changelog
           ref = firebase.child "users/#{user}/developer/listener"
-          config.modified = Date.now()
+          config.modified =
+            time: Date.now()
+            file: path.basename file
+            file_ext: path.extname(file).replace '.', ''
+            file_name: path.basename file, path.extname(file)
           ref.set config
 
 

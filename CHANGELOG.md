@@ -1,3 +1,7 @@
+**v0.5.8** (2014-02-24)
+
+ - supply more information about the modified file for hot code pushes
+
 **v0.5.7** (2014-02-24)
 
  - simpler css asset sorting
