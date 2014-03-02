@@ -151,11 +151,11 @@ exports = module.exports = (cfg) ->
         header = ""
 
         checked = []
-        check = (str, data={}) ->
+        check = (str, data=null) ->
           return '' if checked[str]
           checked[str] = 1
-          ";if(#{str}==null){#{str}=#{JSON.stringify data};};"
-        
+          ";if(#{str}==null){#{str}={};};"
+          "#{str}=#{JSON.stringify data};" if data
 
         for a in js.assets
           u = "window.lt3"

@@ -1,3 +1,7 @@
+**v0.5.9** (2014-03-01)
+
+ - always set latest schema when loading main.js
+
 **v0.5.8** (2014-02-24)
 
  - supply more information about the modified file for hot code pushes
