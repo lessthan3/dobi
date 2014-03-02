@@ -1,3 +1,7 @@
+**v0.5.12** (2014-03-01)
+
+ - better error message when unavailable to parse CSON
+
 **v0.5.11** (2014-03-01)
 
  - only read cson files for schema - watch out for swap files
