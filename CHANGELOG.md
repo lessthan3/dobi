@@ -1,3 +1,7 @@
+**v0.5.11** (2014-03-01)
+
+ - only read cson files for schema - watch out for swap files
+
 **v0.5.10** (2014-03-01)
 
  - bug in last deploy
