@@ -1,3 +1,7 @@
+**v0.5.10** (2014-03-01)
+
+ - bug in last deploy
+
 **v0.5.9** (2014-03-01)
 
  - always set latest schema when loading main.js

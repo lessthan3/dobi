@@ -154,8 +154,9 @@ exports = module.exports = (cfg) ->
         check = (str, data=null) ->
           return '' if checked[str]
           checked[str] = 1
-          ";if(#{str}==null){#{str}={};};"
-          "#{str}=#{JSON.stringify data};" if data
+          result = ";if(#{str}==null){#{str}={};};"
+          result += "#{str}=#{JSON.stringify data};" if data
+          result
 
         for a in js.assets
           u = "window.lt3"
