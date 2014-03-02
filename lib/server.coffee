@@ -75,10 +75,13 @@ exports = module.exports = (cfg) ->
         return next err if err
         files = (path.join(root, dir, file) for file in files)
         async.each files, ((file, next) ->
-          key = path.basename file, '.cson'
-          readCSON file, (err, model) ->
-            schema[key] = model
-            next err
+          if path.extname file == '.cson'
+            key = path.basename file, '.cson'
+            readCSON file, (err, model) ->
+              schema[key] = model
+              next err
+          else
+            next()
         ), (err) ->
           return next err if err
           next()
