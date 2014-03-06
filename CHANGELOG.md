@@ -1,3 +1,7 @@
+**v0.5.14** (2014-03-06)
+
+ - adding some debug info to fix a windows problem
+
 **v0.5.13** (2014-03-06)
 
  - log error differently for local file watching
