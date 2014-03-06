@@ -279,7 +279,6 @@ exports = module.exports = (cfg) ->
       ignored: /(^\.|\.swp$|\.tmp$|~$)/
     }
     watcher.on 'change', (filepath) ->
-      console.log "file updated: #{filepath}"
       filepath = filepath.replace pkg_dir, ''
       re = /^[\/\\]([^\/\\]*)[\/\\]([^\/\\]*)[\/\\](.*)$/
       [filepath, id, version, file] = filepath.match(re) or []

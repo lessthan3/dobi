@@ -1,3 +1,7 @@
+**v0.5.15** (2014-03-06)
+
+ - use chokidar 0.7.1 due to windows bug in 0.8.0
+
 **v0.5.14** (2014-03-06)
 
  - adding some debug info to fix a windows problem

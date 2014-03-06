@@ -23,7 +23,7 @@
   "dependencies": {
     "asset-wrap":     "0.6.x",
     "async":          "0.2.x",
-    "chokidar":       "0.8.x",
+    "chokidar":       "0.7.1",
     "coffee-script":  "1.4.x",
     "connect":        "2.4.x",
     "cson":           "1.4.x",
@@ -49,5 +49,5 @@
     "type": "git",
     "url": "git://github.com/lessthan3/lessthan3.git"
   },
-  "version": "0.5.14"
+  "version": "0.5.15"
 }

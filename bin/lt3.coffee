@@ -269,7 +269,9 @@ switch command
 
   
   # run a development server
-  when 'run', 'dev'
+  when 'dev'
+    log "dev is deprecated. please use 'lt3 run'"
+  when 'run'
     runServer()
 
 
