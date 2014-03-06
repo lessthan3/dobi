@@ -285,7 +285,7 @@ exports = module.exports = (cfg) ->
       console.log "#{id} v#{version} updated"
       if user
         readConfig id, version, (err, config) ->
-          return error 400, err if err
+          return console.log(err) if err
           delete config.changelog
           ref = firebase.child "users/#{user}/developer/listener"
           config.modified =

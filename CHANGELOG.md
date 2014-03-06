@@ -1,3 +1,7 @@
+**v0.5.13** (2014-03-06)
+
+ - log error differently for local file watching
+
 **v0.5.12** (2014-03-01)
 
  - better error message when unavailable to parse CSON
