@@ -183,12 +183,14 @@ exports = module.exports = (cfg) ->
           header += check(z2) # TODO: deprecate
 
           substitutions = [
-            ['exports.App', "#{y}['#{a.name}'] = #{x}.App"]
+            ['exports.App', "#{y}['#{a.name}'] = #{x}.App"] # todo: deprecate
             ['exports.Header', "#{y}['#{a.name}'] = #{x}.Header"]
             ['exports.Footer', "#{y}['#{a.name}'] = #{x}.Footer"]
-            ['exports.Component', "#{y}['#{a.name}'] = #{x}.Component"]
+            ['exports.Component', "#{y}['#{a.name}'] = #{x}.Component"] # todo: deprecate
             ['exports.Template', "#{z}['#{a.name}']"]
             ['exports.Page', "#{y}['#{a.name}'] = #{z2}['#{a.name}']"]
+            ['exports.Collection', "#{y}['#{a.name}']"]
+            ['exports.Object', "#{y}['#{a.name}']"]
           ]
           for sub in substitutions
             a.data = a.data.replace sub[0], sub[1]
