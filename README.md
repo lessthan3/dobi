@@ -311,7 +311,7 @@ http://localhost:3001/pkg/bryant-cool-app/0.1.1/api/foo
 ```
 
 ### API
-```s
+```
 module.exports =
   foo: ->
     # this will cache /pkg/bryant-cool-app/0.1.1/api/foo
