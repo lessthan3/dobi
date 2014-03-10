@@ -130,7 +130,7 @@ Contact bryant@lessthan3.com if you'd like more information on getting started.
     - stylus syntax highlighting
     - coffee-script syntax highlighting
   - Sublime Text 2 (http://www.sublimetext.com/2)
-    - Sidebar Enhancements (git clone -b st3 git://github.com/titoBouzout/SideBarEnhancements.git "SideBarEnhancements")
+    - Sidebar Enhancements (git clone https://github.com/titoBouzout/SideBarEnhancements.git)
     - Stylus Syntax Highlighting (https://gist.github.com/csanz/1076584)
     - Coffee-Script syntax highlighting (https://gist.github.com/liamdon/2467603)
 
