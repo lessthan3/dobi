@@ -11,7 +11,7 @@
 # dependencies
 {
   command, args, opts, config, exit,
-  getDB, getFB, getPackageJSON,
+  getDB, getFB, getPackageConfig, getPackageJSON,
   initWorkspace, isLoggedIn,
   log, pkg_config, open, rl, runServer, saveConfig
 } = require '../lib/bin_utils'
@@ -34,6 +34,7 @@ where <command> [command-specific-options] is one of:
   start                                   daemonize a development server
   stop                                    stop a daemonized devevelopment server
   version                                 check your lt3 version
+  v2:create <site> <product>              create a v2 site
   whoami                                  check your local user
 """
 
@@ -312,6 +313,79 @@ switch command
     isLoggedIn ->
       log JSON.stringify config.user, null, 2
       exit ''
+
+  # create a new site
+  when 'v2:create'
+
+    # parse arguments
+    site_slug = args[0]
+    pkg = args[1]
+    exit("must specify site slug") unless site_slug
+    if pkg
+      [pkg_id, pkg_version] = pkg.split '@'
+    else if pkg_config
+      pkg_id = pkg_config.id
+      pkg_version = pkg_config.version
+    else
+      exit 'must specify package id@version or run from inside a package'
+
+    pkg_config = getPackageConfig pkg_id, pkg_version
+    exit("could not find package #{pkg_id}@#{pkg_version}") unless pkg_config
+
+    getDB (db) ->
+
+      # make sure site location isn't taken
+      db.get('sites').findOne {slug: site_slug}, (err, site) ->
+        throw err if err
+        exit('slug is already taken. please choose another') if site
+        data = {
+          created: Date.now()
+          data:
+            collections: pkg_config.collections
+            header: {}
+            footer: {}
+            style: {}
+          product:
+            id: pkg_id
+            version: pkg_version
+          settings:
+            code_injection:
+              header: ''
+              footer: ''
+            domains:
+              domain: "www.lessthan3.com/#{site_slug}"
+            localization: ['en']
+            security:
+              password: ''
+            seo:
+              title: ''
+              description: ''
+              keywords: ''
+              image: ''
+              hide_from_search_engines: ''
+              icons:
+                favicon: 'string'
+                apple:
+                  '57x57': 'string'
+                  '72x72': 'string'
+                  '114x114': 'string'
+                  '144x144': 'string'
+            services:
+              facebook_app_id: 'string'
+              disqus_shortname: 'string'
+              google_analytics_id: 'string'
+          slug: site_slug
+          users: {}
+        }
+
+        # add self as admin
+        data.users[config.user._id] = 'admin'
+
+        # insert into database
+        db.get('sites').insert data, (err, site) ->
+          throw err if err
+          log site.val()
+          exit()
 
 
   # invalid command

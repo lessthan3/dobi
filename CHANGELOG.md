@@ -1,3 +1,8 @@
+**v0.5.17** (2014-03-10)
+
+ - add v2:create for new site creation
+ - modify getPackageConfig to look up any package config
+
 **v0.5.16** (2014-03-10)
 
  - add code substitutions for Collection and Object

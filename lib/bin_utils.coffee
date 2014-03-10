@@ -51,10 +51,19 @@ exports.getFirebaseTime = (next) ->
 exports.getPackageJSON = ->
   require path.join '..', 'package'
 
-# get the current package configuration
+# get the specified or current package configuration
+exports.getPackageConfig = (id, version)->
+  if id and version
+    CSON.parseFileSync "#{exports.WORKSPACE_PATH}/pkg/#{id}/#{version}/config.cson"
+  else
+    if exports.PACKAGE_PATH
+      CSON.parseFileSync "#{exports.PACKAGE_PATH}/config.cson"
+
+# get a specified package configuration
 exports.getPackageConfig = ->
   if exports.PACKAGE_PATH
     CSON.parseFileSync "#{exports.PACKAGE_PATH}/config.cson"
+
 
 # get the current package path
 exports.getPackagePath = ->
