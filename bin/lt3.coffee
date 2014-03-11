@@ -352,8 +352,8 @@ switch command
             code_injection:
               header: ''
               footer: ''
-            domains:
-              domain: "www.lessthan3.com/#{site_slug}"
+            domain:
+              url: "www.lessthan3.com/#{site_slug}"
             localization: ['en']
             security:
               password: ''

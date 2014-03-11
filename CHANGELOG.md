@@ -1,3 +1,7 @@
+**v0.5.18** (in progress)
+
+ - change domains.domain to domain.url
+
 **v0.5.17** (2014-03-10)
 
  - add v2:create for new site creation
