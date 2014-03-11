@@ -207,6 +207,8 @@ exports = module.exports = (cfg) ->
     # read config
     readConfig id, version, (err, config) ->
       return next err, null if err
+      config.pages ?= []
+      config.collections ?= {}
 
       root = pkgDir id, version
 
@@ -219,18 +221,41 @@ exports = module.exports = (cfg) ->
       ), (err, dep_assets) ->
         return next err if err
 
+        getType = (name) ->
+          if name in config.pages
+            return 'page'
+          for c, o of config.collections
+            return 'collection' if name is c
+            return 'object' if name is o
+          return ''
+
         add = (src) ->
           return unless src
           return unless fs.existsSync src
           return unless fs.lstatSync(src).isFile()
           return unless path.extname(src) in ['.css', '.styl']
 
-          ext = path.extname(src)
+          ext = path.extname src
           if ext is '.css'
             asset = new wrap.CSS {src: src}
           else if ext is '.styl'
-            asset = new wrap.Stylus {src: src}
-          asset.config = config
+            asset = new wrap.Stylus {
+              src: src
+              preprocess: (source) ->
+                id = ".#{config.id}"
+                version = ".v#{config.version.replace /\./g, '-'}"
+                name = path.basename src, '.styl'
+                type = getType name
+                type = ".#{type}" if type
+
+                # ex: .exports -> .artist-hq.v3-0-0 .object.soundcloud
+                source = source.replace /^.exports$/gm, "#{id}#{version} #{type}.#{name}"
+    
+                # ex: html.exports -> html.artist-hq.v3-0-0
+                source = source.replace /.exports/g, "#{id}#{version}"
+
+                return source
+            }
           assets.push asset
 
         assets = []
@@ -265,14 +290,8 @@ exports = module.exports = (cfg) ->
       vars_prefix: '$'
     }, (err) =>
       return next err if err
-      try
-        for a in css.assets
-          v = ".#{a.config.id}.v#{a.config.version.replace /\./g, '-'}"
-          a.data = a.data.replace /.exports/g, v
-        asset = css.merge (err) ->
-          next err, asset.data
-      catch err
-        next err
+      asset = css.merge (err) ->
+        next err, asset.data
 
 
   # Watch For File Changes

@@ -1,6 +1,8 @@
 **v0.5.18** (in progress)
 
  - change domains.domain to domain.url
+ - take advantage of new pre-processing with asset-wrap
+ - better .exports shortcutting for new 2.0 site layouts
 
 **v0.5.17** (2014-03-10)
 
