@@ -264,67 +264,84 @@ exports = module.exports = (cfg) ->
       ), (err, dep_assets) ->
         return next err if err
 
-        getType = (name) ->
-          if name in config.pages
-            return 'page'
-          for c, o of config.collections
-            return 'collection' if name is c
-            return 'object' if name is o
-          return ''
+        # check for style/variables.styl
+        variables_code = ''
+        loadVariables = (next) ->
+          vars_path = path.join(root, 'style', 'variables.styl')
+          fs.exists vars_path, (exists) ->
+            if exists
+              fs.readFile vars_path, 'utf8', (err, data) ->
+                console.log err
+                console.log data
+                variables_code = data
+                next()
+            else
+              next()
 
-        add = (src) ->
-          return unless src
-          return unless fs.existsSync src
-          return unless fs.lstatSync(src).isFile()
-          return unless path.extname(src) in ['.css', '.styl']
+        loadVariables ->
+          getType = (name) ->
+            if name in config.pages
+              return 'page'
+            for c, o of config.collections
+              return 'collection' if name is c
+              return 'object' if name is o
+            return ''
 
-          ext = path.extname src
-          if ext is '.css'
-            asset = new wrap.CSS {src: src}
-          else if ext is '.styl'
-            asset = new wrap.Stylus {
-              src: src
-              preprocess: (source) ->
-                id = ".#{config.id}"
-                version = ".v#{config.version.replace /\./g, '-'}"
-                name = path.basename src, '.styl'
-                type = getType name
-                type = ".#{type}" if type
+          add = (src) ->
+            return unless src
+            return unless fs.existsSync src
+            return unless fs.lstatSync(src).isFile()
+            return unless path.extname(src) in ['.css', '.styl']
+            return if path.basename(src) is 'variables.styl'
 
-                # ex: .exports -> .artist-hq.v3-0-0 .object.soundcloud
-                if config.type == 'product'
-                  source = source.replace /^.exports$/gm, "#{id}#{version} #{type}.#{name}"
-    
-                # ex: html.exports -> html.artist-hq.v3-0-0
-                source = source.replace /.exports/g, "#{id}#{version}"
+            ext = path.extname src
+            if ext is '.css'
+              asset = new wrap.CSS {src: src}
+            else if ext is '.styl'
+              asset = new wrap.Stylus {
+                src: src
+                preprocess: (source) ->
+                  id = ".#{config.id}"
+                  version = ".v#{config.version.replace /\./g, '-'}"
+                  name = path.basename src, '.styl'
+                  type = getType name
+                  type = ".#{type}" if type
 
-                return source
-            }
-          assets.push asset
+                  # ex: .exports -> .artist-hq.v3-0-0 .object.soundcloud
+                  if config.type == 'product'
+                    source = source.replace /^.exports$/gm, "#{id}#{version} #{type}.#{name}"
+      
+                  # ex: html.exports -> html.artist-hq.v3-0-0
+                  source = source.replace /.exports/g, "#{id}#{version}"
 
-        assets = []
-        config.main ?= {css: 'style.styl'}
-        add path.join(root, config.main.css) if config.main.css
+                  # add variables code
+                  return variables_code + source
+              }
+            assets.push asset
 
-        checkDirectory = (d, next) ->
-          fs.readdir path.join(root, d), (err, files) ->
-            files ?= []
-            add path.join(root, d, f) for f in files
-            next()
-        
-        checkDirectory 'style', ->
-          assets = assets.concat a for a in dep_assets
+          assets = []
+          config.main ?= {css: 'style.styl'}
+          add path.join(root, config.main.css) if config.main.css
 
-          # sort so that theme.styl and app.styl are first
-          # so that they can import fonts
-          assets.sort (a, b) ->
-            x = path.basename(a.src)
-            y = path.basename(b.src)
-            for f in ['imports.styl', 'theme.styl', 'app.styl']
-              return -1 if x is f
-              return 1 if y is f
-            return 0
-          next null, assets
+          checkDirectory = (d, next) ->
+            fs.readdir path.join(root, d), (err, files) ->
+              files ?= []
+              add path.join(root, d, f) for f in files
+              next()
+          
+          checkDirectory 'style', ->
+            assets = assets.concat a for a in dep_assets
+
+            # sort so that theme.styl and app.styl are first
+            # so that they can import fonts
+            assets.sort (a, b) ->
+              x = path.basename(a.src)
+              y = path.basename(b.src)
+              for f in ['imports.styl', 'theme.styl', 'app.styl']
+                return -1 if x is f
+                return 1 if y is f
+              return 0
+            next null, assets
 
   wrapCSS = (list, query, next) ->
     css = new wrap.Assets list, {

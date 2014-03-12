@@ -7,6 +7,7 @@
  - move old coffee-script replacements to new post-processing function
  - only init header js to {} if not explicitly settings data (config/schema)
  - imports.styl must be first as @import need to start the css file
+ - concat variables.styl to the beginning of all other styl files
 
 **v0.5.17** (2014-03-10)
 
