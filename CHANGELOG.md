@@ -9,6 +9,7 @@
  - imports.styl must be first as @import need to start the css file
  - concat variables.styl to the beginning of all other styl files
  - remove header initialization for libraries
+ - add v2:add:page and v2:add:object for new sites
 
 **v0.5.17** (2014-03-10)
 
