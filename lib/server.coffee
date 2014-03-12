@@ -92,7 +92,7 @@ exports = module.exports = (cfg) ->
           return next err if err
           next()
 
-  # create a list of Snockets instances for the needed files
+  # create a list of Assets for the needed files
   gatherJS = (ignore, id, version, next) ->
     for i in ignore
       return next(null, []) if [id, version] is i
@@ -224,17 +224,14 @@ exports = module.exports = (cfg) ->
           pkg_id = "lt3.pkg['#{asset.pkg_config.id}']"
           pkg_id_version = "#{pkg_id}['#{asset.pkg_config.version}']"
           pres = "#{pkg_id_version}.Presenters"
-          temp = "#{pkg_id_version}.Templates"
+          tmpl = "#{pkg_id_version}.Templates"
           page = "#{pkg_id_version}.Pages" # TODO: deprecate
           
-          for s in [lt3, pkg, pkg_id, pkg_id_version]
-            header += check(s)
           if asset.pkg_config.type in ['product', 'app', 'theme']
-            for s in [pres, temp, page]
+            for s in [lt3, pkg, pkg_id, pkg_id_version, pres, tmpl, page]
               header += check(s)
-
-          header += check("#{pkg_id_version}.config", asset.pkg_config)
-          header += check("#{pkg_id_version}.schema", asset.pkg_schema)
+            header += check("#{pkg_id_version}.config", asset.pkg_config)
+            header += check("#{pkg_id_version}.schema", asset.pkg_schema)
       catch err
         next err.stack
 
@@ -271,8 +268,6 @@ exports = module.exports = (cfg) ->
           fs.exists vars_path, (exists) ->
             if exists
               fs.readFile vars_path, 'utf8', (err, data) ->
-                console.log err
-                console.log data
                 variables_code = data
                 next()
             else
