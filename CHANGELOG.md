@@ -3,6 +3,9 @@
  - change domains.domain to domain.url
  - take advantage of new pre-processing with asset-wrap
  - better .exports shortcutting for new 2.0 site layouts
+ - use pre-processing to add in extends for new coffee files
+ - move old coffee-script replacements to new post-processing function
+ - only init header js to {} if not explicitly settings data (config/schema)
 
 **v0.5.17** (2014-03-10)
 

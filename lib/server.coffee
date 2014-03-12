@@ -55,7 +55,7 @@ exports = module.exports = (cfg) ->
       return next err if err
       
       # TODO (remove): backwards compatibility
-      schema = config.pages if config.pages
+      schema = config.pages if config.pages and config.type != 'product'
       schema = config.settings if config.settings
 
       readSchemaDirectory root, 'models', schema, (err) ->
@@ -124,13 +124,58 @@ exports = module.exports = (cfg) ->
             return unless fs.lstatSync(src).isFile()
             return unless path.extname(src) in ['.js', '.coffee']
             return if path.basename(src) in ['api.coffee']
+            name = path.basename src, '.coffee'
 
-            asset = new wrap.Snockets {src: src}
-            asset.config = config
-            asset.schema = schema
-            asset.page = path.basename src, '.coffee' # TODO: deprecate
-            asset.name = path.basename src, '.coffee'
-            assets.push asset
+            # new products
+            if config.type == 'product'
+              asset = new wrap.Coffee {
+                src: src
+                preprocess: (source) ->
+                  pkg = "lt3.pkg['#{config.id}']['#{config.version}']"
+                  p = "#{pkg}.Presenters['#{name}']"
+                  t = "#{pkg}.Templates['#{name}']"
+                  subs = [
+                    ['exports.Collection',  "#{p} extends lt3.views.Collection"]
+                    ['exports.Object',      "#{p} extends lt3.views.Object"]
+                    ['exports.Page',        "#{p} extends lt3.views.Page"]
+                    ['exports.Header',      "#{p} extends lt3.views.Header"]
+                    ['exports.Footer',      "#{p} extends lt3.views.Footer"]
+                    ['exports.Footer',      "#{p} extends lt3.views.Footer"]
+                    ['exports.Template',    "#{t}"]
+                  ]
+                  for sub in subs
+                    source = source.replace sub[0], sub[1]
+                  return source
+              }
+              asset.pkg_config = config
+              asset.pkg_schema = schema
+              assets.push asset
+
+            # old apps, themes, libraries
+            else
+              asset = new wrap.Snockets {
+                src: src
+                postprocess: (result) ->
+                  pkg = "lt3.pkg['#{config.id}']['#{config.version}']"
+                  p = "#{pkg}.Presenters['#{name}']"
+                  t = "#{pkg}.Templates['#{name}']"
+                  p2 = "#{pkg}.Pages['#{name}']"
+
+                  substitutions = [
+                    ['exports.App',       "#{p} = #{pkg}.App"] # todo: deprecate
+                    ['exports.Header',    "#{p} = #{pkg}.Header"]
+                    ['exports.Footer',    "#{p} = #{pkg}.Footer"]
+                    ['exports.Component', "#{p} = #{pkg}.Component"] # todo: deprecate
+                    ['exports.Template',  "#{t}"]
+                    ['exports.Page',      "#{p} = #{p2}"]
+                  ]
+                  for sub in substitutions
+                    result = result.replace sub[0], sub[1]
+                  result
+              }
+              asset.pkg_config = config
+              asset.pkg_schema = schema
+              assets.push asset
 
           # if main.js defined, only load that
           if config.main?.js
@@ -152,10 +197,14 @@ exports = module.exports = (cfg) ->
                     next null, assets
 
   wrapJS = (list, next) ->
+
+    # wrap code
     js = new wrap.Assets list, {
       compress: use_compression
     }, (err) =>
-      return next err.toString() if err
+      return next err if err
+
+      # generate package header
       try
         header = ""
 
@@ -163,41 +212,35 @@ exports = module.exports = (cfg) ->
         check = (str, data=null) ->
           return '' if checked[str]
           checked[str] = 1
-          result = ";if(#{str}==null){#{str}={};};"
-          result += "#{str}=#{JSON.stringify data};" if data
+          if data
+            result = ";#{str}=#{JSON.stringify data};"
+          else
+            result = ";if(#{str}==null){#{str}={};};"
           result
 
-        for a in js.assets
-          u = "window.lt3"
-          v = "lt3.pkg"
-          w = "lt3.pkg['#{a.config.id}']"
-          x = "#{w}['#{a.config.version}']"
-          y = "#{x}.Presenters"
-          z = "#{x}.Templates"
-          z2 = "#{x}.Pages" # TODO: deprecate
+        for asset in js.assets
+          lt3 = "window.lt3"
+          pkg = "lt3.pkg"
+          pkg_id = "lt3.pkg['#{asset.pkg_config.id}']"
+          pkg_id_version = "#{pkg_id}['#{asset.pkg_config.version}']"
+          pres = "#{pkg_id_version}.Presenters"
+          temp = "#{pkg_id_version}.Templates"
+          page = "#{pkg_id_version}.Pages" # TODO: deprecate
+          
+          for s in [lt3, pkg, pkg_id, pkg_id_version]
+            header += check(s)
+          if asset.pkg_config.type in ['product', 'app', 'theme']
+            for s in [pres, temp, page]
+              header += check(s)
 
-          header += check(u) + check(v) + check(w) + check(x) + check(y)
-          header += check("#{x}.config", a.config)
-          header += check("#{x}.schema", a.schema)
-          header += check(z)
-          header += check(z2) # TODO: deprecate
-
-          substitutions = [
-            ['exports.App', "#{y}['#{a.name}'] = #{x}.App"] # todo: deprecate
-            ['exports.Header', "#{y}['#{a.name}'] = #{x}.Header"]
-            ['exports.Footer', "#{y}['#{a.name}'] = #{x}.Footer"]
-            ['exports.Component', "#{y}['#{a.name}'] = #{x}.Component"] # todo: deprecate
-            ['exports.Template', "#{z}['#{a.name}']"]
-            ['exports.Page', "#{y}['#{a.name}'] = #{z2}['#{a.name}']"]
-            ['exports.Collection', "#{y}['#{a.name}']"]
-            ['exports.Object', "#{y}['#{a.name}']"]
-          ]
-          for sub in substitutions
-            a.data = a.data.replace sub[0], sub[1]
-        asset = js.merge (err) ->
-          next err, header + asset.data
+          header += check("#{pkg_id_version}.config", asset.pkg_config)
+          header += check("#{pkg_id_version}.schema", asset.pkg_schema)
       catch err
         next err.stack
+
+      # merge assets
+      asset = js.merge (err) ->
+        next err, header + asset.data
 
   gatherCSS = (ignore, id, version, next) ->
     for i in ignore
@@ -249,7 +292,8 @@ exports = module.exports = (cfg) ->
                 type = ".#{type}" if type
 
                 # ex: .exports -> .artist-hq.v3-0-0 .object.soundcloud
-                source = source.replace /^.exports$/gm, "#{id}#{version} #{type}.#{name}"
+                if config.type == 'product'
+                  source = source.replace /^.exports$/gm, "#{id}#{version} #{type}.#{name}"
     
                 # ex: html.exports -> html.artist-hq.v3-0-0
                 source = source.replace /.exports/g, "#{id}#{version}"
