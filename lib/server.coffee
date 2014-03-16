@@ -127,7 +127,7 @@ exports = module.exports = (cfg) ->
             name = path.basename src, '.coffee'
 
             # new products
-            if config.type == 'product'
+            if config.type in ['product', 'plugin']
               asset = new wrap.Coffee {
                 src: src
                 preprocess: (source) ->
@@ -226,7 +226,7 @@ exports = module.exports = (cfg) ->
           tmpl = "#{pkg_id_version}.Templates"
           page = "#{pkg_id_version}.Pages" # TODO: deprecate
           
-          if asset.pkg_config.type in ['product', 'app', 'theme', 'site']
+          if asset.pkg_config.type in ['product', 'app', 'theme', 'site', 'plugin']
             for s in [lt3, pkg, pkg_id, pkg_id_version, pres, tmpl, page]
               header += check(s)
             header += check("#{pkg_id_version}.config", asset.pkg_config)
@@ -274,14 +274,6 @@ exports = module.exports = (cfg) ->
               next()
 
         loadVariables ->
-          getContainer = (name) ->
-            if name in config.pages
-              return '#content .pages'
-            for c, o of config.collections
-              return '#content' if name is c
-              return '#content .pages' if name is o
-            return ''
-
           add = (src) ->
             return unless src
             return unless fs.existsSync src
@@ -296,17 +288,24 @@ exports = module.exports = (cfg) ->
               asset = new wrap.Stylus {
                 src: src
                 preprocess: (source) ->
-                  id = ".#{config.id}"
-                  version = ".v#{config.version.replace /\./g, '-'}"
+                  id = config.id
+                  version = config.version.replace /\./g, '-'
                   name = path.basename src, '.styl'
-                  container = getContainer name
 
-                  # ex: .exports -> .artist-hq.v3-0-0 #page > .soundcloud
-                  if config.type == 'product'
-                    source = source.replace /^.exports$/gm, "#{id}#{version} #{container} > .#{name}"
+                  if config.type in ['product', 'plugin']
+                    p = ".#{id}.v#{version} #{name}"
+                    subs = [
+                      ['.exports.collection',  "#{p}.collection"]
+                      ['.exports.object',      "#{p}.object"]
+                      ['.exports.page',        "#{p}.page"]
+                      ['.exports.presenter',   "#{p}.presenter"]
+                      ['.exports.region',      "#{p}.region"]
+                    ]
+                    for sub in subs
+                      source = source.replace sub[0], sub[1]
       
                   # ex: html.exports -> html.artist-hq.v3-0-0
-                  source = source.replace /.exports/g, "#{id}#{version}"
+                  source = source.replace /.exports/g, ".#{id}.v#{version}"
 
                   # add variables code
                   return variables_code + source
@@ -365,7 +364,12 @@ exports = module.exports = (cfg) ->
           ref = firebase.child "users/#{user}/developer/listener"
           config.modified =
             time: Date.now()
-            file: path.basename file
+            base: path.basename file
+            ext: path.extname(file).replace '.', ''
+            file: file
+            name: path.basename file, path.extname(file)
+
+            # TODO: deprecate
             file_ext: path.extname(file).replace '.', ''
             file_name: path.basename file, path.extname(file)
           ref.set config
@@ -479,6 +483,111 @@ exports = module.exports = (cfg) ->
         readSchema req.params.id, req.params.version, (err, data) ->
           return error 400, err if err
           res.send data
+
+    # Package Single File Reload
+    unless prod
+      router.route 'GET', '/pkg/:id/:version/reload/*', (req, res, next) ->
+
+        # grab parameters
+        id = req.params.id
+        version = req.params.version
+        file = req.params[0]
+        name = path.basename file
+        filepath = path.join "#{pkgDir id, version}", file
+
+        # make sure file exists
+        fs.exists filepath, (exists) ->
+          return error 404, "File #{file} does not exists" unless exists
+
+          ext = path.extname filepath
+          switch ext
+
+            # schema files
+            when '.cson'
+              readCSON filepath, (err, data) ->
+                return error 400, err if err
+                contentType 'text/javascript'
+                pkg = "lt3.pkg[\"#{id}\"][\"#{version}\"]"
+                res.send "#{pkg}.schema[\"#{name}\"] = #{JSON.stringify(data)}"
+
+            # presenters and templates
+            when '.coffee'
+              asset = new wrap.Coffee {
+                src: filepath
+                preprocess: (source) ->
+                  pkg = "lt3.pkg['#{id}']['#{version}']"
+                  p = "#{pkg}.Presenters['#{name}'] extends lt3.presenters"
+                  t = "#{pkg}.Templates['#{name}']"
+                  subs = [
+                    ['exports.Collection',  "#{p}.Collection"]
+                    ['exports.Object',      "#{p}.Object"]
+                    ['exports.Page',        "#{p}.Page"]
+                    ['exports.Presenter',   "#{p}.Presenter"]
+                    ['exports.Region',      "#{p}.Region"]
+                    ['exports.Template',    "#{t}"]
+                  ]
+                  for sub in subs
+                    source = source.replace sub[0], sub[1]
+                  return source
+              }, (err) ->
+                return error 400, err if err
+                contentType 'text/javascript'
+                res.send asset.data
+
+
+            # style files
+            when '.styl'
+
+              # check for style/variables.styl
+              variables_code = ''
+              root = pkgDir id, version
+              loadVariables = (next) ->
+                vars_path = path.join(root, 'style', 'variables.styl')
+                fs.exists vars_path, (exists) ->
+                  if exists
+                    fs.readFile vars_path, 'utf8', (err, data) ->
+                      variables_code = data
+                      next()
+                  else
+                    next()
+
+              loadVariables ->
+                getContainer = (name) ->
+                  if name in config.pages
+                    return '#content .pages'
+                  for c, o of config.collections
+                    return '#content' if name is c
+                    return '#content .pages' if name is o
+                  return ''
+
+                console.log req.query
+                asset = new wrap.Stylus {
+                  src: filepath
+                  vars: req.query
+                  vars_prefix: '$'
+                  preprocess: (source) ->
+                    id = id
+                    version = version.replace /\./g, '-'
+
+                    p = ".#{id}.v#{version} #{name}"
+                    subs = [
+                      ['.exports.collection',  "#{p}.collection"]
+                      ['.exports.object',      "#{p}.object"]
+                      ['.exports.page',        "#{p}.page"]
+                      ['.exports.presenter',   "#{p}.presenter"]
+                      ['.exports.region',      "#{p}.region"]
+                    ]
+                    for sub in subs
+                      source = source.replace sub[0], sub[1]
+
+                    # add variables code
+                    return variables_code + source
+                }, (err) ->
+                  return error 400, err if err
+                  contentType 'text/css'
+                  res.send asset.data
+            else
+              error 400, "invalid file type"
 
     # Package Javascript
     router.route 'GET', '/pkg/:id/:version/main.js', (req, res, next) ->
