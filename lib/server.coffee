@@ -290,7 +290,7 @@ exports = module.exports = (cfg) ->
                 preprocess: (source) ->
                   id = config.id
                   version = config.version.replace /\./g, '-'
-                  name = path.basename src, '.styl'
+                  name = path.basename src, est
 
                   if config.type in ['product', 'plugin']
                     p = ".#{id}.v#{version} #{name}"
@@ -492,14 +492,14 @@ exports = module.exports = (cfg) ->
         id = req.params.id
         version = req.params.version
         file = req.params[0]
-        name = path.basename file
         filepath = path.join "#{pkgDir id, version}", file
+        ext = path.extname filepath
+        name = path.basename file, ext
 
         # make sure file exists
         fs.exists filepath, (exists) ->
           return error 404, "File #{file} does not exists" unless exists
 
-          ext = path.extname filepath
           switch ext
 
             # schema files
@@ -552,15 +552,6 @@ exports = module.exports = (cfg) ->
                     next()
 
               loadVariables ->
-                getContainer = (name) ->
-                  if name in config.pages
-                    return '#content .pages'
-                  for c, o of config.collections
-                    return '#content' if name is c
-                    return '#content .pages' if name is o
-                  return ''
-
-                console.log req.query
                 asset = new wrap.Stylus {
                   src: filepath
                   vars: req.query
