@@ -290,10 +290,10 @@ exports = module.exports = (cfg) ->
                 preprocess: (source) ->
                   id = config.id
                   version = config.version.replace /\./g, '-'
-                  name = path.basename src, est
+                  name = path.basename src, ext
 
                   if config.type in ['product', 'plugin']
-                    p = ".#{id}.v#{version} #{name}"
+                    p = ".#{id}.v#{version} .#{name}"
                     subs = [
                       ['.exports.collection',  "#{p}.collection"]
                       ['.exports.object',      "#{p}.object"]
@@ -560,7 +560,7 @@ exports = module.exports = (cfg) ->
                     id = id
                     version = version.replace /\./g, '-'
 
-                    p = ".#{id}.v#{version} #{name}"
+                    p = ".#{id}.v#{version} .#{name}"
                     subs = [
                       ['.exports.collection',  "#{p}.collection"]
                       ['.exports.object',      "#{p}.object"]
