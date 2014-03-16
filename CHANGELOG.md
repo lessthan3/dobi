@@ -10,6 +10,7 @@
  - concat variables.styl to the beginning of all other styl files
  - remove header initialization for libraries
  - add v2:add:page and v2:add:object for new sites
+ - single file reload for more efficient reloading during development
 
 **v0.5.17** (2014-03-10)
 
