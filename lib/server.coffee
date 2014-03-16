@@ -132,15 +132,14 @@ exports = module.exports = (cfg) ->
                 src: src
                 preprocess: (source) ->
                   pkg = "lt3.pkg['#{config.id}']['#{config.version}']"
-                  p = "#{pkg}.Presenters['#{name}']"
+                  p = "#{pkg}.Presenters['#{name}'] extends lt3.presenters"
                   t = "#{pkg}.Templates['#{name}']"
                   subs = [
-                    ['exports.Collection',  "#{p} extends lt3.views.Collection"]
-                    ['exports.Object',      "#{p} extends lt3.views.Object"]
-                    ['exports.Page',        "#{p} extends lt3.views.Page"]
-                    ['exports.Header',      "#{p} extends lt3.views.Header"]
-                    ['exports.Footer',      "#{p} extends lt3.views.Footer"]
-                    ['exports.Footer',      "#{p} extends lt3.views.Footer"]
+                    ['exports.Collection',  "#{p}.Collection"]
+                    ['exports.Object',      "#{p}.Object"]
+                    ['exports.Page',        "#{p}.Page"]
+                    ['exports.Presenter',   "#{p}.Presenter"]
+                    ['exports.Region',      "#{p}.Region"]
                     ['exports.Template',    "#{t}"]
                   ]
                   for sub in subs
@@ -227,13 +226,14 @@ exports = module.exports = (cfg) ->
           tmpl = "#{pkg_id_version}.Templates"
           page = "#{pkg_id_version}.Pages" # TODO: deprecate
           
-          if asset.pkg_config.type in ['product', 'app', 'theme']
+          if asset.pkg_config.type in ['product', 'app', 'theme', 'site']
             for s in [lt3, pkg, pkg_id, pkg_id_version, pres, tmpl, page]
               header += check(s)
             header += check("#{pkg_id_version}.config", asset.pkg_config)
             header += check("#{pkg_id_version}.schema", asset.pkg_schema)
       catch err
-        next err.stack
+        next err
+        return
 
       # merge assets
       asset = js.merge (err) ->
@@ -274,12 +274,12 @@ exports = module.exports = (cfg) ->
               next()
 
         loadVariables ->
-          getType = (name) ->
+          getContainer = (name) ->
             if name in config.pages
-              return 'page'
+              return '#content .pages'
             for c, o of config.collections
-              return 'collection' if name is c
-              return 'object' if name is o
+              return '#content' if name is c
+              return '#content .pages' if name is o
             return ''
 
           add = (src) ->
@@ -299,12 +299,11 @@ exports = module.exports = (cfg) ->
                   id = ".#{config.id}"
                   version = ".v#{config.version.replace /\./g, '-'}"
                   name = path.basename src, '.styl'
-                  type = getType name
-                  type = ".#{type}" if type
+                  container = getContainer name
 
-                  # ex: .exports -> .artist-hq.v3-0-0 .object.soundcloud
+                  # ex: .exports -> .artist-hq.v3-0-0 #page > .soundcloud
                   if config.type == 'product'
-                    source = source.replace /^.exports$/gm, "#{id}#{version} #{type}.#{name}"
+                    source = source.replace /^.exports$/gm, "#{id}#{version} #{container} > .#{name}"
       
                   # ex: html.exports -> html.artist-hq.v3-0-0
                   source = source.replace /.exports/g, "#{id}#{version}"

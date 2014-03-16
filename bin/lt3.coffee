@@ -347,7 +347,8 @@ switch command
             header: {}
             footer: {}
             style: {}
-          product:
+          name: site_slug
+          package:
             id: pkg_id
             version: pkg_version
           settings:
@@ -366,16 +367,19 @@ switch command
               image: ''
               hide_from_search_engines: ''
               icons:
-                favicon: 'string'
+                favicon: ''
                 apple:
-                  '57x57': 'string'
-                  '72x72': 'string'
-                  '114x114': 'string'
-                  '144x144': 'string'
+                  '57x57': ''
+                  '72x72': ''
+                  '114x114': ''
+                  '144x144': ''
             services:
-              facebook_app_id: 'string'
-              disqus_shortname: 'string'
-              google_analytics_id: 'string'
+              facebook_app_id: ''
+              disqus_shortname: ''
+              google_analytics_id: ''
+            transitions:
+              mobile: 'slide'
+              web: 'fade'
           slug: site_slug
           users: {}
         }
