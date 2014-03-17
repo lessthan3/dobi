@@ -1,6 +1,7 @@
 **v0.6.1** (in progress)
 
  - fix site create when product has no collections
+ - use config.core instead of config.type for compiling rules
 
 **v0.6.0** (2014-03-16)
 

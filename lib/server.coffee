@@ -55,7 +55,7 @@ exports = module.exports = (cfg) ->
       return next err if err
       
       # TODO (remove): backwards compatibility
-      schema = config.pages if config.pages and config.type != 'product'
+      schema = config.pages if config.pages and config.core != '2.0.0'
       schema = config.settings if config.settings
 
       readSchemaDirectory root, 'models', schema, (err) ->
@@ -126,8 +126,8 @@ exports = module.exports = (cfg) ->
             return if path.basename(src) in ['api.coffee']
             name = path.basename src, '.coffee'
 
-            # new products
-            if config.type in ['product', 'plugin']
+            # new apps
+            if config.core is '2.0.0'
               asset = new wrap.Coffee {
                 src: src
                 preprocess: (source) ->
@@ -226,7 +226,13 @@ exports = module.exports = (cfg) ->
           tmpl = "#{pkg_id_version}.Templates"
           page = "#{pkg_id_version}.Pages" # TODO: deprecate
           
-          if asset.pkg_config.type in ['product', 'app', 'theme', 'site', 'plugin']
+          if asset.pkg_config.core is '2.0.0'
+            for s in [lt3, pkg, pkg_id, pkg_id_version, pres, tmpl, page]
+              header += check(s)
+            header += check("#{pkg_id_version}.config", asset.pkg_config)
+            header += check("#{pkg_id_version}.schema", asset.pkg_schema)
+
+          if asset.pkg_config.type in ['app', 'theme', 'site']
             for s in [lt3, pkg, pkg_id, pkg_id_version, pres, tmpl, page]
               header += check(s)
             header += check("#{pkg_id_version}.config", asset.pkg_config)
@@ -292,7 +298,7 @@ exports = module.exports = (cfg) ->
                   version = config.version.replace /\./g, '-'
                   name = path.basename src, ext
 
-                  if config.type in ['product', 'plugin']
+                  if config.core = '2.0.0'
                     p = ".#{id}.v#{version} .#{name}"
                     subs = [
                       ['.exports.collection',  "#{p}.collection"]
