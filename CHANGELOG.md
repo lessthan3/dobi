@@ -1,3 +1,7 @@
+**v0.6.1** (in progress)
+
+ - fix site create when product has no collections
+
 **v0.6.0** (2014-03-16)
 
  - change domains.domain to domain.url

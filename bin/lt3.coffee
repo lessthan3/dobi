@@ -343,7 +343,7 @@ switch command
         data = {
           created: Date.now()
           data:
-            collections: pkg_config.collections
+            collections: pkg_config.collections or {}
             header: {}
             footer: {}
             style: {}
