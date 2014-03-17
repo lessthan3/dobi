@@ -1,4 +1,4 @@
-**v0.6.0** (in progress)
+**v0.6.0** (2014-03-16)
 
  - change domains.domain to domain.url
  - take advantage of new pre-processing with asset-wrap

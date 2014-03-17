@@ -486,12 +486,13 @@ exports = module.exports = (cfg) ->
 
     # Package Single File Reload
     unless prod
-      router.route 'GET', '/pkg/:id/:version/reload/*', (req, res, next) ->
+      router.route 'GET', '/pkg/:id/:version/partial.:ext', (req, res, next) ->
+        return error 400, 'file required' unless req.query.file
 
         # grab parameters
         id = req.params.id
         version = req.params.version
-        file = req.params[0]
+        file = req.query.file
         filepath = path.join "#{pkgDir id, version}", file
         ext = path.extname filepath
         name = path.basename file, ext
