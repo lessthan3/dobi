@@ -22,21 +22,23 @@ USAGE = """
 Usage: lt3 <command> [command-specific-options]
 
 where <command> [command-specific-options] is one of:
-  add:admin <site> <facebook_id>          add a new admin to a site
-  add:app <site> <app> <id>@<version>     add an app package to a site
-  add:page <site> <app> <page> <type>     add a new page to a site's app
-  create <site>                           create your own website
+  add:object <type> <site> <slug>         add an object to a v2 site
+  add:page <type> <site> <slug>           add a page to a v2 site
+  create <site> [<product>]               create a v2 site
+  docs                                    open docs page
   help                                    show usage
   init                                    initialize a new lessthan3 workspace
   login                                   authenticate your user
-  open [<site>] [<app>] [<page>]          open a site
+  open [<site>] [<page>]                  open a site
   run                                     run a development server
   start                                   daemonize a development server
   stop                                    stop a daemonized devevelopment server
   version                                 check your lt3 version
-  v2:create <site> <product>              create a v2 site
-  v2:add:object <type> <site> <slug>      add an object to a v2 site
-  v2:add:page <type> <site> <slug>        add a page to a v2 site
+  whoami                                  check your local user
+  v1:add:admin <site> <facebook_id>       add a new admin to a site
+  v1:add:app <site> <app> <id>@<version>  add an app package to a site
+  v1:add:page <site> <app> <page> <type>  add a new page to a site's app
+  v1:create <site>                        create your own website
   whoami                                  check your local user
 """
 
@@ -46,7 +48,7 @@ switch command
 
 
   # add an admin to a site
-  when 'add:admin'
+  when 'v1:add:admin'
 
     # parse arguments
     site_slug = args[0]
@@ -68,7 +70,7 @@ switch command
 
 
   # add an app to a site
-  when 'add:app'
+  when 'v1:add:app'
 
     # parse arguments
     site_slug = args[0]
@@ -139,7 +141,7 @@ switch command
 
 
   # add a page to a site
-  when 'add:page'
+  when 'v1:add:page'
 
     # parse arguments
     site_slug = args[0]
@@ -202,7 +204,7 @@ switch command
 
 
   # create a new site
-  when 'create'
+  when 'v1:create'
 
     # parse arguments
     site_slug = args[0]
@@ -240,6 +242,9 @@ switch command
           log entity.val()
           exit()
 
+  when 'docs'
+    open 'http://www.lessthan3.com/developers'
+    exit()
 
   # create lessthan3 workspace
   when 'init'
@@ -317,7 +322,7 @@ switch command
       exit ''
 
   # create a new site
-  when 'v2:create'
+  when 'create'
 
     # parse arguments
     site_slug = args[0]
@@ -393,7 +398,7 @@ switch command
           log site.val()
           exit()
 
-  when 'v2:add:page'
+  when 'add:page'
 
     # parse arguments
     page_type = args[0]
@@ -440,7 +445,7 @@ switch command
             log "page added to #{site_slug}"
             exit()
 
-  when 'v2:add:object'
+  when 'add:object'
 
     # parse arguments
     object_type = args[0]

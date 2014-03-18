@@ -1,4 +1,8 @@
-**v0.6.1** (in progress)
+**v0.6.2** (in progress)
+
+ - make v2 sites the default commands and move v1 to v1:
+
+**v0.6.1** (2014-03-17)
 
  - fix site create when product has no collections
  - use config.core instead of config.type for compiling rules
