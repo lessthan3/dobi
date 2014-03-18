@@ -1,6 +1,11 @@
-**v0.6.2** (in progress)
+**v0.6.3** (in progress)
+
+ - 
+
+**v0.6.2** (2014-03-18)
 
  - make v2 sites the default commands and move v1 to v1:
+ - use node instead of coffee for binaries to remove global coffee dependency
 
 **v0.6.1** (2014-03-17)
 

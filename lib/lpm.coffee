@@ -1,4 +1,3 @@
-#!/usr/bin/env coffee
 
 ###
 # Package Management for LessThan3 platform development

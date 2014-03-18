@@ -1,12 +1,9 @@
-#!/usr/bin/env coffee
-
 ###
 # Project Management for LessThan3 platform development
 #   - authenticate
 #   - create new websites/apps/pages
 #   - run a development server
 ###
-
 
 # dependencies
 {

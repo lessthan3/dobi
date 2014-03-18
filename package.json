@@ -4,8 +4,8 @@
     "email": "b.n.williams@gmail.com"
   },
   "bin": {
-    "lpm": "./bin/lpm.coffee",
-    "lt3": "./bin/lt3.coffee"
+    "lpm": "./bin/lpm.js",
+    "lt3": "./bin/lt3.js"
   },
   "bugs": {
     "url": "https://github.com/lessthan3/lessthan3/issues",
@@ -49,5 +49,5 @@
     "type": "git",
     "url": "git://github.com/lessthan3/lessthan3.git"
   },
-  "version": "0.6.1"
+  "version": "0.6.2"
 }
