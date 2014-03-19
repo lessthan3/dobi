@@ -344,15 +344,12 @@ switch command
         exit('slug is already taken. please choose another') if site
         data = {
           created: Date.now()
-          data:
-            collections: pkg_config.collections or {}
-            header: {}
-            footer: {}
-            style: {}
+          collections: pkg_config.collections or {}
           name: site_slug
           package:
             id: pkg_id
             version: pkg_version
+          regions: {}
           settings:
             code_injection:
               header: ''
@@ -383,6 +380,7 @@ switch command
               mobile: 'slide'
               web: 'fade'
           slug: site_slug
+          style: {}
           users: {}
         }
 
