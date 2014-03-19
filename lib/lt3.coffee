@@ -344,7 +344,7 @@ switch command
         exit('slug is already taken. please choose another') if site
         data = {
           created: Date.now()
-          collections: pkg_config.collections or {}
+          collections: {}
           name: site_slug
           package:
             id: pkg_id
