@@ -159,7 +159,7 @@ switch command
     else
       exit 'must specify package id@version or run from inside a package'
     
-    #default to 1.0.0 package if nothing specified
+    # default to 1.0.0 package if nothing specified
     pkg_version = "1.0.0" unless pkg_version
     exit("must specify package id") unless pkg_id
     initPackage pkg_id, pkg_version

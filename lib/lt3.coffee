@@ -400,63 +400,60 @@ switch command
         data.users[config.user._id] = 'admin'
 
         setup_config = getCustomSetupConfig pkg_id, pkg_version
-        setup_config_site = setup_config.site
         # add self as admin
         data.users[config.user.id] = 'admin'
-    
-        #combines data set
-        new_data =  extend true, setup_config_site, data
-       
-      
 
-        
-        # insert into database
+        # handle null case
+        if setup_config
+          setup_config_site = setup_config.site
+          #combines data set
+          new_data =  extend true, setup_config_site, data
+        else
+          new_data = data
+
+        # insert into database must happen first to get site _id
         db.get('sites').insert data, (err, site) ->
           throw err if err
-          console.log site
-          pageFinished = false
-          objectFinished = false
+          log site
 
-
+          #no need to load objects/pages if there is no setup_config
+          exit() unless setup_config
           
-          # async objects
-          async.forEach setup_config.objects , (object, next) =>
-            object.created = Date.now()
-            object.site_id = site.get('_id').val()
-            db.get('objects').insert object , (err, site) ->
-              throw err if err
-              next()
-          , 
-          (err) =>
-            log "objects done"
+          # async objects function called later below
+          asyncObjects = (nextFunc) => 
+            async.forEach setup_config.objects , (object, next) =>
+              object.created = Date.now()
+              object.site_id = site.get('_id').val()
+              db.get('objects').insert object , (err, site) ->
+                throw err if err
+                next()
+            , 
+            (err) =>
+              log "objects loaded"
+              nextFunc(err,"page")
+             
+          #async pages function called later below
+          asyncPages  = (nextFunc) => 
+            # async pages into objects          
+            async.forEach setup_config.pages , (page, next) =>
+              page.created = Date.now()
+              page.site_id = site.get('_id').val()
+              db.get('objects').insert page , (err, site) ->
+                throw err if err
+                next()
+            , 
+            (err) =>
+              log "pages loaded"
+              nextFunc(err,"page")
+              
+
+          #parallel sync of functions
+          async.parallel [
+            asyncObjects
+            asyncPages
+          ], (err, results) ->
             exit err, err if err
-            @objectFinished = true
-            if @pageFinished and @objectFinished
-              exit()
-            
-
-
-          
-          # async pages into objects          
-          async.forEach setup_config.pages , (page, next) =>
-
-            page.created = Date.now()
-            page.site_id = site.get('_id').val()
-            db.get('objects').insert page , (err, site) ->
-              throw err if err
-              next()
-          , 
-          (err) =>
-            exit err, err if err
-            @pageFinished = true
-            log "pages done"
-            if @pageFinished and @objectFinished
-              exit()
-            
-          
-          
-          
-        
+            exit()
 
   when 'add:page'
     # parse arguments
