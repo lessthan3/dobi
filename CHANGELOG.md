@@ -1,6 +1,6 @@
-**v0.6.3** (in progress)
+**v0.6.3** (2014-03-20)
 
- - 
+ - change .page to .object to reinforce pages are just special objects
 
 **v0.6.2** (2014-03-18)
 

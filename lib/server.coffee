@@ -303,7 +303,7 @@ exports = module.exports = (cfg) ->
                     subs = [
                       ['.exports.collection',  "#{p}.collection"]
                       ['.exports.object',      "#{p}.object"]
-                      ['.exports.page',        "#{p}.page"]
+                      ['.exports.page',        "#{p}.object"]
                       ['.exports.presenter',   "#{p}.presenter"]
                       ['.exports.region',      "#{p}.region"]
                     ]
@@ -571,7 +571,7 @@ exports = module.exports = (cfg) ->
                     subs = [
                       ['.exports.collection',  "#{p}.collection"]
                       ['.exports.object',      "#{p}.object"]
-                      ['.exports.page',        "#{p}.page"]
+                      ['.exports.page',        "#{p}.object"]
                       ['.exports.presenter',   "#{p}.presenter"]
                       ['.exports.region',      "#{p}.region"]
                     ]
