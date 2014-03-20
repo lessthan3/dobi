@@ -8,10 +8,19 @@
 # dependencies
 {
   command, args, opts, config, exit,
-  getDB, getFB, getPackageConfig, getPackageJSON,
+  getDB, getFB, getPackageConfig, getCustomSetupConfig, getPackageJSON,
   initWorkspace, isLoggedIn,
   log, pkg_config, open, rl, runServer, saveConfig
 } = require '../lib/bin_utils'
+
+async = require 'async'
+
+## additional requirements
+if typeof window != 'undefined'
+  extend = (target, object) ->
+    $.extend true, target, object
+else
+  extend =  require 'node.extend'
 
 
 # usage
@@ -198,8 +207,7 @@ switch command
               throw err if err
               log "page added to #{site_slug}"
               exit "to view: lt3 open #{site_slug} #{app_slug} #{page_slug} --dev"
-
-
+      
   # create a new site
   when 'v1:create'
 
@@ -229,7 +237,6 @@ switch command
           created: Date.now()
           users: {}
         }
-
         # add self as admin
         data.users[config.user.id] = 'admin'
 
@@ -238,6 +245,7 @@ switch command
           throw err if err
           log entity.val()
           exit()
+        
 
   when 'docs'
     open 'http://www.lessthan3.com/developers'
@@ -340,8 +348,10 @@ switch command
 
       # make sure site location isn't taken
       db.get('sites').findOne {slug: site_slug}, (err, site) ->
+        
         throw err if err
         exit('slug is already taken. please choose another') if site
+
         data = {
           created: Date.now()
           data:
@@ -389,14 +399,66 @@ switch command
         # add self as admin
         data.users[config.user._id] = 'admin'
 
+        setup_config = getCustomSetupConfig pkg_id, pkg_version
+        setup_config_site = setup_config.site
+        # add self as admin
+        data.users[config.user.id] = 'admin'
+    
+        #combines data set
+        new_data =  extend true, setup_config_site, data
+       
+      
+
+        
         # insert into database
         db.get('sites').insert data, (err, site) ->
           throw err if err
-          log site.val()
-          exit()
+          console.log site
+          pageFinished = false
+          objectFinished = false
+
+
+          
+          # async objects
+          async.forEach setup_config.objects , (object, next) =>
+            object.created = Date.now()
+            object.site_id = site.get('_id').val()
+            db.get('objects').insert object , (err, site) ->
+              throw err if err
+              next()
+          , 
+          (err) =>
+            log "objects done"
+            exit err, err if err
+            @objectFinished = true
+            if @pageFinished and @objectFinished
+              exit()
+            
+
+
+          
+          # async pages into objects          
+          async.forEach setup_config.pages , (page, next) =>
+
+            page.created = Date.now()
+            page.site_id = site.get('_id').val()
+            db.get('objects').insert page , (err, site) ->
+              throw err if err
+              next()
+          , 
+          (err) =>
+            exit err, err if err
+            @pageFinished = true
+            log "pages done"
+            if @pageFinished and @objectFinished
+              exit()
+            
+          
+          
+          
+        
 
   when 'add:page'
-
     # parse arguments
     page_type = args[0]
     site_slug = args[1]

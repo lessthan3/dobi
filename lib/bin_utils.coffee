@@ -59,6 +59,19 @@ exports.getPackageConfig = (id, version)->
     if exports.PACKAGE_PATH
       CSON.parseFileSync "#{exports.PACKAGE_PATH}/config.cson"
 
+# get the specified custom setup configuration configuration
+exports.getCustomSetupConfig = (id, version)->
+  if id and version
+    CSON.parseFileSync "#{exports.WORKSPACE_PATH}/pkg/#{id}/#{version}/setup.cson"
+  else
+    if exports.PACKAGE_PATH
+      CSON.parseFileSync "#{exports.PACKAGE_PATH}/setup.cson"
+
+# get the current specified custom setup configuration
+exports.getCustomSetupConfig = ->
+   if exports.PACKAGE_PATH
+    CSON.parseFileSync "#{exports.PACKAGE_PATH}/setup.cson"
+    
 # get a specified package configuration
 exports.getPackageConfig = ->
   if exports.PACKAGE_PATH
