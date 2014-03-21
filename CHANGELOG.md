@@ -1,3 +1,7 @@
+**v0.6.4** (2014-03-21)
+
+ - force utf8 for reading CSON files to fix arrays going into firebase
+
 **v0.6.3** (2014-03-20)
 
  - change .page to .object to reinforce pages are just special objects
