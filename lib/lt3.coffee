@@ -312,7 +312,6 @@ switch command
       saveConfig()
     exit()
 
-
   # check the current version of lt3
   when 'v', 'version'
     pkg = getPackageJSON()
@@ -352,10 +351,11 @@ switch command
         throw err if err
         exit('slug is already taken. please choose another') if site
 
+       
         data = {
           created: Date.now()
           data:
-            collections: pkg_config.collections or {}
+            collections: {}
             header: {}
             footer: {}
             style: {}
@@ -396,12 +396,17 @@ switch command
           users: {}
         }
 
-        # add self as admin
-        data.users[config.user._id] = 'admin'
+        ##Inject collections
+        if pkg_config.collections
+          collectionsInjected={}
+          for key, value of pkg_config.collections
+            collectionsInjected[key]={"slug":value}
+
+          data.data.collections=collectionsInjected
 
         setup_config = getCustomSetupConfig pkg_id, pkg_version
         # add self as admin
-        data.users[config.user.id] = 'admin'
+        data.users[config.user._id] = 'admin'
 
         # handle null case
         if setup_config
@@ -411,8 +416,10 @@ switch command
         else
           new_data = data
 
-        # insert into database must happen first to get site _id
+
+        # insert into database must happen first to get site _id        
         db.get('sites').insert data, (err, site) ->
+
           throw err if err
           log site
 
@@ -454,6 +461,7 @@ switch command
           ], (err, results) ->
             exit err, err if err
             exit()
+        
 
   when 'add:page'
     # parse arguments
