@@ -22,7 +22,6 @@ if typeof window != 'undefined'
 else
   extend =  require 'node.extend'
 
-
 # usage
 USAGE = """
 Usage: lt3 <command> [command-specific-options]
@@ -33,6 +32,7 @@ where <command> [command-specific-options] is one of:
   create <site> [<product>]               create a v2 site
   docs                                    open docs page
   help                                    show usage
+  shell                                   shell to interact with database
   init                                    initialize a new lessthan3 workspace
   login                                   authenticate your user
   open [<site>] [<page>]                  open a site
@@ -49,9 +49,97 @@ where <command> [command-specific-options] is one of:
 """
 
 
+# Unique commands for the DB shell
+USAGE_SHELL = """
+Usage: lt3 <command> [command-specific-options]
+"Shell Active type 'exit' or 'quit' to escape"
+where <command> [command-specific-options] is one of:
+  exit/quit                       exit shell
+  get:sites [<slug>]              get sites with shell
+  get:allsites                    returns a list of id_slug mappings for all sites
+  get:objects_c <collection>      get objects with collection
+  get:objects_t <page_type>       get objects with type
+  get:sitemap <slug>              get contents of site
+  get:site_ids <slug>..           returns a id to slug lookup
+  help/docs                       this document
+"""
+
+executeCommand = () =>
+  switch command
+    when 'exit' or 'quit'
+      exit();
+
+    when 'get:sites'
+      getDB (db) ->
+       db.get('sites').find {slug: args[0]}, (err, sites) ->
+        for site in sites
+          log "------Site------"
+          log JSON.stringify(site.val(), null, 4)
+          log "------End Site------"
+        command=''
+        args=[]
+
+    when 'get:allsites'
+      getDB (db) ->
+       db.get('sites').find {}, (err, sites) ->
+        for site in sites
+          log "_id: #{site.data._id}, slug:#{site.data.slug}"
+        command=''
+        args=[]
+
+    when 'get:sitemap'
+      getDB (db) ->
+       db.get('sites').find {slug: args[0]}, (err, site) =>
+        db.get('objects').find {site_id:site._id}, (err, objects) =>
+          for object in objects
+            log "_id: #{object.data._id}, collection:#{object.data.collection}, 
+            page_type:#{object.data.page_type}"
+          command=''
+          args=[]
+
+    when 'get:site_ids'
+      getDB (db) ->
+        object=[]
+        for local_slug in args
+          object.push({slug:local_slug})
+
+        query = {$or:object}
+        log query
+        db.get('sites').find query, (err, sites) =>
+         for site in sites
+            log "_id: #{site.data._id}, slug:#{site.data.slug}"
+         command=''
+         args=[]
+
+    when 'get:objects_c'
+      getDB (db) ->
+        console.log 'test'
+        db.get('objects').find {collection: args[0]}, (err, objects) ->
+          for object in objects
+            log "------Object------"
+            log JSON.stringify(object.val(), null, 4)
+            log "------End Object------"
+          command=''
+          args=[]
+
+    when 'get:objects_t'
+      getDB (db) ->
+       db.get('objects').find {type: args[0]}, (err, objects) ->
+        for object in objects
+          log "------Object------"
+          log JSON.stringify(object.val(), null, 4)
+          log "------End Object------"
+        command=''
+        args=[]
+
+    when 'help' or 'docs'
+      log USAGE_SHELL
+      command=''
+      args=[]
+
+
 # execute selected command
 switch command
-
 
   # add an admin to a site
   when 'v1:add:admin'
@@ -246,7 +334,17 @@ switch command
           log entity.val()
           exit()
         
+  when 'shell'
+    command=''
+    log "DB Shell Active type 'exit' or 'quit' to escape, 'help' or 'docs' for information"
 
+    rl.on "line", (token) ->
+      args=token.split(' ')
+      command=args[0]
+      args.splice(0,1)
+      executeCommand()
+
+    
   when 'docs'
     open 'http://www.lessthan3.com/developers'
     exit()
@@ -545,10 +643,7 @@ switch command
             throw err if err
             log "object added to #{site_slug}"
             exit()
-
-
-
   # invalid command
-  else
+  else 
     exit USAGE
-    
+
