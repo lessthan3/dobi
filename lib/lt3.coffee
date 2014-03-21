@@ -396,7 +396,7 @@ switch command
           users: {}
         }
 
-        ##Inject collections
+        # Inject collections
         if pkg_config.collections
           collectionsInjected={}
           for key, value of pkg_config.collections
@@ -411,7 +411,7 @@ switch command
         # handle null case
         if setup_config
           setup_config_site = setup_config.site
-          #combines data set
+          # combines data set
           new_data =  extend true, setup_config_site, data
         else
           new_data = data
@@ -419,45 +419,36 @@ switch command
 
         # insert into database must happen first to get site _id        
         db.get('sites').insert data, (err, site) ->
-
           throw err if err
           log site
 
-          #no need to load objects/pages if there is no setup_config
+          # no need to load objects/pages if there is no setup_config
           exit() unless setup_config
           
           # async objects function called later below
           asyncObjects = (nextFunc) => 
             async.forEach setup_config.objects , (object, next) =>
+              object.seo={
+                title: ''
+                description: ''
+                keywords: ''
+                image: ''
+              }
               object.created = Date.now()
               object.site_id = site.get('_id').val()
               db.get('objects').insert object , (err, site) ->
                 throw err if err
+                throw "error missing collection! aborted" unless object.collection
+                throw "error missing type! aborted" unless object.type
                 next()
             , 
             (err) =>
               log "objects loaded"
               nextFunc(err,"page")
-             
-          #async pages function called later below
-          asyncPages  = (nextFunc) => 
-            # async pages into objects          
-            async.forEach setup_config.pages , (page, next) =>
-              page.created = Date.now()
-              page.site_id = site.get('_id').val()
-              db.get('objects').insert page , (err, site) ->
-                throw err if err
-                next()
-            , 
-            (err) =>
-              log "pages loaded"
-              nextFunc(err,"page")
-              
 
-          #parallel sync of functions
+          # parallel sync of functions
           async.parallel [
             asyncObjects
-            asyncPages
           ], (err, results) ->
             exit err, err if err
             exit()
