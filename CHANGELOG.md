@@ -1,3 +1,7 @@
+**v0.6.5** (2014-03-21)
+
+ - replace all substitutions, not just the first
+
 **v0.6.4** (2014-03-21)
 
  - force utf8 for reading CSON files to fix arrays going into firebase

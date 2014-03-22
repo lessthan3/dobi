@@ -308,7 +308,7 @@ exports = module.exports = (cfg) ->
                       ['.exports.region',      "#{p}.region"]
                     ]
                     for sub in subs
-                      source = source.replace sub[0], sub[1]
+                      source = source.replace new RegExp(sub[0], 'g'), sub[1]
       
                   # ex: html.exports -> html.artist-hq.v3-0-0
                   source = source.replace /.exports/g, ".#{id}.v#{version}"
