@@ -8,10 +8,19 @@
 # dependencies
 {
   command, args, opts, config, exit,
-  getDB, getFB, getPackageConfig, getPackageJSON,
+  getDB, getFB, getPackageConfig, getCustomSetupConfig, getPackageJSON,
   initWorkspace, isLoggedIn,
   log, pkg_config, open, rl, runServer, saveConfig
 } = require '../lib/bin_utils'
+
+async = require 'async'
+
+## additional requirements
+if typeof window != 'undefined'
+  extend = (target, object) ->
+    $.extend true, target, object
+else
+  extend =  require 'node.extend'
 
 
 # usage
@@ -198,8 +207,7 @@ switch command
               throw err if err
               log "page added to #{site_slug}"
               exit "to view: lt3 open #{site_slug} #{app_slug} #{page_slug} --dev"
-
-
+      
   # create a new site
   when 'v1:create'
 
@@ -229,7 +237,6 @@ switch command
           created: Date.now()
           users: {}
         }
-
         # add self as admin
         data.users[config.user.id] = 'admin'
 
@@ -238,6 +245,7 @@ switch command
           throw err if err
           log entity.val()
           exit()
+        
 
   when 'docs'
     open 'http://www.lessthan3.com/developers'
@@ -304,7 +312,6 @@ switch command
       saveConfig()
     exit()
 
-
   # check the current version of lt3
   when 'v', 'version'
     pkg = getPackageJSON()
@@ -340,11 +347,18 @@ switch command
 
       # make sure site location isn't taken
       db.get('sites').findOne {slug: site_slug}, (err, site) ->
+        
         throw err if err
         exit('slug is already taken. please choose another') if site
+
+       
         data = {
           created: Date.now()
-          collections: {}
+          data:
+            collections: {}
+            header: {}
+            footer: {}
+            style: {}
           name: site_slug
           package:
             id: pkg_id
@@ -384,17 +398,65 @@ switch command
           users: {}
         }
 
+        # Inject collections
+        if pkg_config.collections
+          collectionsInjected={}
+          for key, value of pkg_config.collections
+            collectionsInjected[key]={"slug":value}
+
+          data.data.collections=collectionsInjected
+
+        setup_config = getCustomSetupConfig pkg_id, pkg_version
         # add self as admin
         data.users[config.user._id] = 'admin'
 
-        # insert into database
+        # handle null case
+        if setup_config
+          setup_config_site = setup_config.site
+          # combines data set
+          new_data =  extend true, setup_config_site, data
+        else
+          new_data = data
+
+
+        # insert into database must happen first to get site _id        
         db.get('sites').insert data, (err, site) ->
           throw err if err
-          log site.val()
-          exit()
+          log site
+
+          # no need to load objects/pages if there is no setup_config
+          exit() unless setup_config
+          
+          # async objects function called later below
+          asyncObjects = (nextFunc) => 
+            async.forEach setup_config.objects , (object, next) =>
+              object.seo={
+                title: ''
+                description: ''
+                keywords: ''
+                image: ''
+              }
+              object.created = Date.now()
+              object.site_id = site.get('_id').val()
+              db.get('objects').insert object , (err, site) ->
+                throw err if err
+                throw "error missing collection! aborted" unless object.collection
+                throw "error missing type! aborted" unless object.type
+                next()
+            , 
+            (err) =>
+              log "objects loaded"
+              nextFunc(err,"page")
+
+          # parallel sync of functions
+          async.parallel [
+            asyncObjects
+          ], (err, results) ->
+            exit err, err if err
+            exit()
+        
 
   when 'add:page'
-
     # parse arguments
     page_type = args[0]
     site_slug = args[1]
