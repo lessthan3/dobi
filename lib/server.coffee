@@ -36,7 +36,7 @@ exports = module.exports = (cfg) ->
   readCSON = (file, next) ->
     fs.exists file, (exists) ->
       if exists
-        CSON.parseFile file, next
+        CSON.parseFile file, 'utf8', next
       else
         next "#{file} does not exist"
 
@@ -303,12 +303,12 @@ exports = module.exports = (cfg) ->
                     subs = [
                       ['.exports.collection',  "#{p}.collection"]
                       ['.exports.object',      "#{p}.object"]
-                      ['.exports.page',        "#{p}.page"]
+                      ['.exports.page',        "#{p}.object"]
                       ['.exports.presenter',   "#{p}.presenter"]
                       ['.exports.region',      "#{p}.region"]
                     ]
                     for sub in subs
-                      source = source.replace sub[0], sub[1]
+                      source = source.replace new RegExp(sub[0], 'g'), sub[1]
       
                   # ex: html.exports -> html.artist-hq.v3-0-0
                   source = source.replace /.exports/g, ".#{id}.v#{version}"
@@ -368,6 +368,7 @@ exports = module.exports = (cfg) ->
           return console.log(err) if err
           delete config.changelog
           ref = firebase.child "users/#{user}/developer/listener"
+
           config.modified =
             time: Date.now()
             base: path.basename file
@@ -378,7 +379,8 @@ exports = module.exports = (cfg) ->
             # TODO: deprecate
             file_ext: path.extname(file).replace '.', ''
             file_name: path.basename file, path.extname(file)
-          ref.set config
+          ref.set config, (err) ->
+            console.log(err) if err
 
 
   # Middleware
@@ -571,7 +573,7 @@ exports = module.exports = (cfg) ->
                     subs = [
                       ['.exports.collection',  "#{p}.collection"]
                       ['.exports.object',      "#{p}.object"]
-                      ['.exports.page',        "#{p}.page"]
+                      ['.exports.page',        "#{p}.object"]
                       ['.exports.presenter',   "#{p}.presenter"]
                       ['.exports.region',      "#{p}.region"]
                     ]

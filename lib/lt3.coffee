@@ -363,6 +363,7 @@ switch command
           package:
             id: pkg_id
             version: pkg_version
+          regions: {}
           settings:
             code_injection:
               header: ''
@@ -393,6 +394,7 @@ switch command
               mobile: 'slide'
               web: 'fade'
           slug: site_slug
+          style: {}
           users: {}
         }
 
