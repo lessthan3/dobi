@@ -89,12 +89,14 @@ executeCommand = (l_token,l_command,l_args) =>
           log "------Site------"
           log JSON.stringify(site.val(), null, 4)
           log "------End Site------"
+        rl.prompt();
 
     when 'get:allsites'
       getDB (db) ->
        db.get('sites').find {}, (err, sites) ->
         for site in sites
           log "_id: #{site.data._id}, slug:#{site.data.slug}"
+        rl.prompt();
 
     when 'get:sitemap'
       getDB (db) ->
@@ -103,6 +105,7 @@ executeCommand = (l_token,l_command,l_args) =>
           for object in objects
             log "_id: #{object.data._id}, collection:#{object.data.collection}, 
             page_type:#{object.data.page_type}"
+          rl.prompt();
 
     when 'get:site_ids'
       getDB (db) ->
@@ -115,6 +118,7 @@ executeCommand = (l_token,l_command,l_args) =>
         db.get('sites').find query, (err, sites) =>
          for site in sites
             log "_id: #{site.data._id}, slug:#{site.data.slug}"
+         rl.prompt();
 
     when 'get:objects_c'
       getDB (db) ->
@@ -123,6 +127,7 @@ executeCommand = (l_token,l_command,l_args) =>
             log "------Object------"
             log JSON.stringify(object.val(), null, 4)
             log "------End Object------"
+          rl.prompt();
 
     when 'get:objects_t'
       getDB (db) ->
@@ -131,6 +136,7 @@ executeCommand = (l_token,l_command,l_args) =>
           log "------Object------"
           log JSON.stringify(object.val(), null, 4)
           log "------End Object------"
+        rl.prompt();
 
     when 'help' or 'docs'
       log USAGE_SHELL
@@ -139,6 +145,15 @@ executeCommand = (l_token,l_command,l_args) =>
       checkForDb=l_token.match(/db.+(?=\()/)+""
       log "Check for DB #{checkForDb}"
       
+      #helper function to check for type is array (recommended from coffescript site for robust checking)
+      typeIsArray = ( value ) =>
+        value and
+        typeof value is 'object' and
+        value instanceof Array and
+        typeof value.length is 'number' and
+        typeof value.splice is 'function' and
+        not ( value.propertyIsEnumerable 'length' )
+
       #helper function to extract jsons from a token
       extractJsons = (token)  =>
         count=0;
@@ -170,11 +185,16 @@ executeCommand = (l_token,l_command,l_args) =>
             func=l_token.match(/f[a-zA-Z]+/)
             functionArgs=extractJsons(l_token)
             db.get('sites')[func] functionArgs[0],functionArgs[1], (err, objects) ->
-              log objects
-              for object in objects
-                log "------Object------"
-                log JSON.stringify(object.val(), null, 4)
-                log "------End Object------"
+              if typeIsArray objects
+                for object in objects
+                  log '------Site------'
+                  log JSON.stringify(object.val(), null, 4)
+                  log '------End Site------'
+              else
+                log '------Site------'
+                log JSON.stringify(objects.val(), null, 4)
+                log '------End Site------'
+              rl.prompt();
 
         when 'db.objects.find','db.objects.findOne','db.objects.findById'
           extractJsons l_token
@@ -182,11 +202,21 @@ executeCommand = (l_token,l_command,l_args) =>
             func=l_token.match(/f[a-zA-Z]+/)
             functionArgs=extractJsons(l_token)
             db.get('sites')[func] functionArgs[0],functionArgs[1], (err, objects) ->
-              for object in objects
-                log "------Object------"
-                log JSON.stringify(object.val(), null, 4)
-                log "------End Object------"
-
+              if typeIsArray objects
+                for object in objects
+                  log '------Object------'
+                  log JSON.stringify(object.val(), null, 4)
+                  log '------End Object------'
+              else
+                log '------Site------'
+                log JSON.stringify(objects.val(), null, 4)
+                log '------End Site------'
+              rl.prompt();
+        else
+          log """
+          log command not recognized
+          Shell Active type 'exit' or 'quit' to escape"""
+          rl.prompt();
 
 
 
@@ -395,7 +425,7 @@ switch command
       command=args[0]
       args.splice(0,1)
       executeCommand(token,command,args)
-      rl.prompt();
+      
 
     
   when 'docs'
