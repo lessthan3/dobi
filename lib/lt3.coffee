@@ -12,7 +12,7 @@
   initWorkspace, isLoggedIn,
   log, pkg_config, open, rl, runServer, saveConfig
 } = require '../lib/bin_utils'
-
+rl.setPrompt('>')
 async = require 'async'
 
 ## additional requirements
@@ -55,6 +55,8 @@ Usage: lt3 <command> [command-specific-options]
 "Shell Active type 'exit' or 'quit' to escape"
 where <command> [command-specific-options] is one of:
   exit/quit                       exit shell
+  
+  HELPER_COMMANDS
   get:sites [<slug>]              get sites with shell
   get:allsites                    returns a list of id_slug mappings for all sites
   get:objects_c <collection>      get objects with collection
@@ -62,45 +64,50 @@ where <command> [command-specific-options] is one of:
   get:sitemap <slug>              get contents of site
   get:site_ids <slug>..           returns a id to slug lookup
   help/docs                       this document
+  
+  DB_COMMANDS                     Query the database with results
+  db.sites.find
+  db.sites.findOne
+  db.sites.findById
+
+  db.objects.find
+  db.objects.findOne
+  db.objects.findById
+
+
 """
 
-executeCommand = () =>
-  switch command
+executeCommand = (l_token,l_command,l_args) =>
+  switch l_command
     when 'exit' or 'quit'
       exit();
 
     when 'get:sites'
       getDB (db) ->
-       db.get('sites').find {slug: args[0]}, (err, sites) ->
+       db.get('sites').find {slug: l_args[0]}, (err, sites) ->
         for site in sites
           log "------Site------"
           log JSON.stringify(site.val(), null, 4)
           log "------End Site------"
-        command=''
-        args=[]
 
     when 'get:allsites'
       getDB (db) ->
        db.get('sites').find {}, (err, sites) ->
         for site in sites
           log "_id: #{site.data._id}, slug:#{site.data.slug}"
-        command=''
-        args=[]
 
     when 'get:sitemap'
       getDB (db) ->
-       db.get('sites').find {slug: args[0]}, (err, site) =>
+       db.get('sites').find {slug: l_args[0]}, (err, site) =>
         db.get('objects').find {site_id:site._id}, (err, objects) =>
           for object in objects
             log "_id: #{object.data._id}, collection:#{object.data.collection}, 
             page_type:#{object.data.page_type}"
-          command=''
-          args=[]
 
     when 'get:site_ids'
       getDB (db) ->
         object=[]
-        for local_slug in args
+        for local_slug in l_args
           object.push({slug:local_slug})
 
         query = {$or:object}
@@ -108,34 +115,79 @@ executeCommand = () =>
         db.get('sites').find query, (err, sites) =>
          for site in sites
             log "_id: #{site.data._id}, slug:#{site.data.slug}"
-         command=''
-         args=[]
 
     when 'get:objects_c'
       getDB (db) ->
-        console.log 'test'
-        db.get('objects').find {collection: args[0]}, (err, objects) ->
+        db.get('objects').find {collection: l_args[0]}, (err, objects) ->
           for object in objects
             log "------Object------"
             log JSON.stringify(object.val(), null, 4)
             log "------End Object------"
-          command=''
-          args=[]
 
     when 'get:objects_t'
       getDB (db) ->
-       db.get('objects').find {type: args[0]}, (err, objects) ->
+       db.get('objects').find {type: l_args[0]}, (err, objects) ->
         for object in objects
           log "------Object------"
           log JSON.stringify(object.val(), null, 4)
           log "------End Object------"
-        command=''
-        args=[]
 
     when 'help' or 'docs'
       log USAGE_SHELL
-      command=''
-      args=[]
+
+    else
+      checkForDb=l_token.match(/db.+(?=\()/)+""
+      log "Check for DB #{checkForDb}"
+      
+      #helper function to extract jsons from a token
+      extractJsons = (token)  =>
+        count=0;
+        stringToForm=""
+        arr=[]
+        started=false
+        startIndex=token.indexOf '{'
+        for index in [startIndex...token.length]
+          char = token.charAt index 
+          
+          if char=="{"
+            started=true
+            count++
+          else if char=="}"
+            count--
+        
+          stringToForm+=char
+          if count == 0 and started
+            arr.push(stringToForm)
+            stringToForm=""
+            started=false
+
+        return arr
+
+      switch checkForDb
+        when 'db.sites.find','db.sites.findOne','db.sites.findById'
+          extractJsons l_token
+          getDB (db) ->
+            func=l_token.match(/f[a-zA-Z]+/)
+            functionArgs=extractJsons(l_token)
+            db.get('sites')[func] functionArgs[0],functionArgs[1], (err, objects) ->
+              log objects
+              for object in objects
+                log "------Object------"
+                log JSON.stringify(object.val(), null, 4)
+                log "------End Object------"
+
+        when 'db.objects.find','db.objects.findOne','db.objects.findById'
+          extractJsons l_token
+          getDB (db) ->
+            func=l_token.match(/f[a-zA-Z]+/)
+            functionArgs=extractJsons(l_token)
+            db.get('sites')[func] functionArgs[0],functionArgs[1], (err, objects) ->
+              for object in objects
+                log "------Object------"
+                log JSON.stringify(object.val(), null, 4)
+                log "------End Object------"
+
+
 
 
 # execute selected command
@@ -273,7 +325,6 @@ switch command
           }, (err, page) ->
             throw err if err
             exit('page already exists at this location') if page
-
             # insert new page
             db.get('pages').insert {
               active: true
@@ -295,7 +346,8 @@ switch command
               throw err if err
               log "page added to #{site_slug}"
               exit "to view: lt3 open #{site_slug} #{app_slug} #{page_slug} --dev"
-      
+      (DASSAD)(ADSASD)(DSASAD(SDASAD(DSASAD)))
+
   # create a new site
   when 'v1:create'
 
@@ -337,12 +389,13 @@ switch command
   when 'shell'
     command=''
     log "DB Shell Active type 'exit' or 'quit' to escape, 'help' or 'docs' for information"
-
+    rl.prompt();
     rl.on "line", (token) ->
       args=token.split(' ')
       command=args[0]
       args.splice(0,1)
-      executeCommand()
+      executeCommand(token,command,args)
+      rl.prompt();
 
     
   when 'docs'
