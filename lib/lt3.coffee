@@ -29,7 +29,7 @@ Usage: lt3 <command> [command-specific-options]
 where <command> [command-specific-options] is one of:
   add:object <type> <site> <slug>         add an object to a v2 site
   add:page <type> <site> <slug>           add a page to a v2 site
-  create <site> [<product>]               create a v2 site
+  setup <site> [<product>]                create a v3 site
   docs                                    open docs page
   help                                    show usage
   shell                                   shell to interact with database
@@ -41,11 +41,11 @@ where <command> [command-specific-options] is one of:
   stop                                    stop a daemonized devevelopment server
   version                                 check your lt3 version
   whoami                                  check your local user
+  v2:create <site> [<product>]            create a v2 site
   v1:add:admin <site> <facebook_id>       add a new admin to a site
   v1:add:app <site> <app> <id>@<version>  add an app package to a site
   v1:add:page <site> <app> <page> <type>  add a new page to a site's app
   v1:create <site>                        create your own website
-  whoami                                  check your local user
 """
 
 
@@ -505,9 +505,83 @@ switch command
     isLoggedIn ->
       log JSON.stringify config.user, null, 2
       exit ''
+  # create a new site
+  when 'v2:create'
+
+    # parse arguments
+    site_slug = args[0]
+    pkg = args[1]
+    exit("must specify site slug") unless site_slug
+    if pkg
+      [pkg_id, pkg_version] = pkg.split '@'
+    else if pkg_config
+      pkg_id = pkg_config.id
+      pkg_version = pkg_config.version
+    else
+      exit 'must specify package id@version or run from inside a package'
+
+    pkg_config = getPackageConfig pkg_id, pkg_version
+    exit("could not find package #{pkg_id}@#{pkg_version}") unless pkg_config
+
+    getDB (db) ->
+
+      # make sure site location isn't taken
+      db.get('sites').findOne {slug: site_slug}, (err, site) ->
+        throw err if err
+        exit('slug is already taken. please choose another') if site
+        data = {
+          created: Date.now()
+          collections: {}
+          name: site_slug
+          package:
+            id: pkg_id
+            version: pkg_version
+          regions: {}
+          settings:
+            code_injection:
+              header: ''
+              footer: ''
+            domain:
+              url: "www.lessthan3.com/#{site_slug}"
+            localization: ['en']
+            security:
+              password: ''
+            seo:
+              title: ''
+              description: ''
+              keywords: ''
+              image: ''
+              hide_from_search_engines: ''
+              icons:
+                favicon: ''
+                apple:
+                  '57x57': ''
+                  '72x72': ''
+                  '114x114': ''
+                  '144x144': ''
+            services:
+              facebook_app_id: ''
+              disqus_shortname: ''
+              google_analytics_id: ''
+            transitions:
+              mobile: 'slide'
+              web: 'fade'
+          slug: site_slug
+          style: {}
+          users: {}
+        }
+
+        # add self as admin
+        data.users[config.user._id] = 'admin'
+
+        # insert into database
+        db.get('sites').insert data, (err, site) ->
+          throw err if err
+          log site.val()
+          exit()
 
   # create a new site
-  when 'create'
+  when 'setup'
 
     # parse arguments
     site_slug = args[0]
