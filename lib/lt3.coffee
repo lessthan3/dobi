@@ -60,7 +60,7 @@ where <command> [command-specific-options] is one of:
   get:sites [<slug>]              get sites with shell
   get:allsites                    returns a list of id_slug mappings for all sites
   get:objects_c <collection>      get objects with collection
-  get:objects_t <page_type>       get objects with type
+  get:objects_t <type>            get objects with type
   get:sitemap <slug>              get contents of site
   get:site_ids <slug>..           returns a id to slug lookup
   help/docs                       this document
@@ -104,7 +104,7 @@ executeCommand = (l_token,l_command,l_args) =>
         db.get('objects').find {site_id:site._id}, (err, objects) =>
           for object in objects
             log "_id: #{object.data._id}, collection:#{object.data.collection}, 
-            page_type:#{object.data.page_type}"
+            type:#{object.data.type}"
           rl.prompt();
 
     when 'get:site_ids'
@@ -201,16 +201,16 @@ executeCommand = (l_token,l_command,l_args) =>
           getDB (db) ->
             func=l_token.match(/f[a-zA-Z]+/)
             functionArgs=extractJsons(l_token)
-            db.get('sites')[func] functionArgs[0],functionArgs[1], (err, objects) ->
+            db.get('objects')[func] functionArgs[0],functionArgs[1], (err, objects) ->
               if typeIsArray objects
                 for object in objects
                   log '------Object------'
                   log JSON.stringify(object.val(), null, 4)
                   log '------End Object------'
               else
-                log '------Site------'
+                log '------Object------'
                 log JSON.stringify(objects.val(), null, 4)
-                log '------End Site------'
+                log '------End Object------'
               rl.prompt();
         else
           log """
@@ -735,8 +735,8 @@ switch command
           throw err if err
           exit('page already exists at this location') if object
 
-          # insert new page
-          db.get('objects').insert {
+
+          object= {
             data: {}
             page_type: page_type
             password: ''
@@ -749,10 +749,68 @@ switch command
             slug: page_slug
             tags: [page_slug, page_type]
             type: 'page'
-          }, (err, object) ->
+          }
+
+          # insert new page
+          db.get('objects').insert object, (err, object) ->
             throw err if err
             log "page added to #{site_slug}"
             exit()
+  
+  when 'add' ##DOES NOT WORK YET IN PROGRESS
+    getDB (db) ->
+       db.get('objects').find({slug:"richardduran2"}) (err, site) ->
+        log site
+
+    ###
+    # parse arguments
+    site_slug = args[0]
+    collection_name = args[1]
+    object_type = args[2]
+    object_slug = args[3]
+
+    exit("must specify object type") unless object_type
+    exit("must specify collection name") unless collection_name
+    exit("must specify site slug") unless site_slug
+    exit("must specify object slug") unless object_slug
+    object_slug = object_slug.replace /^\/(.*)/, '$1'
+
+    getDB (db) ->
+      
+      # make sure site exists
+      db.get('sites').findOne {
+        slug: site_slug
+      }, (err, site) ->
+        throw err if err
+        exit('site does not exist') unless site
+
+        # make sure page location isn't taken
+        db.get('objects').findOne {
+          'site_id': site.get('_id').val()
+          slug: object_slug
+        }, (err, object) ->
+          throw err if err
+          exit('object already exists at this location') if object
+
+          # insert new page
+          db.get('objects').insert {
+            data: {}
+            password: ''
+            seo:
+              title: ''
+              description: ''
+              keywords: ''
+              image: ''
+            site_id: site.get('_id').val()
+            slug: object_slug
+            tags: [object_type, object_slug]
+            type: object_type
+          }, (err, object) ->
+            throw err if err
+            log "object added to #{site_slug}"
+            exit()
+    ###
+
 
   when 'add:object'
 
