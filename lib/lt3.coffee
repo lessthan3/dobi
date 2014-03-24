@@ -376,7 +376,6 @@ switch command
               throw err if err
               log "page added to #{site_slug}"
               exit "to view: lt3 open #{site_slug} #{app_slug} #{page_slug} --dev"
-      (DASSAD)(ADSASD)(DSASAD(SDASAD(DSASAD)))
 
   # create a new site
   when 'v1:create'
