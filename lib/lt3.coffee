@@ -64,20 +64,57 @@ where <command> [command-specific-options] is one of:
   get:sitemap <slug>              get contents of site
   get:site_ids <slug>..           returns a id to slug lookup
   help/docs                       this document
+  open:site <id>                  this opens site in context
+  open:object_or_page <id>        this opens object in context
   
   DB_COMMANDS                     Query the database with results
-  db.sites.find
+  db.sites.find                   
   db.sites.findOne
   db.sites.findById
 
   db.objects.find
   db.objects.findOne
   db.objects.findById
-
-
 """
 
+USAGE_SHELL_SITE="""
+  SITE/OBJECT_TOOLS
+  show                            Dump site information
+  add/set                         Sets data key:value
+  get                             gets a subset of the site information
+  exit                            drops out of site context
+  """
+executeSiteCommand =(l_token,l_command,l_args) =>
+  @variables="" unless @variables
+  switch l_command
+    when 'show'
+      getDB (db) =>
+        db.cache = false
+        db.get('sites').find {_id: @site_id}, (err, sites) =>
+          log JSON.stringify(sites[0].val(),null,3)
+
+    when 'get'
+      getDB (db) =>
+        db.get('sites').find {_id: @site_id}, (err, sites) =>
+          log JSON.stringify(sites[0].get(l_args[0]).val(),null,3)
+    
+    when 'set' or 'add' #currently does not work
+      getDB (db) => 
+        db.get('sites').findOne {_id: @site_id}, (err, site) =>
+          throw err if err
+          site.get(arg[0]).set arg[1], (err) =>
+            throw err if err
+    when 'exit'
+      @site_context = undefined
+      
+    else
+      rl.prompt()
+
 executeCommand = (l_token,l_command,l_args) =>
+  if @site_context
+    executeSiteCommand l_token,l_command,l_args
+    return
+
   switch l_command
     when 'exit' or 'quit'
       exit();
@@ -138,12 +175,37 @@ executeCommand = (l_token,l_command,l_args) =>
           log "------End Object------"
         rl.prompt();
 
+
+    when 'open:site'
+      getDB (db) =>
+        db.get('sites').find {_id: l_args[0]}, (err, sites) =>
+          @site_context={
+            type:"sites"
+            site:sites[0]
+            id:sites[0].data._id
+            prompt:"#{l_args[0]}"
+          }
+
+          rl.setPrompt "#{@prompt}>"
+          rl.prompt();
+    when 'open:object'
+      getDB (db) =>
+        db.get('objects').find {_id: l_args[0]}, (err, objects) =>
+          @site_context={
+            type:"objects"
+            site:objects[0]
+            id:objects[0].data._id
+            prompt:"#{l_args[0]}"
+          }
+
+          rl.setPrompt "#{@prompt}>"
+          rl.prompt();
+
     when 'help' or 'docs'
       log USAGE_SHELL
 
     else
       checkForDb=l_token.match(/db.+(?=\()/)+""
-      log "Check for DB #{checkForDb}"
       
       #helper function to check for type is array (recommended from coffescript site for robust checking)
       typeIsArray = ( value ) =>
