@@ -136,7 +136,7 @@ executeContextCommand =(l_token,l_command,l_args) =>
             log "------End Object------"
           rl.prompt();
     ###
-    
+
 executeCommand = (l_token,l_command,l_args) =>
   if @shell_context
     executeContextCommand l_token,l_command,l_args
@@ -170,7 +170,6 @@ executeCommand = (l_token,l_command,l_args) =>
             log "_id: #{object.data._id}, collection:#{object.data.collection}, 
             type:#{object.data.type}"
           rl.prompt();
-
     when 'get:site_ids'
       getDB (db) ->
         object=[]
@@ -823,62 +822,7 @@ switch command
             throw err if err
             log "page added to #{site_slug}"
             exit()
-  
-  when 'add' ##DOES NOT WORK YET IN PROGRESS
-    getDB (db) ->
-       db.get('objects').find({slug:"richardduran2"}) (err, site) ->
-        log site
-
-    ###
-    # parse arguments
-    site_slug = args[0]
-    collection_name = args[1]
-    object_type = args[2]
-    object_slug = args[3]
-
-    exit("must specify object type") unless object_type
-    exit("must specify collection name") unless collection_name
-    exit("must specify site slug") unless site_slug
-    exit("must specify object slug") unless object_slug
-    object_slug = object_slug.replace /^\/(.*)/, '$1'
-
-    getDB (db) ->
-      
-      # make sure site exists
-      db.get('sites').findOne {
-        slug: site_slug
-      }, (err, site) ->
-        throw err if err
-        exit('site does not exist') unless site
-
-        # make sure page location isn't taken
-        db.get('objects').findOne {
-          'site_id': site.get('_id').val()
-          slug: object_slug
-        }, (err, object) ->
-          throw err if err
-          exit('object already exists at this location') if object
-
-          # insert new page
-          db.get('objects').insert {
-            data: {}
-            password: ''
-            seo:
-              title: ''
-              description: ''
-              keywords: ''
-              image: ''
-            site_id: site.get('_id').val()
-            slug: object_slug
-            tags: [object_type, object_slug]
-            type: object_type
-          }, (err, object) ->
-            throw err if err
-            log "object added to #{site_slug}"
-            exit()
-    ###
-
-
+s
   when 'add:object'
 
     # parse arguments
