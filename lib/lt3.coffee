@@ -57,13 +57,15 @@ where <command> [command-specific-options] is one of:
   exit/quit                       exit shell
   
   HELPER_COMMANDS
+  get:site <id>                   get site by id
+  get:object <id>                 get object by id
   get:sites [<slug>]              get sites with shell
   get:allsites                    returns a list of id_slug mappings for all sites
   get:sitemap <slug>              get contents of site
   get:site_ids <slug>..           returns a id to slug lookup
   help/docs                       this document
-  shell:site <id>                  this opens site in context
-  shell:object_or_page <id>        this opens object in context
+  shell:site <id>                 this opens site in context
+  shell:object <id>               this opens object in context
   
   DB_COMMANDS                     Query the database with results
   db.sites.find                   
@@ -116,27 +118,6 @@ executeContextCommand =(l_token,l_command,l_args) =>
     else
       rl.prompt()
 
- ### 
-      May be added later still tbd on implementation
-      when 'get:objects_c'
-        getDB (db) ->
-          db.get('objects').find {collection: l_args[0]}, (err, objects) ->
-            for object in objects
-              log "------Object------"
-              log JSON.stringify(object.val(), null, 4)
-              log "------End Object------"
-            rl.prompt();
-
-      when 'get:objects_t'
-        getDB (db) ->
-         db.get('objects').find {type: l_args[0]}, (err, objects) ->
-          for object in objects
-            log "------Object------"
-            log JSON.stringify(object.val(), null, 4)
-            log "------End Object------"
-          rl.prompt();
-    ###
-
 executeCommand = (l_token,l_command,l_args) =>
   if @shell_context
     executeContextCommand l_token,l_command,l_args
@@ -148,13 +129,28 @@ executeCommand = (l_token,l_command,l_args) =>
 
     when 'get:sites'
       getDB (db) ->
+       db.get('sites').findOne {_id: l_args[0]}, (err, site) ->
+          log "------Site------"
+          log JSON.stringify(site.val(), null, 4)
+          log "------End Site------"
+          rl.prompt();
+
+    when 'get:object'
+      getDB (db) ->
+       db.get('objects').findOne {_id: l_args[0]}, (err, object) ->
+         log "------Object------"
+         log JSON.stringify(object.val(), null, 4)
+         log "------End Object------"
+         rl.prompt();
+
+    when 'get:site'
+      getDB (db) ->
        db.get('sites').find {slug: l_args[0]}, (err, sites) ->
         for site in sites
           log "------Site------"
           log JSON.stringify(site.val(), null, 4)
           log "------End Site------"
         rl.prompt();
-
     when 'get:allsites'
       getDB (db) ->
        db.get('sites').find {}, (err, sites) ->
@@ -193,6 +189,7 @@ executeCommand = (l_token,l_command,l_args) =>
           prompt="#{sites[0].data.slug}-#{id}"
           rl.setPrompt "#{prompt}>"
           rl.prompt();
+          
     when 'shell:object'
       getDB (db) =>
         db.get('objects').findOne {_id: l_args[0]}, (err, object) =>
@@ -822,7 +819,7 @@ switch command
             throw err if err
             log "page added to #{site_slug}"
             exit()
-s
+
   when 'add:object'
 
     # parse arguments
