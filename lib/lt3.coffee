@@ -59,13 +59,11 @@ where <command> [command-specific-options] is one of:
   HELPER_COMMANDS
   get:sites [<slug>]              get sites with shell
   get:allsites                    returns a list of id_slug mappings for all sites
-  get:objects_c <collection>      get objects with collection
-  get:objects_t <type>            get objects with type
   get:sitemap <slug>              get contents of site
   get:site_ids <slug>..           returns a id to slug lookup
   help/docs                       this document
-  open:site <id>                  this opens site in context
-  open:object_or_page <id>        this opens object in context
+  shell:site <id>                  this opens site in context
+  shell:object_or_page <id>        this opens object in context
   
   DB_COMMANDS                     Query the database with results
   db.sites.find                   
@@ -77,42 +75,50 @@ where <command> [command-specific-options] is one of:
   db.objects.findById
 """
 
-USAGE_SHELL_SITE="""
+USAGE_SHELL_CONTEXT="""
   SITE/OBJECT_TOOLS
   show                            Dump site information
   add/set                         Sets data key:value
   get                             gets a subset of the site information
   exit                            drops out of site context
   """
-executeSiteCommand =(l_token,l_command,l_args) =>
+executeContextCommand =(l_token,l_command,l_args) =>
   @variables="" unless @variables
   switch l_command
     when 'show'
       getDB (db) =>
         db.cache = false
-        db.get('sites').find {_id: @site_id}, (err, sites) =>
+        db.get(@shell_context.type).find {_id: @shell_context.id}, (err, sites) =>
           log JSON.stringify(sites[0].val(),null,3)
+          rl.prompt();
 
     when 'get'
       getDB (db) =>
-        db.get('sites').find {_id: @site_id}, (err, sites) =>
+        db.get(@shell_context.type).find {_id: @shell_context.id}, (err, sites) =>
           log JSON.stringify(sites[0].get(l_args[0]).val(),null,3)
+          rl.prompt();
     
     when 'set' or 'add' #currently does not work
       getDB (db) => 
-        db.get('sites').findOne {_id: @site_id}, (err, site) =>
+        db.get(shell_context.type).findOne {_id: @shell_context.id}, (err, site) =>
           throw err if err
           site.get(arg[0]).set arg[1], (err) =>
             throw err if err
+            rl.prompt();
+    when 'help'
+      log USAGE_SHELL_CONTEXT
+      rl.prompt()
+
     when 'exit'
-      @site_context = undefined
-      
+      @shell_context = undefined
+      rl.setPrompt('>')
+      rl.prompt()
     else
       rl.prompt()
 
 executeCommand = (l_token,l_command,l_args) =>
-  if @site_context
-    executeSiteCommand l_token,l_command,l_args
+  if @shell_context
+    executeContextCommand l_token,l_command,l_args
     return
 
   switch l_command
@@ -156,7 +162,7 @@ executeCommand = (l_token,l_command,l_args) =>
          for site in sites
             log "_id: #{site.data._id}, slug:#{site.data.slug}"
          rl.prompt();
-
+    ### May be added later still tbd on implementation
     when 'get:objects_c'
       getDB (db) ->
         db.get('objects').find {collection: l_args[0]}, (err, objects) ->
@@ -174,35 +180,31 @@ executeCommand = (l_token,l_command,l_args) =>
           log JSON.stringify(object.val(), null, 4)
           log "------End Object------"
         rl.prompt();
-
-
-    when 'open:site'
+    ###
+    when 'shell:site'
       getDB (db) =>
         db.get('sites').find {_id: l_args[0]}, (err, sites) =>
-          @site_context={
+          @shell_context={
             type:"sites"
-            site:sites[0]
             id:sites[0].data._id
-            prompt:"#{l_args[0]}"
           }
-
-          rl.setPrompt "#{@prompt}>"
+          prompt="#{sites[0].data.slug}-#{id}"
+          rl.setPrompt "#{prompt}>"
           rl.prompt();
-    when 'open:object'
+    when 'shell:object'
       getDB (db) =>
-        db.get('objects').find {_id: l_args[0]}, (err, objects) =>
-          @site_context={
+        db.get('objects').findOne {_id: l_args[0]}, (err, object) =>
+          @shell_context={
             type:"objects"
-            site:objects[0]
-            id:objects[0].data._id
-            prompt:"#{l_args[0]}"
+            id:object.data._id
           }
-
-          rl.setPrompt "#{@prompt}>"
+          prompt="#collection-#{object.data.collection} type-#{object.data.type}"
+          rl.setPrompt "#{prompt}>"
           rl.prompt();
 
     when 'help' or 'docs'
       log USAGE_SHELL
+      rl.prompt()
 
     else
       checkForDb=l_token.match(/db.+(?=\()/)+""
