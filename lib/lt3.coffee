@@ -116,6 +116,27 @@ executeContextCommand =(l_token,l_command,l_args) =>
     else
       rl.prompt()
 
+ ### 
+      May be added later still tbd on implementation
+      when 'get:objects_c'
+        getDB (db) ->
+          db.get('objects').find {collection: l_args[0]}, (err, objects) ->
+            for object in objects
+              log "------Object------"
+              log JSON.stringify(object.val(), null, 4)
+              log "------End Object------"
+            rl.prompt();
+
+      when 'get:objects_t'
+        getDB (db) ->
+         db.get('objects').find {type: l_args[0]}, (err, objects) ->
+          for object in objects
+            log "------Object------"
+            log JSON.stringify(object.val(), null, 4)
+            log "------End Object------"
+          rl.prompt();
+    ###
+    
 executeCommand = (l_token,l_command,l_args) =>
   if @shell_context
     executeContextCommand l_token,l_command,l_args
@@ -162,25 +183,7 @@ executeCommand = (l_token,l_command,l_args) =>
          for site in sites
             log "_id: #{site.data._id}, slug:#{site.data.slug}"
          rl.prompt();
-    ### May be added later still tbd on implementation
-    when 'get:objects_c'
-      getDB (db) ->
-        db.get('objects').find {collection: l_args[0]}, (err, objects) ->
-          for object in objects
-            log "------Object------"
-            log JSON.stringify(object.val(), null, 4)
-            log "------End Object------"
-          rl.prompt();
 
-    when 'get:objects_t'
-      getDB (db) ->
-       db.get('objects').find {type: l_args[0]}, (err, objects) ->
-        for object in objects
-          log "------Object------"
-          log JSON.stringify(object.val(), null, 4)
-          log "------End Object------"
-        rl.prompt();
-    ###
     when 'shell:site'
       getDB (db) =>
         db.get('sites').find {_id: l_args[0]}, (err, sites) =>
