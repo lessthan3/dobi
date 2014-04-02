@@ -79,7 +79,7 @@ where <command> [command-specific-options] is one of:
 
 USAGE_SHELL_CONTEXT="""
   SITE/OBJECT_TOOLS
-  show                            Dump site information
+  show                            Dump object/site information
   add/set                         Sets data key:value
   get                             gets a subset of the site information
   exit                            drops out of site context
