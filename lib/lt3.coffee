@@ -184,11 +184,12 @@ executeCommand = (l_token,l_command,l_args) =>
     when 'shell:site'
       getDB (db) =>
         db.get('sites').find {_id: l_args[0]}, (err, sites) =>
+          
           @shell_context={
             type:"sites"
             id:sites[0].data._id
           }
-          prompt="#{sites[0].data.slug}-#{id}"
+          prompt="#{sites[0].data.slug}-#{sites[0].data._id}"
           rl.setPrompt "#{prompt}>"
           rl.prompt();
           
