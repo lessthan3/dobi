@@ -673,15 +673,12 @@ switch command
        
         data = {
           created: Date.now()
-          data:
-            collections: {}
-            header: {}
-            footer: {}
-            style: {}
+          collections: {}
           name: site_slug
           package:
             id: pkg_id
             version: pkg_version
+          regions: {}
           settings:
             code_injection:
               header: ''
@@ -712,6 +709,7 @@ switch command
               mobile: 'slide'
               web: 'fade'
           slug: site_slug
+          style: {}
           users: {}
         }
 
@@ -721,7 +719,7 @@ switch command
           for key, value of pkg_config.collections
             collectionsInjected[key]={"slug":value}
 
-          data.data.collections=collectionsInjected
+          data.collections=collectionsInjected
 
         setup_config = getCustomSetupConfig pkg_id, pkg_version
         # add self as admin

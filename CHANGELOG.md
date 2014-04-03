@@ -1,6 +1,14 @@
-**v0.6.3** (in progress)
+**v0.6.5** (2014-03-21)
 
- - 
+ - replace all substitutions, not just the first
+
+**v0.6.4** (2014-03-21)
+
+ - force utf8 for reading CSON files to fix arrays going into firebase
+
+**v0.6.3** (2014-03-20)
+
+ - change .page to .object to reinforce pages are just special objects
 
 **v0.6.2** (2014-03-18)
 
