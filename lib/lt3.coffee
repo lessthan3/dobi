@@ -673,7 +673,6 @@ switch command
        
         data = {
           created: Date.now()
-          collections: {}
           name: site_slug
           package:
             id: pkg_id
@@ -712,36 +711,39 @@ switch command
           style: {}
           users: {}
         }
-
-        # Inject collections
-        if pkg_config.collections
-          collectionsInjected={}
-          for key, value of pkg_config.collections
-            collectionsInjected[key]={"slug":value}
-
-          data.collections=collectionsInjected
-
         setup_config = getCustomSetupConfig pkg_id, pkg_version
-        # add self as admin
-        data.users[config.user._id] = 'admin'
-
+        
         # handle null case
         if setup_config
           setup_config_site = setup_config.site
-          # combines data set
+          # do maerging of config.cson with setup.cson
           new_data =  extend true, setup_config_site, data
         else
           new_data = data
 
+        # Inject collections WILL OVERRIDE if collides with setup
+        if pkg_config.collections
+          for key, value of pkg_config.collections
+            new_data.collections[key]={"slug":value}
 
+
+        # add self as admin
+        new_data.users[config.user._id] = 'admin'
+
+        #initialize if it doesn't exist
+        if not new_data.collections
+            new_data.collections={}
+
+        
         # insert into database must happen first to get site _id        
-        db.get('sites').insert data, (err, site) ->
+        db.get('sites').insert new_data, (err, site) ->
           throw err if err
+          log "site created"
           log site
 
           # no need to load objects/pages if there is no setup_config
           exit() unless setup_config
-          
+          log "creating Objects...."
           # async objects function called later below
           asyncObjects = (nextFunc) => 
             async.forEach setup_config.objects , (object, next) =>
