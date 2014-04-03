@@ -27,8 +27,8 @@ USAGE = """
 Usage: lt3 <command> [command-specific-options]
 
 where <command> [command-specific-options] is one of:
-  add:object <type> <site> <slug>         add an object to a v2 site
-  add:page <type> <site> <slug>           add a page to a v2 site
+  add:object <type> <site> <slug>         add an object to a v3 site
+  add:page <type> <site> <slug>           add a page to a v3 site
   setup <site> [<product>]                create a v3 site
   docs                                    open docs page
   help                                    show usage
@@ -41,6 +41,8 @@ where <command> [command-specific-options] is one of:
   stop                                    stop a daemonized devevelopment server
   version                                 check your lt3 version
   whoami                                  check your local user
+  v2:add:object <type> <site> <slug>      add an object to a v2 site
+  v2:add:page <type> <site> <slug>        add an page to a v2 site
   v2:create <site> [<product>]            create a v2 site
   v1:add:admin <site> <facebook_id>       add a new admin to a site
   v1:add:app <site> <app> <id>@<version>  add an app package to a site
@@ -801,6 +803,104 @@ switch command
 
           object= {
             data: {}
+            password: ''
+            collection:'pages'
+            seo:
+              title: ''
+              description: ''
+              keywords: ''
+              image: ''
+            site_id: site.get('_id').val()
+            slug: page_slug
+            tags: [page_slug, page_type]
+            type: page_type
+          }
+
+          # insert new page
+          db.get('objects').insert object, (err, object) ->
+            throw err if err
+            log "page added to #{site_slug}"
+            log object
+            exit()
+
+  when 'add:object'
+
+    # parse arguments
+    object_type = args[0]
+    site_slug = args[1]
+    object_slug = args[2]
+    exit("must specify object type") unless object_type
+    exit("must specify site slug") unless site_slug
+    exit("must specify object slug") unless object_slug
+    object_slug = object_slug.replace /^\/(.*)/, '$1'
+
+    getDB (db) ->
+      
+      # make sure site exists
+      db.get('sites').findOne {
+        slug: site_slug
+      }, (err, site) ->
+        throw err if err
+        exit('site does not exist') unless site
+
+        # make sure page location isn't taken
+        db.get('objects').findOne {
+          'site_id': site.get('_id').val()
+          slug: object_slug
+        }, (err, object) ->
+          throw err if err
+          exit('object already exists at this location') if object
+
+          # insert new page
+          db.get('objects').insert {
+            data: {}
+            password: ''
+            seo:
+              title: ''
+              description: ''
+              keywords: ''
+              image: ''
+            site_id: site.get('_id').val()
+            slug: object_slug
+            tags: [object_type, object_slug]
+            type: object_type
+          }, (err, object) ->
+            throw err if err
+            log "object added to #{site_slug}"
+            log object
+            exit()
+
+  when 'v2:add:page'
+
+    # parse arguments
+    page_type = args[0]
+    site_slug = args[1]
+    page_slug = args[2]
+    exit("must specify page type") unless page_type
+    exit("must specify site slug") unless site_slug
+    exit("must specify page slug") unless page_slug
+    page_slug = page_slug.replace /^\/(.*)/, '$1'
+
+    getDB (db) ->
+      
+      # make sure site exists
+      db.get('sites').findOne {
+        slug: site_slug
+      }, (err, site) ->
+        throw err if err
+        exit('site does not exist') unless site
+
+        # make sure page location isn't taken
+        db.get('objects').findOne {
+          'site_id': site.get('_id').val()
+          slug: page_slug
+        }, (err, object) ->
+          throw err if err
+          exit('page already exists at this location') if object
+
+          # insert new page
+          db.get('objects').insert {
+            data: {}
             page_type: page_type
             password: ''
             seo:
@@ -812,15 +912,12 @@ switch command
             slug: page_slug
             tags: [page_slug, page_type]
             type: 'page'
-          }
-
-          # insert new page
-          db.get('objects').insert object, (err, object) ->
+          }, (err, object) ->
             throw err if err
             log "page added to #{site_slug}"
             exit()
 
-  when 'add:object'
+  when 'v2:add:object'
 
     # parse arguments
     object_type = args[0]

@@ -99,22 +99,32 @@ exports.initPackageDir = (id, version, next) ->
 
   # make sure the user is logged in
   exports.isLoggedIn ->
-
-    # create directories
-    pkg_path = path.join exports.WORKSPACE_PATH, 'pkg', id
-    fs.mkdir pkg_path, (err) ->
-      pkg_path = path.join pkg_path, version
+    if (version == "3.0.0")
+      # create directories
+      pkg_path = path.join exports.WORKSPACE_PATH, 'pkg', id
       fs.mkdir pkg_path, (err) ->
-        fs.mkdir path.join(pkg_path, 'pages'), (err) ->
-          next pkg_path
+        pkg_path = path.join pkg_path, version
+        fs.mkdir pkg_path, (err) ->
+          fs.mkdir path.join(pkg_path, 'presenters'), (err) ->
+            fs.mkdir path.join(pkg_path, 'schema'), (err) ->
+              fs.mkdir path.join(pkg_path, 'style'), (err) ->
+                fs.mkdir path.join(pkg_path, 'templates'), (err) ->
+                  next pkg_path
+    else
+      # create directories
+      pkg_path = path.join exports.WORKSPACE_PATH, 'pkg', id
+      fs.mkdir pkg_path, (err) ->
+        pkg_path = path.join pkg_path, version
+        fs.mkdir pkg_path, (err) ->
+          fs.mkdir path.join(pkg_path, 'pages'), (err) ->
+            next pkg_path
+
 
 # initialize an empty new package
-exports.initPackage = (id, version) ->
-
+initPackagev2= (id,version) ->
   exports.log 'initializing package'
 
   exports.initPackageDir id, version, (pkg_path) ->
-
     # config
     config = {
       author: "#{exports.config.user.name} <#{exports.config.user.email}>"
@@ -178,8 +188,78 @@ exports.initPackage = (id, version) ->
     """
 
     exports.exit "package successfully created: #{pkg_path}"
+exports.initPackage = (id, version) ->
 
+  exports.log 'initializing package'
+  if (version != "3.0.0")
+    initPackagev2(id, version)
+  else
+    exports.initPackageDir id, version, (pkg_path) ->
+      config = {
+        author: 
+         name:"#{exports.config.user.name}"
+         email:"#{exports.config.user.email}"
+        changelog: {}
+        core: "2.0.0"
+        description: "#{id}@#{version}"
+        dependencies:
+          'underscore':'1.4.4'
+        id: id
+        name: "#{id}@#{version}"
+        pages: [
+          'index'
+        ]
+        regions: [
+          'header',
+          'footer'
+        ]
+        private: false
+        type: 'app'
+        version: version
+      }
+      config.changelog[version] = 'initialize package'
+      config = CSON.stringifySync(config).replace /\n\n/g, '\n'
+      fs.writeFileSync path.join(pkg_path, 'config.cson'), config
 
+      # pages/index.coffee
+      fs.writeFileSync path.join(pkg_path, 'presenters', 'index.coffee'), """
+        class exports.Page extends lt3.Page
+          events:
+            'click .greeting': 'onClickGreeting'
+
+          onClickGreeting: (e) ->
+            $.alert 'Welcome to the World!'
+      """
+      # pages/index.coffee
+      fs.writeFileSync path.join(pkg_path, 'schema', 'index.cson'), """
+      {
+        title: "string"
+      }
+      """
+      # pages/index.coffee
+      fs.writeFileSync path.join(pkg_path, 'style', 'index.styl'), """
+      @import 'nib'
+
+      .exports .index
+        margin 0px
+      """
+      # pages/index.coffee
+      fs.writeFileSync path.join(pkg_path, 'templates', 'index.coffee'), """
+      exports.Template = ->
+        h2 class: 'greeting', ->
+          "Dear World,"
+
+        p class: 'body', ->
+          "HELLO EVERYONE"
+
+        p class: 'closing', ->
+          "Yours Truly,"
+
+        p class: 'signature', ->
+          "#{exports.config.user.name}"
+      """
+
+      exports.exit "package successfully created: #{pkg_path}"
 
 exports.initWorkspace = ->
   if exports.WORKSPACE_PATH
