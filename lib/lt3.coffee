@@ -677,7 +677,6 @@ switch command
           package:
             id: pkg_id
             version: pkg_version
-          regions: {}
           settings:
             code_injection:
               header: ''
@@ -708,8 +707,6 @@ switch command
               mobile: 'slide'
               web: 'fade'
           slug: site_slug
-          style: {}
-          users: {}
         }
         setup_config = getCustomSetupConfig pkg_id, pkg_version
         
@@ -728,13 +725,21 @@ switch command
 
 
         # add self as admin
-        new_data.users[config.user._id] = 'admin'
-
-        #initialize if it doesn't exist
-        if not new_data.collections
-            new_data.collections={}
-
         
+
+        # initialize if it doesn't exist
+        if not new_data.collections
+          new_data.collections={}
+        if not new_data.regions
+          new_data.regions={}
+        if not new_data.style
+          new_data.style={}
+        if not new_data.users
+          new_data.users={}
+          new_data.users[config.user._id] = 'admin'
+
+
+
         # insert into database must happen first to get site _id        
         db.get('sites').insert new_data, (err, site) ->
           throw err if err
