@@ -223,7 +223,7 @@ exports.initPackage = (id, version) ->
 
       # pages/index.coffee
       fs.writeFileSync path.join(pkg_path, 'presenters', 'index.coffee'), """
-        class exports.Page extends lt3.Page
+        class exports.Page
           events:
             'click .greeting': 'onClickGreeting'
 
