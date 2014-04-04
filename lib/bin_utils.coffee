@@ -223,7 +223,7 @@ exports.initPackage = (id, version) ->
 
       # pages/index.coffee
       fs.writeFileSync path.join(pkg_path, 'presenters', 'index.coffee'), """
-        class exports.Page
+      class exports.Page
           events:
             'click .greeting': 'onClickGreeting'
 
@@ -236,11 +236,14 @@ exports.initPackage = (id, version) ->
         title: "string"
       }
       """
+
+      fs.writeFileSync path.join(pkg_path, 'style', 'variables.styl'), """
+      @import 'nib'
+      """
+
       # pages/index.coffee
       fs.writeFileSync path.join(pkg_path, 'style', 'index.styl'), """
-      @import 'nib'
-
-      .exports .index
+      .exports.page
         margin 0px
       """
       # pages/index.coffee

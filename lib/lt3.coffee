@@ -53,6 +53,7 @@ where <command> [command-specific-options] is one of:
 """
 
 
+
 # Unique commands for the DB shell
 USAGE_SHELL = """
 Usage: lt3 <command> [command-specific-options]
@@ -174,7 +175,7 @@ executeCommand = (l_token,l_command,l_args) =>
               log "_id: #{object.data._id}, collection:#{object.data.collection}, 
               type:#{object.data.type}"
             rl.prompt();
-            
+
     when 'get:site_ids'
       getDB (db) ->
         object=[]
@@ -290,6 +291,7 @@ executeCommand = (l_token,l_command,l_args) =>
           log command not recognized
           Shell Active type 'exit' or 'quit' to escape"""
           rl.prompt();
+
 
 
 
@@ -841,15 +843,16 @@ switch command
         #remove attributes
         temp = old_site.val()
         delete temp._id
-        temp.slug = site_new_slug;
+
+        temp.slug = new_site_slug;
 
         #insert old site as new
-        db.sites.insert temp , (err, new_site) =>
+        db.get('sites').insert temp , (err, new_site) =>
           throw err if err
           new_site_id=new_site.get('id').val()
 
           #get objects of old site
-          db.objects.find {site_id:old_site.get('_id').val()} , (err, objects) ->
+          db.get('objects').find {site_id:old_site.get('_id').val()} , (err, objects) =>
             for obj in objects
 
               #wipe data on old objects
@@ -860,6 +863,7 @@ switch command
               #insert them as new objects with site
               db.objects.insert data , (err , obj) ->
                 throw err if err
+
 
   when 'add:page'
     # parse arguments
