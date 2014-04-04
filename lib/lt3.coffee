@@ -32,6 +32,8 @@ where <command> [command-specific-options] is one of:
   setup <site> [<product>]                create a v3 site
   docs                                    open docs page
   help                                    show usage
+  clone <site>                            clones a site and objects
+  strandedObjects                         Find all objects with a broken site
   shell                                   shell to interact with database
   init                                    initialize a new lessthan3 workspace
   login                                   authenticate your user
@@ -777,7 +779,82 @@ switch command
           ], (err, results) ->
             exit err, err if err
             exit()
-        
+  
+  #iterates over objects and attempts to detect sites that no longer exist
+  when 'strandedObjects'
+    testExistance = (obj,db,next) ->
+      site_id=obj.data.site_id
+      db.get('sites').findOne {
+        '_id': site_id
+      }, (err, site) =>
+        if not site
+          log "STRANDED OBJECT _id: #{obj.data._id}, collection: #{obj.data.collection}, type: #{obj.data.type} site_id=#{obj.data.site_id}"
+        next()
+
+    getDB (db) ->
+      db.get('objects').find {}, (err, objects) =>
+        async.forEach objects, (obj, next) =>
+          testExistance(obj,db,next)
+        ,
+        (err) =>
+          throw err if err
+          exit()
+
+  # NEEDS TO BE TESTED
+  #removes a site and all objects on that site
+  when 'purgeSite'
+    throw "need site_id to purge" unless args[0]
+    site_id_input=arg[0]
+
+    getDB (db) ->
+      db.get('sites').findOne {
+          'site_id': site_id_input
+      }, (err, old_site) =>
+        throw err if err
+        site.remove()
+        db.objects.find {site_id:site_id_input} , (err, objects) ->
+          for obj in objects
+            obj.remove()
+
+
+  #NEEDS TO BE TESTED
+  #attempts to clone a site 
+  when 'clone'
+    throw "need site_id to clone" unless args[0]
+    throw "need new site slug" unless args[1]
+    old_site_id=args[0]
+    new_site_slug=args[1]
+
+
+    ## get old site
+    getDB (db) ->
+      db.get('sites').findOne {
+          '_id': old_site_id
+      }, (err, old_site) =>
+        throw err if err
+
+        #remove attributes
+        temp = old_site.val()
+        delete temp._id
+        temp.slug = site_new_slug;
+
+        #insert old site as new
+        db.sites.insert temp , (err, new_site) =>
+          throw err if err
+          new_site_id=new_site.get('id').val()
+
+          #get objects of old site
+          db.objects.find {site_id:old_site.get('_id').val()} , (err, objects) ->
+            for obj in objects
+
+              #wipe data on old objects
+              data=obj.val()
+              delete data._id
+              data.site_id=new_site_id
+
+              #insert them as new objects with site
+              db.objects.insert data , (err , obj) ->
+                throw err if err
 
   when 'add:page'
     # parse arguments
