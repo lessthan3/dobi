@@ -163,13 +163,18 @@ executeCommand = (l_token,l_command,l_args) =>
         rl.prompt();
 
     when 'get:sitemap'
-      getDB (db) ->
-       db.get('sites').find {slug: l_args[0]}, (err, site) =>
-        db.get('objects').find {site_id:site._id}, (err, objects) =>
-          for object in objects
-            log "_id: #{object.data._id}, collection:#{object.data.collection}, 
-            type:#{object.data.type}"
-          rl.prompt();
+      if not l_args[0]
+        log("must specify site slug")
+        rl.prompt();
+      else
+        getDB (db) ->
+         db.get('sites').findOne {slug: l_args[0]}, (err, site) =>
+          db.get('objects').find {site_id:site.get('_id').val()}, (err, objects) =>
+            for object in objects
+              log "_id: #{object.data._id}, collection:#{object.data.collection}, 
+              type:#{object.data.type}"
+            rl.prompt();
+            
     when 'get:site_ids'
       getDB (db) ->
         object=[]
