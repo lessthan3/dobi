@@ -94,7 +94,6 @@ executeContextCommand =(l_token,l_command,l_args) =>
   switch l_command
     when 'show'
       getDB (db) =>
-        db.cache = false
         db.get(@shell_context.type).find {_id: @shell_context.id}, (err, sites) =>
           log JSON.stringify(sites[0].val(),null,3)
           rl.prompt();
@@ -562,6 +561,7 @@ switch command
   # stop a daemonized development server
   when 'stop'
     if config.pid
+      log config
       process.kill config.pid
       config.pid = null
       saveConfig()
@@ -754,7 +754,7 @@ switch command
         db.get('sites').insert new_data, (err, site) ->
           throw err if err
           log "site created"
-          log site
+          log site.get('_id').val()
 
           # no need to load objects/pages if there is no setup_config
           exit() unless setup_config
@@ -811,48 +811,58 @@ switch command
   #removes a site and all objects on that site
   when 'purgeSite'
     throw "need site_id to purge" unless args[0]
-    site_id_input=arg[0]
+    site_id_input = args[0]
 
-    getDB (db) ->
-      db.get('sites').findOne {
-          'site_id': site_id_input
-      }, (err, old_site) =>
+    getDB (db) =>
+     db.get('sites').findOne {
+          '_id': site_id_input
+      }, (err, site) =>
         throw err if err
         site.remove()
-        db.objects.find {site_id:site_id_input} , (err, objects) ->
+        
+
+        db.get('objects').find {site_id:site_id_input} , (err, objects) ->
           for obj in objects
             obj.remove()
-
+            
+        
+      
 
   #NEEDS TO BE TESTED
   #attempts to clone a site 
   when 'clone'
     throw "need site_id to clone" unless args[0]
     throw "need new site slug" unless args[1]
-    old_site_id=args[0]
-    new_site_slug=args[1]
+    old_site_id = args[0]
+    new_site_slug = args[1]
 
 
     ## get old site
     getDB (db) ->
-      db.get('sites').findOne {
-          '_id': old_site_id
-      }, (err, old_site) =>
+      db.get('sites').findOne {'_id': old_site_id}, (err, old_site) ->
         throw err if err
 
-        #remove attributes
+        #remove and reset attributes
         temp = old_site.val()
         delete temp._id
+        delete temp.last_modified
 
         temp.slug = new_site_slug;
+        temp.created=Date.now()
+        temp.name=new_site_slug
+        temp.users[config.user._id] = 'admin'
 
-        #insert old site as new
+
+
+
         db.get('sites').insert temp , (err, new_site) =>
           throw err if err
-          new_site_id=new_site.get('id').val()
+          new_site_id=new_site.get('_id').val()
 
           #get objects of old site
-          db.get('objects').find {site_id:old_site.get('_id').val()} , (err, objects) =>
+          db.get('objects').find {site_id:old_site_id} , (err, objects) =>
+            throw err if err
+
             for obj in objects
 
               #wipe data on old objects
@@ -861,7 +871,7 @@ switch command
               data.site_id=new_site_id
 
               #insert them as new objects with site
-              db.objects.insert data , (err , obj) ->
+              db.get('objects').insert data , (err , obj) ->
                 throw err if err
 
 
