@@ -862,17 +862,18 @@ switch command
           #get objects of old site
           db.get('objects').find {site_id:old_site_id} , (err, objects) =>
             throw err if err
-
-            for obj in objects
-
+            async.forEach objects , (obj, next) =>
               #wipe data on old objects
               data=obj.val()
               delete data._id
               data.site_id=new_site_id
-
               #insert them as new objects with site
-              db.get('objects').insert data , (err , obj) ->
+              db.get('objects').insert data , (err , obj) =>
                 throw err if err
+                next()
+            ,(err) =>
+              log "objects injected"
+              rl.prompt();
 
 
   when 'add:page'
