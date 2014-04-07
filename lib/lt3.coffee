@@ -149,7 +149,7 @@ executeCommand = (l_token,l_command,l_args) =>
 
     when 'get:site'
       getDB (db) ->
-       db.get('sites').find {slug: l_args[0]}, (err, sites) ->
+       db.get('sites').find {_id: l_args[0]}, (err, sites) ->
         for site in sites
           log "------Site------"
           log JSON.stringify(site.val(), null, 4)
