@@ -27,8 +27,8 @@ where <command> [command-specific-options] is one of:
   deploy                                deploy a package to production
   get <id>[@<version>]                  download a package
   help                                  show usage
-  info <id>[@<version>]                 get info about a package
   init <id>@<version>                   create a new package
+  info <id>[@<version>]                 get info about a package
   login                                 authenticate your user
   stage                                 deploy a package to staging
   version                               check your lpm version
@@ -158,8 +158,10 @@ switch command
       pkg_version = pkg_config.version
     else
       exit 'must specify package id@version or run from inside a package'
+    
+    # default to 1.0.0 package if nothing specified
+    pkg_version = "1.0.0" unless pkg_version
     exit("must specify package id") unless pkg_id
-    exit("must specify a package version") unless pkg_version
     initPackage pkg_id, pkg_version
 
 
