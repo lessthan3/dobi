@@ -172,7 +172,7 @@ executeCommand = (l_token,l_command,l_args) =>
           db.get('objects').find {site_id:site.get('_id').val()}, (err, objects) =>
             for object in objects
               log "_id: #{object.data._id}, collection:#{object.data.collection}, 
-              type:#{object.data.type}"
+              type:#{object.data.type} slug:#{object.data.slug}"
             rl.prompt();
 
     when 'get:site_ids'
