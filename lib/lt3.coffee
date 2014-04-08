@@ -169,7 +169,8 @@ executeCommand = (l_token,l_command,l_args) =>
       else
         getDB (db) ->
          db.get('sites').findOne {slug: l_args[0]}, (err, site) =>
-          db.get('objects').find {site_id:site.get('_id').val()}, (err, objects) =>
+          db.get('objects').find {site_id:site.get('_id').val()}, {limit: 100},
+          (err, objects) =>
             for object in objects
               log "_id: #{object.data._id}, collection:#{object.data.collection}, 
               type:#{object.data.type} slug:#{object.data.slug}"
@@ -705,10 +706,10 @@ switch command
               icons:
                 favicon: ''
                 apple:
-                  '57x57': ''
-                  '72x72': ''
-                  '114x114': ''
-                  '144x144': ''
+                apple57x57: ''
+                apple72x72: ''
+                apple114x114: ''
+                apple144x144: ''
             services:
               facebook_app_id: ''
               disqus_shortname: ''
@@ -873,8 +874,26 @@ switch command
                 next()
             ,(err) =>
               log "objects injected"
-              rl.prompt();
+              exit()
 
+  when 'clone_obj'
+    throw "need obj_id to clone" unless args[0]
+    throw "need site_id" unless args[1]
+    obj_id = args[0]
+    site_id = args[1]
+    getDB (db) =>
+      #get objects of old site
+      db.get('objects').findOne {_id:obj_id}, (err, obj) =>
+        throw err if err
+        #wipe data on old objects
+        data=obj.val()
+        delete data._id
+        data.site_id=site_id
+        #insert them as new objects with site
+        db.get('objects').insert data , (err , obj) =>
+          throw err if err
+          log obj
+          exit()
 
   when 'add:page'
     # parse arguments
