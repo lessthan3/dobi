@@ -705,7 +705,6 @@ switch command
               hide_from_search_engines: ''
               icons:
                 favicon: ''
-                apple:
                 apple57x57: ''
                 apple72x72: ''
                 apple114x114: ''
