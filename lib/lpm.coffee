@@ -27,8 +27,8 @@ where <command> [command-specific-options] is one of:
   deploy                                deploy a package to production
   get <id>[@<version>]                  download a package
   help                                  show usage
-  info <id>[@<version>]                 get info about a package
   init <id>@<version>                   create a new package
+  info <id>[@<version>]                 get info about a package
   login                                 authenticate your user
   stage                                 deploy a package to staging
   version                               check your lpm version
