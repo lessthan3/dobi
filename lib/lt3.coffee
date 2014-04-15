@@ -157,7 +157,7 @@ executeCommand = (l_token,l_command,l_args) =>
         rl.prompt();
     when 'get:allsites'
       getDB (db) ->
-       db.get('sites').find {}, (err, sites) ->
+       db.get('sites').find {},{limit: 100}, (err, sites) ->
         for site in sites
           log "_id: #{site.data._id}, slug:#{site.data.slug}"
         rl.prompt();
@@ -839,7 +839,7 @@ switch command
 
     ## get old site
     getDB (db) ->
-      db.get('sites').findOne {'_id': old_site_id},{limit: 1000} (err, old_site) ->
+      db.get('sites').findOne {'_id': old_site_id}, (err, old_site) ->
         throw err if err
 
         #remove and reset attributes
@@ -860,7 +860,7 @@ switch command
           new_site_id=new_site.get('_id').val()
 
           #get objects of old site
-          db.get('objects').find {site_id:old_site_id} , (err, objects) =>
+          db.get('objects').find {site_id:old_site_id},{limit: 1000}, (err, objects) =>
             throw err if err
             async.forEach objects , (obj, next) =>
               #wipe data on old objects
