@@ -839,7 +839,7 @@ switch command
 
     ## get old site
     getDB (db) ->
-      db.get('sites').findOne {'_id': old_site_id}, (err, old_site) ->
+      db.get('sites').findOne {'_id': old_site_id},{limit: 1000} (err, old_site) ->
         throw err if err
 
         #remove and reset attributes
