@@ -880,6 +880,7 @@ switch command
     throw "need site_id" unless args[1]
     obj_id = args[0]
     site_id = args[1]
+    new_obj_slug=args[2]
     getDB (db) =>
       #get objects of old site
       db.get('objects').findOne {_id:obj_id}, (err, obj) =>
@@ -887,6 +888,7 @@ switch command
         #wipe data on old objects
         data=obj.val()
         delete data._id
+        data.slug=new_obj_slug
         data.site_id=site_id
         #insert them as new objects with site
         db.get('objects').insert data , (err , obj) =>
