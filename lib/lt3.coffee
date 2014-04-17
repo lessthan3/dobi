@@ -952,9 +952,11 @@ switch command
     object_type = args[0]
     site_slug = args[1]
     object_slug = args[2]
+    object_collection = args[3]
     exit("must specify object type") unless object_type
     exit("must specify site slug") unless site_slug
     exit("must specify object slug") unless object_slug
+    exit("must specify object collection") unless object_collection
     object_slug = object_slug.replace /^\/(.*)/, '$1'
 
     getDB (db) ->
@@ -978,6 +980,7 @@ switch command
           db.get('objects').insert {
             data: {}
             password: ''
+            collection : object_collection
             seo:
               title: ''
               description: ''
