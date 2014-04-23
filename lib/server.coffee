@@ -1,11 +1,12 @@
 # Dependencies
-async = require 'async'
-chokidar = require 'chokidar'
 CSON = require 'cson'
 Firebase = require 'firebase'
+LRU = require 'lru-cache'
+async = require 'async'
+chokidar = require 'chokidar'
 express = require 'express'
 fs = require 'fs'
-LRU = require 'lru-cache'
+jwt = require 'jwt-simple'
 path = require 'path'
 wrap = require 'asset-wrap'
 
@@ -387,6 +388,22 @@ exports = module.exports = (cfg) ->
   (req, res, next) ->
 
     # Helpers
+    auth = (req, res, next) ->
+      if req.query.token
+        token = req.query.token
+        delete req.query.token
+
+        if cfg.firebase
+          try
+            payload = jwt.decode token, cfg.firebase.secret
+          catch err
+            return res.send 400, "invalid token: #{err}" if err
+
+          req.user = payload.d
+          req.admin = payload.admin
+
+      next()
+
     cacheHeaders = (age) ->
       val = "private, max-age=0, no-cache, no-store, must-revalidate"
       if use_cache
@@ -640,15 +657,17 @@ exports = module.exports = (cfg) ->
       svr = require api_path
       return error 404 unless svr?[method]
       svr[method].apply {
+        admin: req.admin
         body: req.body
         cache: cache
         error: error
         query: req.query
         req: req
         res: res
+        user: req.user
       }
-    router.route 'GET', '/pkg/:id/:version/api/*', apiCallHandler
-    router.route 'POST', '/pkg/:id/:version/api/*', apiCallHandler
+    router.route 'GET', '/pkg/:id/:version/api/*', auth, apiCallHandler
+    router.route 'POST', '/pkg/:id/:version/api/*', auth, apiCallHandler
 
     # Execute Routes
     router._dispatch req, res, next

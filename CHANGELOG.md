@@ -1,3 +1,7 @@
+**v0.6.6** (2014-04-23)
+
+ - add authentication to package api calls
+
 **v0.6.5** (2014-03-21)
 
  - replace all substitutions, not just the first
