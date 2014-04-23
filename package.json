@@ -33,9 +33,9 @@
     "jwt-simple":     "0.1.x",
     "lru-cache":      "2.5.x",
     "mongofb":        "0.6.x",
-    "node.extend":    "1.0.x"
+    "node.extend":    "1.0.x",
     "open":           "0.0.x",
-    "optimist":       "0.6.x",
+    "optimist":       "0.6.x"
   },
   "description": "LessThan3 Developer Tools",
   "directories": {
