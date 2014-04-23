@@ -1,3 +1,7 @@
+**v0.6.7** (2014-04-23)
+
+ - add jwt-simple dependency
+
 **v0.6.6** (2014-04-23)
 
  - add authentication to package api calls
