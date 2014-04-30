@@ -1,3 +1,7 @@
+**v0.6.9** (2014-04-30)
+
+ - update setup to use uid instead of _id
+
 **v0.6.8** (2014-04-25)
 
  - change listening port to 3002 (3000/3001 for production http/https)

@@ -746,7 +746,7 @@ switch command
           new_data.style={}
         if not new_data.users
           new_data.users={}
-          new_data.users[config.user._id] = 'admin'
+          new_data.users[config.user.uid] = 'admin'
 
 
 
