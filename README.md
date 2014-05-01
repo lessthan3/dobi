@@ -2,7 +2,7 @@
 
 ## Documentation
 
-http://dev.lessthan3.com
+http://www.lessthan3.com/developers
 
 ## Table of Contents
  - [Usage](#usage)
