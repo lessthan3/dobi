@@ -1,3 +1,8 @@
+
+**v0.7.0** (2014-05-11)
+
+ - update asset-wrap to 0.8.0 which updates uglifyjs
+
 **v0.6.9** (2014-04-30)
 
  - update setup to use uid instead of _id
