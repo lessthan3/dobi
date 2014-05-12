@@ -1,4 +1,8 @@
 
+**v0.8.1** (2014-05-11)
+
+ - cache most requests for a full day
+
 **v0.8.0** (2014-05-11)
 
  - allow for custom cache function

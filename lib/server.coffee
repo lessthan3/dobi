@@ -498,7 +498,7 @@ exports = module.exports = (cfg) ->
     # Package Config
     router.route 'GET', '/pkg/:id/:version/config.json', (req, res, next) ->
       contentType 'application/json'
-      cache({age: '1 hour'}, (req, res, next) ->
+      cache({age: '1 day'}, (req, res, next) ->
         readConfig req.params.id, req.params.version, (err, data) ->
           return error 400, err if err
           next data
@@ -507,7 +507,7 @@ exports = module.exports = (cfg) ->
     # Package Schema
     router.route 'GET', '/pkg/:id/:version/schema.json', (req, res, next) ->
       contentType 'application/json'
-      cache({age: '1 hour'}, (req, res, next) ->
+      cache({age: '1 day'}, (req, res, next) ->
         readSchema req.params.id, req.params.version, (err, data) ->
           return error 400, err if err
           next data
@@ -613,7 +613,7 @@ exports = module.exports = (cfg) ->
     # Package Javascript
     router.route 'GET', '/pkg/:id/:version/main.js', (req, res, next) ->
       contentType 'text/javascript'
-      cache({age: '1 hour'}, (req, res, next) ->
+      cache({age: '1 day'}, (req, res, next) ->
         gatherJS [], req.params.id, req.params.version, (err, assets) ->
           return error 400, err if err
           wrapJS assets, (err, data) ->
@@ -624,7 +624,7 @@ exports = module.exports = (cfg) ->
     # Package Stylesheet
     router.route 'GET', '/pkg/:id/:version/style.css', (req, res, next) ->
       contentType 'text/css'
-      cache({age: '1 hour', qs: true}, (req, res, next) ->
+      cache({age: '1 day', qs: true}, (req, res, next) ->
         gatherCSS [], req.params.id, req.params.version, (err, assets) ->
           return error 400, err if err
           wrapCSS assets, req.query, (err, data) ->
