@@ -383,7 +383,7 @@ exports = module.exports = (cfg) ->
         options = {age: options}
 
       # headers
-      cacheHeaders(options.age)(req, res, net)
+      cacheHeaders(options.age)(req, res, next)
 
       # response
       url = if options.qs then req.url else req._parsedUrl.pathname

@@ -1,4 +1,8 @@
 
+**v0.8.3** (2014-05-12)
+
+ - typo in new cache code
+
 **v0.8.2** (2014-05-12)
 
  - clean up clone code
