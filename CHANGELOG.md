@@ -1,4 +1,8 @@
 
+**v0.8.2** (2014-05-12)
+
+ - clean up clone code
+
 **v0.8.1** (2014-05-11)
 
  - cache most requests for a full day

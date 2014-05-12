@@ -829,49 +829,49 @@ switch command
       
 
   #NEEDS TO BE TESTED
-  #attempts to clone a site 
+  # attempts to clone a site 
   when 'clone'
     throw "need site_id to clone" unless args[0]
     throw "need new site slug" unless args[1]
     old_site_id = args[0]
     new_site_slug = args[1]
 
-
-    ## get old site
+    # get old site
     getDB (db) ->
       db.get('sites').findOne {'_id': old_site_id}, (err, old_site) ->
         throw err if err
 
-        #remove and reset attributes
+        # remove and reset attributes
         temp = old_site.val()
         delete temp._id
         delete temp.last_modified
 
-        temp.slug = new_site_slug;
-        temp.created=Date.now()
-        temp.name=new_site_slug
-        temp.users[config.user._id] = 'admin'
+        temp.slug = new_site_slug
+        temp.created = Date.now()
+        temp.name = new_site_slug
+        temp.users[config.user.uid] = 'admin'
 
-
-
-
-        db.get('sites').insert temp , (err, new_site) =>
+        db.get('sites').insert temp, (err, new_site) =>
           throw err if err
-          new_site_id=new_site.get('_id').val()
+          new_site_id = new_site.get('_id').val()
 
-          #get objects of old site
-          db.get('objects').find {site_id:old_site_id},{limit: 1000}, (err, objects) =>
+          # get objects of old site
+          db.get('objects').find {
+            site_id: old_site_id
+          }, {
+            limit: 1000
+          }, (err, objects) =>
             throw err if err
-            async.forEach objects , (obj, next) =>
-              #wipe data on old objects
-              data=obj.val()
+            async.forEach objects, ((obj, next) =>
+              # wipe data on old objects
+              data = obj.val()
               delete data._id
-              data.site_id=new_site_id
-              #insert them as new objects with site
-              db.get('objects').insert data , (err , obj) =>
+              data.site_id = new_site_id
+              # insert them as new objects with site
+              db.get('objects').insert data, (err, obj) =>
                 throw err if err
                 next()
-            ,(err) =>
+            ), (err) =>
               log "objects injected"
               exit()
 
