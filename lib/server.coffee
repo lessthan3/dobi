@@ -16,7 +16,7 @@ exports = module.exports = (cfg) ->
 
 
   # Settings
-  _cache = new LRU {max: 50, maxAge: 1000*60*5}
+  lru_cache = new LRU {max: 50, maxAge: 1000*60*5}
   prod = process.env.LT3_ENV == 'prod'
   use_cache = prod
   use_compression = prod
@@ -353,6 +353,49 @@ exports = module.exports = (cfg) ->
       asset = css.merge (err) ->
         next err, asset.data
 
+  cacheHeaders = (age) ->
+    (req, res, next) ->
+      val = "private, max-age=0, no-cache, no-store, must-revalidate"
+      if use_cache
+        [num, type] = [age, 'seconds']
+        if typeof age == 'string'
+          [num, type] = age.split ' '
+          num = parseInt num, 10
+        if num == 0
+          val = 'private, max-age=0, no-cache, no-store, must-revalidate'
+        else
+          switch type
+            when 'minute', 'minutes'  then num *= 60
+            when 'hour', 'hours'      then num *= 3600
+            when 'day', 'days'        then num *= 86400
+            when 'week', 'weeks'      then num *= 604800
+          val = "public, max-age=#{num}, must-revalidate"
+      res.set 'Cache-Control', val
+
+  cache = (options, fn) ->
+    (req, res, next) ->
+      # options
+      unless fn
+        fn = options
+        options = {age: '10 minutes'}
+
+      if typeof options is 'string'
+        options = {age: options}
+
+      # headers
+      cacheHeaders(options.age)(req, res, net)
+
+      # response
+      url = if options.qs then req.url else req._parsedUrl.pathname
+      key = "#{req.protocol}://#{req.host}#{url}"
+      if prod and lru_cache.has key
+        res.send lru_cache.get key
+      else
+        fn req, res, (data) =>
+          lru_cache.set key, data
+          res.send data
+  cache = cfg.cache_function if cfg.cache_function
+
 
   # Watch For File Changes
   unless prod
@@ -383,7 +426,6 @@ exports = module.exports = (cfg) ->
           ref.set config, (err) ->
             console.log(err) if err
 
-
   # Middleware
   (req, res, next) ->
 
@@ -403,46 +445,6 @@ exports = module.exports = (cfg) ->
           req.admin = payload.admin
 
       next()
-
-    cacheHeaders = (age) ->
-      val = "private, max-age=0, no-cache, no-store, must-revalidate"
-      if use_cache
-        [num, type] = [age, 'seconds']
-        if typeof age == 'string'
-          [num, type] = age.split ' '
-          num = parseInt num, 10
-        if num == 0
-          val = 'private, max-age=0, no-cache, no-store, must-revalidate'
-        else
-          switch type
-            when 'minute', 'minutes'  then num *= 60
-            when 'hour', 'hours'      then num *= 3600
-            when 'day', 'days'        then num *= 86400
-            when 'week', 'weeks'      then num *= 604800
-          val = "public, max-age=#{num}, must-revalidate"
-      res.set 'Cache-Control', val
-
-    cache = (options, fn) ->
-      # options
-      unless fn
-        fn = options
-        options = {age: '10 minutes'}
-
-      if typeof options is 'string'
-        options = {age: options}
-
-      # headers
-      cacheHeaders options.age
-
-      # response
-      url = if options.qs then req.url else req._parsedUrl.pathname
-      key = "#{req.protocol}://#{req.host}#{url}"
-      if prod and _cache.has key
-        res.send _cache.get key
-      else
-        fn (data) =>
-          _cache.set key, data
-          res.send data
 
     contentType = (type) ->
       res.set 'Content-Type', type
@@ -496,18 +498,20 @@ exports = module.exports = (cfg) ->
     # Package Config
     router.route 'GET', '/pkg/:id/:version/config.json', (req, res, next) ->
       contentType 'application/json'
-      cache {age: '10 minutes'}, (next) =>
+      cache({age: '1 hour'}, (req, res, next) ->
         readConfig req.params.id, req.params.version, (err, data) ->
           return error 400, err if err
-          res.send data
+          next data
+      )(req, res, next)
 
     # Package Schema
     router.route 'GET', '/pkg/:id/:version/schema.json', (req, res, next) ->
       contentType 'application/json'
-      cache {age: '10 minutes'}, (next) =>
+      cache({age: '1 hour'}, (req, res, next) ->
         readSchema req.params.id, req.params.version, (err, data) ->
           return error 400, err if err
-          res.send data
+          next data
+      )(req, res, next)
 
     # Package Single File Reload
     unless prod
@@ -609,22 +613,24 @@ exports = module.exports = (cfg) ->
     # Package Javascript
     router.route 'GET', '/pkg/:id/:version/main.js', (req, res, next) ->
       contentType 'text/javascript'
-      cache {age: '10 minutes'}, (next) =>
+      cache({age: '1 hour'}, (req, res, next) ->
         gatherJS [], req.params.id, req.params.version, (err, assets) ->
           return error 400, err if err
           wrapJS assets, (err, data) ->
             return error 400, err if err
             next data
+      )(req, res, next)
 
     # Package Stylesheet
     router.route 'GET', '/pkg/:id/:version/style.css', (req, res, next) ->
       contentType 'text/css'
-      cache {age: '10 minutes', qs: true}, (next) =>
+      cache({age: '1 hour', qs: true}, (req, res, next) ->
         gatherCSS [], req.params.id, req.params.version, (err, assets) ->
           return error 400, err if err
           wrapCSS assets, req.query, (err, data) ->
             return error 400, err if err
             next data
+      )(req, res, next)
 
     # Public/Static Files
     router.route 'GET', '/pkg/:id/:version/public/*', (req, res, next) ->
@@ -659,7 +665,7 @@ exports = module.exports = (cfg) ->
       svr[method].apply {
         admin: req.admin
         body: req.body
-        cache: cache
+        cache: (options, fn) -> cache(options, fn)(req, res, next)
         error: error
         query: req.query
         req: req

@@ -1,4 +1,8 @@
 
+**v0.8.0** (2014-05-11)
+
+ - allow for custom cache function
+
 **v0.7.0** (2014-05-11)
 
  - update asset-wrap to 0.8.0 which updates uglifyjs
