@@ -129,8 +129,8 @@ switch command
 
   # authenticate your user
   when 'login'
-    login true, (user) ->
-      exit JSON.stringify user, null, 2 if user
+    login true, (config) ->
+      exit JSON.stringify user, null, 2 if config.user
       exit 'not logged in. try "dobi login"'
 
   # open a site
@@ -146,11 +146,35 @@ switch command
 
   # daemonize a development server
   when 'start'
-    exit 'not available yet'
+    login (config) ->
+      ((next) ->
+        if config.pid
+          log "killing running server: #{config.pid}" if config.pid
+          try process.kill config.pid, 'SIGHUP'
+          config.pid = null
+          saveUserConfig config, next
+        else
+          next()
+      )( ->
+        log "starting process"
+        cp = require 'child_process'
+        child = cp.spawn 'coffee', ["#{__dirname}/dobi.coffee", 'run'], {
+          detached: true
+          stdio: [ 'ignore', 'ignore', 'ignore']
+        }
+        child.unref()
+        config.pid = child.pid
+        log "server running at: #{config.pid}"
+        saveUserConfig config, exit
+      )
 
   # daemonize a development server
   when 'stop'
-    exit 'not available yet'
+    login (config) ->
+      return exit() if not config.pid
+      try process.kill config.pid, 'SIGHUP'
+      config.pid = null
+      saveUserConfig config, exit
 
   # check your dobi version
   when 'version'
@@ -159,8 +183,8 @@ switch command
 
   # check your authentication status
   when 'whoami'
-    login (user) ->
-      exit JSON.stringify user, null, 2 if user
+    login (config) ->
+      exit JSON.stringify user, null, 2 if config.user
       exit 'not logged in. try "dobi login"'
 
   # invalid command
