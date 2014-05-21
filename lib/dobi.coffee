@@ -142,7 +142,31 @@ switch command
 
   # run a development server
   when 'run'
-    exit 'not available yet'
+    getWorkspacePath (workspace) ->
+      exit 'must be in a workspace to run the server' unless workspace
+
+      # dependencies
+      connect = require 'connect'
+      express = require 'express'
+      dobi = require './server'
+      pkg = require path.join '..', 'package'
+
+      # configuration
+      app = express()
+      app.use express.logger '[:date] :status :method :url'
+      app.use connect.urlencoded()
+      app.use connect.json()
+      app.use express.methodOverride()
+      app.use express.cookieParser()
+      app.use dobi {
+        pkg_dir: path.join workspace, 'pkg'
+      }
+      app.use app.router
+      app.use express.errorHandler {dumpExceptions: true, showStack: true}
+
+      # listen
+      app.listen pkg.config.port
+      log "listening: #{pkg.config.port}"
 
   # daemonize a development server
   when 'start'
