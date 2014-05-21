@@ -116,7 +116,10 @@ switch command
 
   # open a site
   when 'open'
-    exit 'not available yet'
+    url = 'http://www.lessthan3.com'
+    url += "/#{arg}" for arg in args
+    open url
+    exit()
 
   # run a development server
   when 'run'
