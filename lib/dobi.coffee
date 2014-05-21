@@ -3,6 +3,7 @@ Firebase = require 'firebase'
 fs = require 'fs'
 open = require 'open'
 optimist = require 'optimist'
+path = require 'path'
 readline = require 'readline'
 
 # usage
@@ -38,6 +39,16 @@ rl = readline.createInterface {
 exit = (msg) ->
   log msg if msg
   process.exit()
+
+getWorkspacePath = (current, next) ->
+  [current, next] = [CWD, current] if not next
+  fs.exists path.join(current, 'dobi.json'), (exists) ->
+    if exists
+      next current
+    else
+      parent = path.join current, '..'
+      return next null if parent is current
+      getWorkspacePath parent, next
 
 log = (msg) ->
   console.log "[dobi] #{msg}"
@@ -102,7 +113,15 @@ switch command
 
   # initialize a workspace
   when 'init'
-    exit 'not available yet'
+    getWorkspacePath (workspace) ->
+      exit "already in a workspace: #{workspace}" if workspace
+      fs.writeFile path.join(CWD, 'dobi.json'), JSON.stringify({
+        created: Date.now()
+      }), (err) ->
+        exit 'failed to create workspace config' if err
+        fs.mkdir path.join(CWD, 'pkg'), (err) ->
+          exit 'failed to create pkg directory' if err
+          exit "workspace successfully created at: #{CWD}"
 
   # create a site using your app
   when 'install'
