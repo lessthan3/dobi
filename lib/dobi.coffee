@@ -154,7 +154,8 @@ switch command
 
   # check your dobi version
   when 'version'
-    exit 'not available yet'
+    pkg = require path.join '..', 'package'
+    exit pkg.version
 
   # check your authentication status
   when 'whoami'
