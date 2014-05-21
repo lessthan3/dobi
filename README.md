@@ -19,6 +19,9 @@ Documentation is available at http://www.dobi.io
 
 Prerequisites:
 
+- install node: (http://nodejs.org/download/)
+- install coffee-script: `npm install -g coffee-script`
+
 Install Dobi:
 
     npm install -g dobi
@@ -52,6 +55,8 @@ Deploy it to the world: (not available yet)
 
     dobi deploy my-app
 
+
+
 ## Examples
 
 * http://www.electricdaisycarnival.co.uk
@@ -67,4 +72,6 @@ Deploy it to the world: (not available yet)
 * http://www.3lau.com
 * http://www.krewella.com/get-wet
 * http://www.savagemondays.com
+
+
 
