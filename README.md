@@ -41,7 +41,7 @@ Create a new app:
 
 Create a website using your app:
 
-    dobi install my-app test-site
+    dobi install my-app site-slug
 
 Run a development server so your site can load your local code:
 
@@ -49,11 +49,13 @@ Run a development server so your site can load your local code:
 
 View your site, running your new app:
 
-    dobi open test-site
+    dobi open site-slug
 
 Deploy it to the world: (not available yet)
 
     dobi deploy my-app
+
+
 
 
 
@@ -72,6 +74,9 @@ Deploy it to the world: (not available yet)
 * http://www.3lau.com
 * http://www.krewella.com/get-wet
 * http://www.savagemondays.com
+
+
+
 
 
 
