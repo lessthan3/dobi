@@ -37,11 +37,11 @@ Login:
 
 Create a new app:
 
-    dobi create my-app
+    dobi create my-app@1.0.0
 
 Create a website using your app:
 
-    dobi install my-app site-slug
+    dobi install my-app@1.0.0 site-slug
 
 Run a development server so your site can load your local code:
 
@@ -54,10 +54,6 @@ View your site, running your new app:
 Deploy it to the world: (not available yet)
 
     dobi deploy my-app
-
-
-
-
 
 ## Examples
 
@@ -74,6 +70,7 @@ Deploy it to the world: (not available yet)
 * http://www.3lau.com
 * http://www.krewella.com/get-wet
 * http://www.savagemondays.com
+
 
 
 
