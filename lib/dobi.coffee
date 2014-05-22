@@ -133,6 +133,8 @@ switch command
             # update config
             config_path = path.join dest, 'config.cson'
             config = CSON.parseFileSync config_path
+            config.id = id
+            config.version = version
             config.author.name = user.name
             config.author.email = user.email
             config = CSON.stringifySync(config).replace /\n\n/g, '\n'
