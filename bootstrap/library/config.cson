@@ -1,0 +1,9 @@
+{
+  id: "bootstrap-library"
+  main:
+    js: "main.coffee"
+    css: null
+  name: "jQuery Hello World"
+  type: "library"
+  version: "1.0.0"
+}

@@ -1,0 +1,2 @@
+class exports.Region
+  listeners: {}

@@ -1,0 +1,68 @@
+
+.exports.region
+  background linear-gradient(lighten($frame_bg_color, 5), $frame_bg_color)
+  background-color $frame_bg_color
+  background $dobi_blue
+  color $text_color
+  position relative
+  z-index 10
+
+  &:after
+    clear both
+    content ''
+    display block
+  .mobile
+    display none
+  .web
+    display block
+    height unit($web_header_height, 'px')
+    margin 0 40px
+    max-width 100%
+    overflow hidden
+    text-align right
+    width unit($site_width, 'px')
+    .logo
+      cursor pointer
+      display inline-block
+      float left
+      height 100%
+      > img
+        max-height unit($web_header_height, 'px')
+        padding 0 0 10px 0
+    .navigation-button
+      display none
+    .navigation
+      display inline-block
+      > ul > li
+        cursor pointer
+        float left
+        margin-right 40px
+        > a
+          display inline-block
+          font-size 16px
+          padding 30px 0
+
+@media screen and (max-width: 980px)
+  .exports.region
+    left 0
+    position fixed
+    right 0
+    top 0
+    .mobile
+      display block
+      .mobile-nav-toggle
+        background $color_light_10
+        cursor pointer
+        height unit($mobile_header_height, 'px')
+        width 60px
+        > i
+          color white
+          display block
+          font-size 26px
+          line-height unit($mobile_header_height, 'px')
+          text-align center
+          width 100%
+    .web
+      display none
+
+
