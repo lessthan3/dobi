@@ -20,6 +20,7 @@ where <command> [command-specific-options] is one of:
   create <my-package> <type=app>    create a new package
   deploy <my-app>                   deploy an app (COMING SOON)
   docs                              open the dobi docs
+  help                              show usage
   init                              initialize a workspace
   install <my-app> <site-slug>      create a site using your app
   login                             authenticate your user
@@ -27,6 +28,7 @@ where <command> [command-specific-options] is one of:
   run                               run a development server
   start                             daemonize a development server
   stop                              stop a daemonized development server
+  usage                             show usage
   version                           check your dobi version
   whoami                            check your authentication status
 """
@@ -173,6 +175,10 @@ switch command
     open 'http://www.dobi.io'
     exit()
     
+  # show usage
+  when 'help'
+    exit USAGE
+
   # initialize a workspace
   when 'init'
     getWorkspacePath (workspace) ->
@@ -351,6 +357,10 @@ switch command
       try process.kill config.pid, 'SIGHUP'
       config.pid = null
       saveUserConfig config, exit
+
+  # show usage
+  when 'usage'
+    exit USAGE
 
   # check your dobi version
   when 'version'
