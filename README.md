@@ -13,6 +13,9 @@ With Dobi you write apps...
 * on Linux, Mac, or Windows
 * in any editing environment you prefer
 
+Dobi will be available for use in the near future. If you'd like to play around
+before then, contact us at dobi@lessthan3.com.
+
 Documentation is available at http://www.dobi.io
 
 ## Quick Start
@@ -43,17 +46,13 @@ Create a website using your app:
 
     dobi install my-app@1.0.0 site-slug
 
-Run a development server so your site can load your local code:
+Deploy it to the world:
 
-    dobi start
+    dobi deploy my-app
 
 View your site, running your new app:
 
     dobi open site-slug
-
-Deploy it to the world: (not available yet)
-
-    dobi deploy my-app
 
 ## Examples
 
