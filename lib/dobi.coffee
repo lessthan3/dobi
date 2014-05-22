@@ -19,6 +19,7 @@ Usage: dobi <command> [command-specific-options]
 where <command> [command-specific-options] is one of:
   create <my-package> <type=app>    create a new package
   deploy <my-app>                   deploy an app (COMING SOON)
+  docs                              open the dobi docs
   init                              initialize a workspace
   install <my-app> <site-slug>      create a site using your app
   login                             authenticate your user
@@ -167,6 +168,11 @@ switch command
   when 'deploy'
     exit 'not available yet'
 
+  # open the dobi docs
+  when 'docs'
+    open 'http://www.dobi.io'
+    exit()
+    
   # initialize a workspace
   when 'init'
     getWorkspacePath (workspace) ->
