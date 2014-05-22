@@ -1,4 +1,9 @@
 
+**v1.0.0** (2014-05-22)
+
+ - change name from lessthan3 to dobi
+ - refactor lt3/lpm tools into new dobi binary
+
 **v0.8.3** (2014-05-12)
 
  - typo in new cache code
