@@ -1,3 +1,6 @@
+Dobi will be available for use in the near future. If you'd like to play around
+before then, contact us at dobi@lessthan3.com.
+
 # Dobi.io
 
 Dobi is an ultra-simple environment for building scalable, real-time web
@@ -12,9 +15,6 @@ With Dobi you write apps...
 * that scale to 100k+ users without hosting your own servers
 * on Linux, Mac, or Windows
 * in any editing environment you prefer
-
-Dobi will be available for use in the near future. If you'd like to play around
-before then, contact us at dobi@lessthan3.com.
 
 Documentation is available at http://www.dobi.io
 
