@@ -1,6 +1,9 @@
 # dependencies
+CSON = require 'cson'
 Firebase = require 'firebase'
 fs = require 'fs'
+mkdirp = require 'mkdirp'
+ncp = require('ncp').ncp
 open = require 'open'
 optimist = require 'optimist'
 path = require 'path'
@@ -11,17 +14,17 @@ USAGE = """
 Usage: dobi <command> [command-specific-options]
 
 where <command> [command-specific-options] is one of:
-  create <my-app>                 create a new app
-  deploy <my-app>                 deploy an app (COMING SOON)
-  init                            initialize a workspace
-  install <my-app> <site-slug>    create a site using your app
-  login                           authenticate your user
-  open <site-slug>                open a site
-  run                             run a development server
-  start                           daemonize a development server
-  stop                            stop a daemonized development server
-  version                         check your dobi version
-  whoami                          check your authentication status
+  create <my-package> <type=app>    create a new package
+  deploy <my-app>                   deploy an app (COMING SOON)
+  init                              initialize a workspace
+  install <my-app> <site-slug>      create a site using your app
+  login                             authenticate your user
+  open <site-slug>                  open a site
+  run                               run a development server
+  start                             daemonize a development server
+  stop                              stop a daemonized development server
+  version                           check your dobi version
+  whoami                            check your authentication status
 """
 
 # constants
@@ -105,7 +108,39 @@ switch command
 
   # create a new app
   when 'create'
-    exit 'not available yet'
+    id = args[0]
+    version = '1.0.0'
+    type = args[1] or 'app'
+
+    # check type
+    exit "invalid type: #{type}" if type not in ['app', 'plugin', 'library']
+
+    # require login
+    login (config) ->
+      user = config?.user
+      exit "please login first: 'dobi login'" unless user
+
+      # bootstrap the project
+      source = path.join __dirname, '..', 'bootstrap', type
+      getWorkspacePath (workspace) ->
+        exit 'must be in a workspace to create a package' unless workspace
+        dest = path.join workspace, 'pkg', id, version
+        mkdirp dest, (err) ->
+          exit "error creating package: #{err}" if err
+          ncp source, dest, (err) ->
+            exit "Error creating package: #{err}" if err
+
+            # update config
+            config_path = path.join dest, 'config.cson'
+            config = CSON.parseFileSync config_path
+            config.author.name = user.name
+            config.author.email = user.email
+            config = CSON.stringifySync(config).replace /\n\n/g, '\n'
+            fs.writeFileSync config_path, config
+
+            # done
+            exit 'package created successfully'
+
 
   # deploy an app
   when 'deploy'
