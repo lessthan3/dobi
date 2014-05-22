@@ -1,8 +1,11 @@
 # dependencies
 CSON = require 'cson'
 Firebase = require 'firebase'
+async = require 'async'
+extend =  require 'node.extend'
 fs = require 'fs'
 mkdirp = require 'mkdirp'
+mongofb = require 'mongofb'
 ncp = require('ncp').ncp
 open = require 'open'
 optimist = require 'optimist'
@@ -29,6 +32,7 @@ where <command> [command-specific-options] is one of:
 
 # constants
 CWD = process.cwd()
+DATABASE_URL = 'http://www.dobi.io/db/1.0'
 FIREBASE_URL = 'https://lessthan3.firebaseio.com'
 USER_HOME = process.env.HOME or process.env.HOMEPATH or process.env.USERPROFILE
 USER_CONFIG_PATH = "#{USER_HOME}/.lt3_config"
@@ -39,6 +43,19 @@ rl = readline.createInterface {
   output: process.stdout
 }
 
+connect = (next) ->
+  login (config) ->
+    user = config?.user
+    exit "please login first: 'dobi login'" unless user
+    db = new mongofb.client.Database {
+      server: DATABASE_URL
+      firebase: FIREBASE_URL
+    }
+    db.cache = false
+    db.auth config.token, (err) ->
+      exit "error authenticating" if err
+      next user, db
+ 
 exit = (msg) ->
   log msg if msg
   process.exit()
@@ -108,11 +125,13 @@ switch command
 
   # create a new app
   when 'create'
-    id = args[0]
-    version = '1.0.0'
+    [id, version] = args[0].split '@'
     type = args[1] or 'app'
 
-    # check type
+    # check arguments
+    exit "must specify package id" unless id
+    exit "must specify package version" unless version
+    exit "must specify package type" unless type
     exit "invalid type: #{type}" if type not in ['app', 'plugin', 'library']
 
     # require login
@@ -162,7 +181,97 @@ switch command
 
   # create a site using your app
   when 'install'
-    exit 'not available yet'
+    [id, version] = args[0].split '@'
+    slug = args[1]
+
+    exit "must specify package id" unless id
+    exit "must specify package version" unless version
+    exit "must specify new site slug" unless slug
+
+    getWorkspacePath (workspace) ->
+      exit 'must be in a workspace to find your package' unless workspace
+
+      # connect to database
+      connect (user, db) ->
+
+        # make sure slug isn't taken
+        db.get('sites').findOne {
+          slug: slug
+        }, (err, site) ->
+          exit err if err
+          exit "slug '#{slug}' is already taken." if site
+
+          # read config.cson if it exists
+          config_path = path.join workspace, 'pkg', id, version, 'config.cson'
+          exists = fs.existsSync config_path
+          config = {}
+          config = CSON.parseFileSync config_path if exists
+
+          # read setup.cson if it exists
+          setup_path = path.join workspace, 'pkg', id, version, 'setup.cson'
+          exists = fs.existsSync setup_path
+          setup = {}
+          setup = CSON.parseFileSync setup_path if exists
+
+          # check validity of setup.cson
+          setup.objects ?= []
+          for object in setup.objects
+            unless object.collection
+              exit "object in setup.cson missing 'collection'"
+            unless object.type
+              exit "object in setup.cson missing 'type'"
+            if not object.slug and object.slug != ''
+              exit "object in setup.cson missing 'slug'"
+
+          # update properties for this site
+          site = extend true, {}, setup.site or {}, {
+            created: Date.now()
+            name: slug
+            package:
+              id: id
+              version: version
+            settings:
+              domain:
+                url: "http://www.lessthan3.com/#{slug}"
+              transitions:
+                mobile: 'slide'
+                web: 'fade'
+            slug: slug
+          }
+
+          # make user an admin
+          site.users ?= {}
+          site.users[user.uid] = 'admin'
+
+          # default site properties
+          site.regions ?= {}
+          site.style ?= {}
+          site.collections ?= {}
+          config.collections ?= {}
+          for k, v of config.collections
+            site.collections[k] ?= {}
+            site.collections[k].slug ?= k
+
+          # insert into database
+          db.get('sites').insert site, (err, site) ->
+            exit err if err
+            site_id = site.get('_id').val()
+            log 'site has been created'
+
+            async.forEachSeries setup.objects, ((object, next) ->
+              console.log 'creating object', object.slug
+              object.created = Date.now()
+              object.site_id = site_id
+              db.get('objects').insert object, (err) ->
+                exit err if err
+                next()
+            ), (err) ->
+              exit err if err
+              log 'objects have been created'
+              log 'loading site in just a moment'
+              setTimeout ( ->
+                open "http://www.lessthan3.com/#{slug}?dev=1"
+              ), 3000
 
   # authenticate your user
   when 'login'
