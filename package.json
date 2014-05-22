@@ -8,7 +8,7 @@
     "lt3": "./bin/lt3.js"
   },
   "bugs": {
-    "url": "https://github.com/lessthan3/lessthan3/issues",
+    "url": "https://github.com/lessthan3/dobi/issues",
     "email": "bryant@lessthan3.com"
   },
   "config": {
@@ -40,19 +40,19 @@
     "open":           "0.0.x",
     "optimist":       "0.6.x"
   },
-  "description": "LessThan3 Developer Tools",
+  "description": "Dobi.io Developer Tools",
   "directories": {
     "lib": "./lib",
     "bin": "./bin"
   },
-  "homepage": "http://dev.lessthan3.com",
-  "keywords": "lessthan3",
+  "homepage": "http://www.dobi.io",
+  "keywords": "dobi.io,lessthan3",
   "main": "./lib/server",
-  "name": "lessthan3",
+  "name": "dobi",
   "preferGlobal": true,
   "repository": {
     "type": "git",
-    "url": "git://github.com/lessthan3/lessthan3.git"
+    "url": "git://github.com/lessthan3/dobi.git"
   },
-  "version": "0.8.3"
+  "version": "1.0.0"
 }
