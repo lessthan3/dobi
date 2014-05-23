@@ -1,3 +1,7 @@
+**v1.0.3** (2014-05-23)
+
+ - store files in base64 on deploy
+
 **v1.0.2** (2014-05-23)
 
  - update bin in package.json

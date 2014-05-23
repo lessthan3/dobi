@@ -251,7 +251,7 @@ switch command
     log "loading files"
     finder = findit package_path
     finder.on 'file', (file, stat) ->
-      data = fs.readFileSync file, 'utf8'
+      data = fs.readFileSync(file).toString 'base64'
       config.files.push {
         data: data
         ext: path.extname(file).replace /^\./, ''
@@ -289,6 +289,7 @@ switch command
               if not pkg_config.get("developers.#{user.uid}").val() == 'admin'
                 exit "you don't have permission to deploy this package"
               config._id = pkg_config.get('_id').val()
+              log 'updating package config'
               pkg_config.set config, (err) ->
                 exit err if err
                 next config
@@ -296,12 +297,14 @@ switch command
             # new package
             else
               log 'creating new package'
-              db.get('packages_config').insert config, (err) ->
+              db.get('packages_config').insert config, (err, doc) ->
                 exit err if err
-                next config
+                log 'package created'
+                next doc
         )((config) ->
 
           # make sure this version hasn't been deployed yet
+          log 'checking for previous conflicting versions'
           db.get('packages').findOne {
             id: id
             version: version
@@ -311,10 +314,8 @@ switch command
 
             # set config reference
             config.config_id = config._id
-            delete config._id
 
             # insert new package to db
-            console.log 'insert', config
             db.get('packages').insert config, (err, pkg) ->
               exit err if err
               exit "package #{id}@#{version} deployed"
@@ -421,7 +422,6 @@ switch command
           log 'site has been created'
 
           async.forEachSeries setup.objects, ((object, next) ->
-            console.log 'creating object', object.slug
             object.created = Date.now()
             object.site_id = site_id
             db.get('objects').insert object, (err) ->
