@@ -4,8 +4,7 @@
     "email": "b.n.williams@gmail.com"
   },
   "bin": {
-    "lpm": "./bin/lpm.js",
-    "lt3": "./bin/lt3.js"
+    "dobi": "./bin/dobi.js"
   },
   "bugs": {
     "url": "https://github.com/lessthan3/dobi/issues",
