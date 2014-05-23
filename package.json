@@ -26,7 +26,6 @@
     "chokidar":       "0.7.1",
     "coffee-script":  "1.4.x",
     "connect":        "2.4.x",
-    "crypto":         "0.0.x",
     "cson":           "1.4.x",
     "express":        "3.4.x",
     "findit":         "1.1.x",

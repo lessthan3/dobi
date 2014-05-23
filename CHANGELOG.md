@@ -1,3 +1,6 @@
+**v1.0.1** (2014-05-23)
+
+ - remove crypto from package.json
 
 **v1.0.0** (2014-05-22)
 
