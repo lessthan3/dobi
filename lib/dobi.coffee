@@ -300,7 +300,7 @@ switch command
               db.get('packages_config').insert config, (err, doc) ->
                 exit err if err
                 log 'package created'
-                next doc
+                next doc.val()
         )((config) ->
 
           # make sure this version hasn't been deployed yet
@@ -310,10 +310,33 @@ switch command
             version: version
           }, (err, pkg) ->
             exit err if err
-            exit "cannot modify pre-existing version: #{version}" if pkg
 
             # set config reference
             config.config_id = config._id
+            delete config._id
+
+            ###
+            # temp hack: allow package overwrite
+            ###
+            if pkg
+              log 'package exists. overwriting'
+              config._id = pkg.get('_id').val()
+              pkg.set config, (err) ->
+                exit err if err
+                exit "package #{id}@#{version} re-deployed"
+
+
+            else
+              db.get('packages').insert config, (err, pkg) ->
+                exit err if err
+                exit "package #{id}@#{version} deployed"
+
+
+            ###
+            # END HACK
+            ###
+            return
+            exit "cannot modify pre-existing version: #{version}" if pkg
 
             # insert new package to db
             db.get('packages').insert config, (err, pkg) ->
