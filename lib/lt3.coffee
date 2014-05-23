@@ -60,7 +60,7 @@ Usage: lt3 <command> [command-specific-options]
 "Shell Active type 'exit' or 'quit' to escape"
 where <command> [command-specific-options] is one of:
   exit/quit                       exit shell
-  
+
   HELPER_COMMANDS
   get:site <id>                   get site by id
   get:object <id>                 get object by id
@@ -71,9 +71,9 @@ where <command> [command-specific-options] is one of:
   help/docs                       this document
   shell:site <id>                 this opens site in context
   shell:object <id>               this opens object in context
-  
+
   DB_COMMANDS                     Query the database with results
-  db.sites.find                   
+  db.sites.find
   db.sites.findOne
   db.sites.findById
 
@@ -82,7 +82,7 @@ where <command> [command-specific-options] is one of:
   db.objects.findById
 """
 
-USAGE_SHELL_CONTEXT="""
+USAGE_SHELL_CONTEXT= """
   SITE/OBJECT_TOOLS
   show                            Dump object/site information
   add/set                         Sets data key:value
@@ -103,9 +103,9 @@ executeContextCommand =(l_token,l_command,l_args) =>
         db.get(@shell_context.type).find {_id: @shell_context.id}, (err, sites) =>
           log JSON.stringify(sites[0].get(l_args[0]).val(),null,3)
           rl.prompt();
-    
+
     when 'set' or 'add' #currently does not work
-      getDB (db) => 
+      getDB (db) =>
         db.get(shell_context.type).findOne {_id: @shell_context.id}, (err, site) =>
           throw err if err
           site.get(arg[0]).set arg[1], (err) =>
@@ -172,7 +172,7 @@ executeCommand = (l_token,l_command,l_args) =>
           db.get('objects').find {site_id:site.get('_id').val()}, {limit: 100},
           (err, objects) =>
             for object in objects
-              log "_id: #{object.data._id}, collection:#{object.data.collection}, 
+              log "_id: #{object.data._id}, collection:#{object.data.collection},
               type:#{object.data.type} slug:#{object.data.slug}"
             rl.prompt();
 
@@ -192,7 +192,7 @@ executeCommand = (l_token,l_command,l_args) =>
     when 'shell:site'
       getDB (db) =>
         db.get('sites').find {_id: l_args[0]}, (err, sites) =>
-          
+
           @shell_context={
             type:"sites"
             id:sites[0].data._id
@@ -200,7 +200,7 @@ executeCommand = (l_token,l_command,l_args) =>
           prompt="#{sites[0].data.slug}-#{sites[0].data._id}"
           rl.setPrompt "#{prompt}>"
           rl.prompt();
-          
+
     when 'shell:object'
       getDB (db) =>
         db.get('objects').findOne {_id: l_args[0]}, (err, object) =>
@@ -218,7 +218,7 @@ executeCommand = (l_token,l_command,l_args) =>
 
     else
       checkForDb=l_token.match(/db.+(?=\()/)+""
-      
+
       #helper function to check for type is array (recommended from coffescript site for robust checking)
       typeIsArray = ( value ) =>
         value and
@@ -231,23 +231,23 @@ executeCommand = (l_token,l_command,l_args) =>
       #helper function to extract jsons from a token
       extractJsons = (token)  =>
         count=0;
-        stringToForm=""
+        stringToForm= ""
         arr=[]
         started=false
         startIndex=token.indexOf '{'
         for index in [startIndex...token.length]
-          char = token.charAt index 
-          
+          char = token.charAt index
+
           if char=="{"
             started=true
             count++
           else if char=="}"
             count--
-        
+
           stringToForm+=char
           if count == 0 and started
             arr.push(stringToForm)
-            stringToForm=""
+            stringToForm= ""
             started=false
 
         return arr
@@ -406,7 +406,7 @@ switch command
     page_slug = page_slug.replace /^\/(.*)/, '$1'
 
     getDB (db) ->
-      
+
       # make sure site exists
       db.get('entities').findOne {
         slug: site_slug
@@ -489,9 +489,9 @@ switch command
           throw err if err
           log entity.val()
           exit()
-        
+
   when 'shell'
-    command=''
+    command= ''
     log "DB Shell Active type 'exit' or 'quit' to escape, 'help' or 'docs' for information"
     rl.prompt();
     rl.on "line", (token) ->
@@ -499,9 +499,9 @@ switch command
       command=args[0]
       args.splice(0,1)
       executeCommand(token,command,args)
-      
 
-    
+
+
   when 'docs'
     open 'http://www.lessthan3.com/developers'
     exit()
@@ -510,7 +510,7 @@ switch command
   when 'init'
     log 'initializing workspace'
     initWorkspace()
-  
+
 
   # authenticate the user
   when 'login'
@@ -535,7 +535,7 @@ switch command
     open url
     exit "opening url: #{url}"
 
-  
+
   # run a development server
   when 'dev'
     log "dev is deprecated. please use 'lt3 run'"
@@ -574,7 +574,7 @@ switch command
     log pkg.version
     exit ''
 
-  
+
   # check your login status
   when 'whoami'
     isLoggedIn ->
@@ -677,11 +677,11 @@ switch command
 
       # make sure site location isn't taken
       db.get('sites').findOne {slug: site_slug}, (err, site) ->
-        
+
         throw err if err
         exit('slug is already taken. please choose another') if site
 
-       
+
         data = {
           created: Date.now()
           name: site_slug
@@ -719,7 +719,7 @@ switch command
           slug: site_slug
         }
         setup_config = getCustomSetupConfig pkg_id, pkg_version
-        
+
         # handle null case
         if setup_config
           setup_config_site = setup_config.site
@@ -735,7 +735,7 @@ switch command
 
 
         # add self as admin
-        
+
 
         # initialize if it doesn't exist
         if not new_data.collections
@@ -750,7 +750,7 @@ switch command
 
 
 
-        # insert into database must happen first to get site _id        
+        # insert into database must happen first to get site _id
         db.get('sites').insert new_data, (err, site) ->
           throw err if err
           log "site created"
@@ -760,7 +760,7 @@ switch command
           exit() unless setup_config
           log "creating Objects...."
           # async objects function called later below
-          asyncObjects = (nextFunc) => 
+          asyncObjects = (nextFunc) =>
             async.forEach setup_config.objects , (object, next) =>
               object.seo={
                 title: ''
@@ -775,7 +775,7 @@ switch command
                 throw "error missing collection! aborted" unless object.collection
                 throw "error missing type! aborted" unless object.type
                 next()
-            , 
+            ,
             (err) =>
               log "objects loaded"
               nextFunc(err,"page")
@@ -786,7 +786,7 @@ switch command
           ], (err, results) ->
             exit err, err if err
             exit()
-  
+
   #iterates over objects and attempts to detect sites that no longer exist
   when 'strandedObjects'
     testExistance = (obj,db,next) ->
@@ -819,17 +819,17 @@ switch command
       }, (err, site) =>
         throw err if err
         site.remove()
-        
+
 
         db.get('objects').find {site_id:site_id_input} , (err, objects) ->
           for obj in objects
             obj.remove()
-            
-        
-      
+
+
+
 
   #NEEDS TO BE TESTED
-  #attempts to clone a site 
+  #attempts to clone a site
   when 'clone'
     throw "need site_id to clone" unless args[0]
     throw "need new site slug" unless args[1]
@@ -850,7 +850,8 @@ switch command
         temp.slug = new_site_slug;
         temp.created=Date.now()
         temp.name=new_site_slug
-        temp.users[config.user._id] = 'admin'
+        temp.users[config.user.uid] = 'admin'
+        temp.settings.domain.url = "www.lessthan3.com/#{new_site_slug}"
 
 
 
@@ -907,7 +908,7 @@ switch command
     page_slug = page_slug.replace /^\/(.*)/, '$1'
 
     getDB (db) ->
-      
+
       # make sure site exists
       db.get('sites').findOne {
         slug: site_slug
@@ -960,7 +961,7 @@ switch command
     object_slug = object_slug.replace /^\/(.*)/, '$1'
 
     getDB (db) ->
-      
+
       # make sure site exists
       db.get('sites').findOne {
         slug: site_slug
@@ -1008,7 +1009,7 @@ switch command
     page_slug = page_slug.replace /^\/(.*)/, '$1'
 
     getDB (db) ->
-      
+
       # make sure site exists
       db.get('sites').findOne {
         slug: site_slug
@@ -1055,7 +1056,7 @@ switch command
     object_slug = object_slug.replace /^\/(.*)/, '$1'
 
     getDB (db) ->
-      
+
       # make sure site exists
       db.get('sites').findOne {
         slug: site_slug
@@ -1089,6 +1090,6 @@ switch command
             log "object added to #{site_slug}"
             exit()
   # invalid command
-  else 
+  else
     exit USAGE
 
