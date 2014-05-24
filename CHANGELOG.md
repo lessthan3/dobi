@@ -1,3 +1,7 @@
+**v1.1.0** (2014-05-23)
+
+ - update mongofb to 0.8.x
+
 **v1.0.3** (2014-05-23)
 
  - store files in base64 on deploy
