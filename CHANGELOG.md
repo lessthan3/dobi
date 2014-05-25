@@ -1,3 +1,8 @@
+**v1.2.0** (2014-05-25)
+
+ - add dobi lint
+ - rename dobi.coffee to cli.coffee
+
 **v1.1.1** (2014-05-24)
 
  - coffee-script/register needed in 1.7.x

@@ -369,24 +369,47 @@ switch command
 
   # lint your package
   when 'lint'
-    src = fs.readFileSync '/Users/bryant/dev/lessthan3/dobi/lib/server.coffee', 'utf8'
-    config = JSON.parse fs.readFileSync '/Users/bryant/dev/lessthan3/dobi/lib/lint.json', 'utf8'
-    errors = coffeelint.lint src, config
-    if errors.length
-      for err in errors
-        color = if err.level is 'error' then 'red' else 'yellow'
-        line_number = "##{err.lineNumber}"
-        indent = '' ; indent += ' ' for i in [0...line_number.length + 2]
-        message = err.message
-        line = "#{err.line.replace /\s*(.*)/, "#{indent}$1"}"
-        context = if err.context then ": #{err.context}" else ''
+    [id, version] = args[0].split '@'
 
-        log "#{line_number[color]}: #{message}#{context}"
-        log line.cyan
-        log ''
-    else
-      log 'Success! This package is lint free.'.green
-    exit()
+    exit "must specify package id" unless id
+    exit "must specify package version" unless version
+
+    # read lint config
+    config = JSON.parse fs.readFileSync "#{__dirname}/lint.json"
+
+    # lint each file in the package
+    results = []
+    workspace = getWorkspacePathSync()
+    exit 'must be in a workspace to lint your package' unless workspace
+    package_path = path.join workspace, 'pkg', id, version
+    finder = findit package_path
+    finder.on 'file', (file, stat) ->
+      ext =  path.extname(file).replace /^\./, ''
+      return unless ext is 'coffee'
+      results.push {
+        file: file
+        errors: coffeelint.lint fs.readFileSync(file, 'utf8'), config
+      }
+    finder.on 'end', ->
+
+      success = true
+      for result in results
+        continue unless result.errors.length > 0
+        log result.file.green
+        for err in result.errors
+          success = false
+          color = if err.level is 'error' then 'red' else 'yellow'
+          line_number = "##{err.lineNumber}"
+          indent = '' ; indent += ' ' for i in [0...line_number.length + 2]
+          err.line = "#{err.line.replace /\s*(.*)/, "#{indent}$1"}" if err.line
+          err.context = if err.context then ": #{err.context}" else ''
+          log "#{line_number[color]}: #{err.message}#{err.context}"
+          log err.line.cyan if err.line
+          log ''
+
+      if success
+        log 'Success! This package is lint free.'.green
+      exit()
 
 
   # authenticate your user

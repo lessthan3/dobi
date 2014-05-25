@@ -80,7 +80,7 @@
     },
     "space_operators": {
         "name": "space_operators",
-        "level": "error"
+        "level": "ignore"
     },
     "duplicate_key": {
         "name": "duplicate_key",
