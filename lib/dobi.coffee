@@ -549,4 +549,5 @@ switch command
 
   # invalid command
   else
-    exit "invalid command: #{command}"
+    log "invalid command: #{command}"
+    exit USAGE
