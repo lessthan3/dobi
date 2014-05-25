@@ -3,6 +3,7 @@ CSON = require 'cson'
 Firebase = require 'firebase'
 async = require 'async'
 coffeelint = require 'coffeelint'
+colors = require 'colors'
 crypto = require 'crypto'
 extend =  require 'node.extend'
 findit = require 'findit'
@@ -371,10 +372,20 @@ switch command
     src = fs.readFileSync '/Users/bryant/dev/lessthan3/dobi/lib/server.coffee', 'utf8'
     config = JSON.parse fs.readFileSync '/Users/bryant/dev/lessthan3/dobi/lib/lint.json', 'utf8'
     errors = coffeelint.lint src, config
-    for err in errors
-      log ''
-      log "##{err.lineNumber}: #{err.message}. #{err.context}"
-      log err.line
+    if errors.length
+      for err in errors
+        color = if err.level is 'error' then 'red' else 'yellow'
+        line_number = "##{err.lineNumber}"
+        indent = '' ; indent += ' ' for i in [0...line_number.length + 2]
+        message = err.message
+        line = "#{err.line.replace /\s*(.*)/, "#{indent}$1"}"
+        context = if err.context then ": #{err.context}" else ''
+
+        log "#{line_number[color]}: #{message}#{context}"
+        log line.cyan
+        log ''
+    else
+      log 'Success! This package is lint free.'.green
     exit()
 
 
