@@ -538,7 +538,7 @@ switch command
       )( ->
         log "starting process"
         cp = require 'child_process'
-        child = cp.spawn 'coffee', ["#{__dirname}/dobi.coffee", 'run'], {
+        child = cp.spawn 'coffee', ["#{__dirname}/cli.coffee", 'run'], {
           detached: true
           stdio: [ 'ignore', 'ignore', 'ignore']
         }
