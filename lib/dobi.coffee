@@ -2,6 +2,7 @@
 CSON = require 'cson'
 Firebase = require 'firebase'
 async = require 'async'
+coffeelint = require 'coffeelint'
 crypto = require 'crypto'
 extend =  require 'node.extend'
 findit = require 'findit'
@@ -364,6 +365,18 @@ switch command
       fs.mkdir path.join(CWD, 'pkg'), (err) ->
         exit 'failed to create pkg directory' if err
         exit "workspace successfully created at: #{CWD}"
+
+  # lint your package
+  when 'lint'
+    src = fs.readFileSync '/Users/bryant/dev/lessthan3/dobi/lib/server.coffee', 'utf8'
+    config = JSON.parse fs.readFileSync '/Users/bryant/dev/lessthan3/dobi/lib/lint.json', 'utf8'
+    errors = coffeelint.lint src, config
+    for err in errors
+      log ''
+      log "##{err.lineNumber}: #{err.message}. #{err.context}"
+      log err.line
+    exit()
+
 
   # authenticate your user
   when 'login'

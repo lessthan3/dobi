@@ -165,7 +165,7 @@ exports = module.exports = (cfg) ->
                     ['exports.App',       "#{p} = #{pkg}.App"] # todo: deprecate
                     ['exports.Header',    "#{p} = #{pkg}.Header"]
                     ['exports.Footer',    "#{p} = #{pkg}.Footer"]
-                    ['exports.Component', "#{p} = #{pkg}.Component"] # todo: deprecate
+                    ['exports.Component', "#{p} = #{pkg}.Component"] # todo: dep
                     ['exports.Template',  "#{t}"]
                     ['exports.Page',      "#{p} = #{p2}"]
                   ]
@@ -201,7 +201,7 @@ exports = module.exports = (cfg) ->
     # wrap code
     js = new wrap.Assets list, {
       compress: use_compression
-    }, (err) =>
+    }, (err) ->
       return next err if err
 
       # generate package header
@@ -348,7 +348,7 @@ exports = module.exports = (cfg) ->
       compress: use_compression
       vars: query
       vars_prefix: '$'
-    }, (err) =>
+    }, (err) ->
       return next err if err
       asset = css.merge (err) ->
         next err, asset.data
@@ -391,7 +391,7 @@ exports = module.exports = (cfg) ->
       if prod and lru_cache.has key
         res.send lru_cache.get key
       else
-        fn req, res, (data) =>
+        fn req, res, (data) ->
           lru_cache.set key, data
           res.send data
   cache = cfg.cache_function if cfg.cache_function
