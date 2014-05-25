@@ -19,16 +19,16 @@ USAGE = """
 Usage: dobi <command> [command-specific-options]
 
 where <command> [command-specific-options] is one of:
-  backup <site-slug>                create a backup of a site
+  backup <site-slug>                backup your site data
   create <my-package> <type=app>    create a new package
-  deploy <my-app>                   deploy an app (COMING SOON)
+  deploy <my-app>                   deploy an app
   docs                              open the dobi docs
   help                              show usage
   init                              initialize a workspace
-  install <my-app> <site-slug>      create a site using your app
   login                             authenticate your user
   open <site-slug>                  open a site
   run                               run a development server
+  setup <my-app> <site-slug>        setup a site using your app
   start                             daemonize a development server
   stop                              stop a daemonized development server
   usage                             show usage
@@ -181,7 +181,7 @@ switch command
           # done
           exit "backup complete: #{name}"
 
-  # create a new app
+  # create a new package
   when 'create'
     [id, version] = args[0].split '@'
     type = args[1] or 'app'
@@ -197,7 +197,7 @@ switch command
       user = config?.user
       exit "please login first: 'dobi login'" unless user
 
-      # bootstrap the project
+      # bootstrap the package
       source = path.join __dirname, '..', 'bootstrap', type
       workspace = getWorkspacePathSync()
       exit 'must be in a workspace to create a package' unless workspace
@@ -365,8 +365,49 @@ switch command
         exit 'failed to create pkg directory' if err
         exit "workspace successfully created at: #{CWD}"
 
-  # create a site using your app
-  when 'install'
+  # authenticate your user
+  when 'login'
+    login true, (config) ->
+      exit JSON.stringify user, null, 2 if config.user
+      exit 'not logged in. try "dobi login"'
+
+  # open a site
+  when 'open'
+    url = 'http://www.lessthan3.com'
+    url += "/#{arg}" for arg in args
+    open url
+    exit()
+
+  # run a development server
+  when 'run'
+    workspace = getWorkspacePathSync()
+    exit 'must be in a workspace to run the server' unless workspace
+
+    # dependencies
+    connect = require 'connect'
+    express = require 'express'
+    dobi = require './server'
+    pkg = require path.join '..', 'package'
+
+    # configuration
+    app = express()
+    app.use express.logger '[:date] :status :method :url'
+    app.use connect.urlencoded()
+    app.use connect.json()
+    app.use express.methodOverride()
+    app.use express.cookieParser()
+    app.use dobi {
+      pkg_dir: path.join workspace, 'pkg'
+    }
+    app.use app.router
+    app.use express.errorHandler {dumpExceptions: true, showStack: true}
+
+    # listen
+    app.listen pkg.config.port
+    log "listening: #{pkg.config.port}"
+
+  # setup a site using your app
+  when 'setup'
     [id, version] = args[0].split '@'
     slug = args[1]
 
@@ -458,46 +499,6 @@ switch command
               open "http://www.lessthan3.com/#{slug}?dev=1"
             ), 3000
 
-  # authenticate your user
-  when 'login'
-    login true, (config) ->
-      exit JSON.stringify user, null, 2 if config.user
-      exit 'not logged in. try "dobi login"'
-
-  # open a site
-  when 'open'
-    url = 'http://www.lessthan3.com'
-    url += "/#{arg}" for arg in args
-    open url
-    exit()
-
-  # run a development server
-  when 'run'
-    workspace = getWorkspacePathSync()
-    exit 'must be in a workspace to run the server' unless workspace
-
-    # dependencies
-    connect = require 'connect'
-    express = require 'express'
-    dobi = require './server'
-    pkg = require path.join '..', 'package'
-
-    # configuration
-    app = express()
-    app.use express.logger '[:date] :status :method :url'
-    app.use connect.urlencoded()
-    app.use connect.json()
-    app.use express.methodOverride()
-    app.use express.cookieParser()
-    app.use dobi {
-      pkg_dir: path.join workspace, 'pkg'
-    }
-    app.use app.router
-    app.use express.errorHandler {dumpExceptions: true, showStack: true}
-
-    # listen
-    app.listen pkg.config.port
-    log "listening: #{pkg.config.port}"
 
   # daemonize a development server
   when 'start'
