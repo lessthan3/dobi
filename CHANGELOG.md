@@ -1,4 +1,8 @@
-**v1.1.0** (2014-05-23)
+**v1.1.1** (2014-05-24)
+
+ - coffee-script/register needed in 1.7.x
+
+**v1.1.0** (2014-05-24)
 
  - update mongofb to 0.8.x
  - rename install to setup
