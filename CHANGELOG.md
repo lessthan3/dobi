@@ -1,6 +1,12 @@
 **v1.1.0** (2014-05-23)
 
  - update mongofb to 0.8.x
+ - rename install to setup
+ - update coffee-script to 1.7.x
+ - update cson: updates dependencies (including CS)
+ - update async: various updates
+ - update findit: adds optional custom fs
+ - update jwt-simple: adds new algorithm
 
 **v1.0.3** (2014-05-23)
 
