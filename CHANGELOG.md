@@ -1,6 +1,7 @@
 **v1.2.1** (2014-05-26)
 
  - add lint to usage
+ - exit cli after setting up a new site
 
 **v1.2.0** (2014-05-25)
 
