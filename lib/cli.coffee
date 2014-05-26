@@ -545,6 +545,7 @@ switch command
             log 'loading site in just a moment'
             setTimeout ( ->
               open "http://www.lessthan3.com/#{slug}?dev=1"
+              exit()
             ), 3000
 
 
