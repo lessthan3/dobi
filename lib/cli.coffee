@@ -27,6 +27,7 @@ where <command> [command-specific-options] is one of:
   docs                              open the dobi docs
   help                              show usage
   init                              initialize a workspace
+  lint                              lint your package
   login                             authenticate your user
   open <site-slug>                  open a site
   run                               run a development server
