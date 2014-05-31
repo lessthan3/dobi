@@ -1,7 +1,8 @@
-**v1.2.1** (2014-05-26)
+**v1.3.0** (2014-05-31)
 
  - add lint to usage
- - exit cli after setting up a new site
+ - exit cli after sett.ing up a new site
+ - add dobi clone
 
 **v1.2.0** (2014-05-25)
 

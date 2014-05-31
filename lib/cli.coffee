@@ -21,7 +21,8 @@ USAGE = """
 Usage: dobi <command> [command-specific-options]
 
 where <command> [command-specific-options] is one of:
-  backup <site-slug>                backup your site data
+  backup <site-slug>                backup a site
+  clone <src-slug> <dst-slug>       clone a site
   create <my-package> <type=app>    create a new package
   deploy <my-app>                   deploy an app
   docs                              open the dobi docs
@@ -183,6 +184,65 @@ switch command
           
           # done
           exit "backup complete: #{name}"
+
+  # clone a site
+  when 'clone'
+    src_slug = args[0]
+    dst_slug = args[1]
+
+    # check arguments
+    exit "must specify site src_slug" unless src_slug
+    exit "must specify site dst_slug" unless dst_slug
+
+    # connect to database
+    connect (user, db) ->
+
+      # get site
+      log 'find the site'
+      db.get('sites').findOne {
+        slug: src_slug
+      }, (err, src_site) ->
+        exit err if err
+        exit 'could not find site' unless src_site
+        log "site found: #{src_site.get('_id').val()}"
+
+        # get objects
+        log 'find the objects'
+        db.get('objects').find {
+          site_id: src_site.get('_id').val()
+        }, {
+          limit: 100000
+        }, (err, objects) ->
+          exit err if err
+          log "#{objects.length} objects found"
+
+          # make sure new site doesn't already exist
+          db.get('sites').findOne {
+            slug: dst_slug
+          }, (err, dst_site) ->
+            exit err if err
+            exit 'dst_slug already taken' if dst_site
+
+            # create new site
+            site = src_site.val()
+            site.slug = dst_slug
+            site.name = dst_slug
+            site.settings.domain.url = "www.lessthan3.com/#{dst_slug}"
+            site.users[user.uid] = 'admin'
+            db.get('sites').insert site, (err, dst_site) ->
+              exit err if err
+
+              # insert pages
+              async.forEach objects, ((object, next) ->
+                data = object.val()
+                delete data._id
+                data.site_id = dst_site.get('_id').val()
+                db.get('objects').insert data, (err) ->
+                  exit err if err
+                  next()
+              ), (err) ->
+                exit err if err
+                exit 'clone complete'
 
   # create a new package
   when 'create'
