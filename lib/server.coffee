@@ -391,9 +391,14 @@ exports = module.exports = (cfg) ->
       if prod and lru_cache.has key
         res.send lru_cache.get key
       else
-        fn req, res, (data) ->
-          lru_cache.set key, data
-          res.send data
+        if fn.length == 1
+          fn (data) ->
+            lru_cache.set key, data
+            res.send data
+        else
+          fn req, res, (data) ->
+            lru_cache.set key, data
+            res.send data
   cache = cfg.cache_function if cfg.cache_function
 
 

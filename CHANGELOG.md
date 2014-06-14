@@ -1,3 +1,7 @@
+**v1.3.1** (2014-06-13)
+
+ - allow dev cache to use 1 (next) or 3 params (req, res, next)
+
 **v1.3.0** (2014-05-31)
 
  - add lint to usage
