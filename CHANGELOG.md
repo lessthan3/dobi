@@ -1,3 +1,7 @@
+**v1.3.2** (2014-07-07)
+
+ - bump mongofb to 0.9.x to fix non-unique insert ids
+
 **v1.3.1** (2014-06-13)
 
  - allow dev cache to use 1 (next) or 3 params (req, res, next)
