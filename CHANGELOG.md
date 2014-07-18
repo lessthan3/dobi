@@ -1,3 +1,7 @@
+**v1.4.0** (2014-07-18)
+
+ - fix partial reload media query issues for stylus
+
 **v1.3.2** (2014-07-07)
 
  - bump mongofb to 0.9.x to fix non-unique insert ids
