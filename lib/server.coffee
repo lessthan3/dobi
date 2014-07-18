@@ -604,7 +604,7 @@ exports = module.exports = (cfg) ->
                       ['.exports.region',      "#{p}.region"]
                     ]
                     for sub in subs
-                      source = source.replace sub[0], sub[1]
+                      source = source.replace new RegExp(sub[0], 'g'), sub[1]
 
                     # add variables code
                     return variables_code + source
