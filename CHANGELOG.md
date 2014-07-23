@@ -1,3 +1,7 @@
+**v1.4.1** (2014-07-23)
+
+ - add option to lint specific files
+
 **v1.4.0** (2014-07-18)
 
  - fix partial reload media query issues for stylus

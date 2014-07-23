@@ -431,6 +431,7 @@ switch command
   # lint your package
   when 'lint'
     [id, version] = args[0].split '@'
+    target = args[1]
 
     exit "must specify package id" unless id
     exit "must specify package version" unless version
@@ -445,12 +446,15 @@ switch command
     package_path = path.join workspace, 'pkg', id, version
     finder = findit package_path
     finder.on 'file', (file, stat) ->
-      ext =  path.extname(file).replace /^\./, ''
+      ext = path.extname(file).replace /^\./, ''
       return unless ext is 'coffee'
-      results.push {
-        file: file
-        errors: coffeelint.lint fs.readFileSync(file, 'utf8'), config
-      }
+
+      # lint if no individual file specified, or if we match the target file
+      if not target or target is path.basename file
+        results.push {
+          file: file
+          errors: coffeelint.lint fs.readFileSync(file, 'utf8'), config
+        }
     finder.on 'end', ->
 
       success = true
