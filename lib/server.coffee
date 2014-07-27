@@ -667,16 +667,21 @@ exports = module.exports = (cfg) ->
 
       svr = require api_path
       return error 404 unless svr?[method]
-      svr[method].apply {
+
+      # pass arguments in as a single argument map
+      # also keep that data the scope for backwards compatibility (to deprecate)
+      args = {
         admin: req.admin
         body: req.body
         cache: (options, fn) -> cache(options, fn)(req, res, next)
         error: error
         query: req.query
+        next: next
         req: req
         res: res
         user: req.user
       }
+      svr[method].apply args, [args]
     router.route 'GET', '/pkg/:id/:version/api/*', auth, apiCallHandler
     router.route 'POST', '/pkg/:id/:version/api/*', auth, apiCallHandler
 

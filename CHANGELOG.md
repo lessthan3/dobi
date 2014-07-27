@@ -1,3 +1,7 @@
+**v1.5.0** (2014-07-27)
+
+ - pass in api.coffee arguments as the first variable instead of as 'this'
+
 **v1.4.1** (2014-07-23)
 
  - add option to lint specific files
