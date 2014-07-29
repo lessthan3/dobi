@@ -38,7 +38,8 @@
     "ncp":            "0.5.1",
     "node.extend":    "1.0.x",
     "open":           "0.0.x",
-    "optimist":       "0.6.x"
+    "optimist":       "0.6.x",
+    "request":        "2.39.x"
   },
   "description": "Dobi.io Developer Tools",
   "directories": {

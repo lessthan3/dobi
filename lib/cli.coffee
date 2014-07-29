@@ -15,6 +15,7 @@ open = require 'open'
 optimist = require 'optimist'
 path = require 'path'
 readline = require 'readline'
+request = require 'request'
 
 # usage
 USAGE = """
@@ -22,6 +23,7 @@ Usage: dobi <command> [command-specific-options]
 
 where <command> [command-specific-options] is one of:
   backup <site-slug>                backup a site
+  cache:bust <site-slug>            clear the cache for a site
   clone <src-slug> <dst-slug>       clone a site
   create <my-package> <type=app>    create a new package
   deploy <my-app>                   deploy an app
@@ -64,6 +66,7 @@ connect = (next) ->
       firebase: FIREBASE_URL
     }
     db.cache = false
+    user.token = config.token
     db.auth config.token, (err) ->
       exit "error authenticating" if err
       log 'connected'
@@ -184,6 +187,39 @@ switch command
           
           # done
           exit "backup complete: #{name}"
+
+  # clear the cache for a site
+  when 'cache:bust'
+    slug = args[0]
+
+    # check arguments
+    exit "must specify site site_slug" unless slug
+
+    # connect to database
+    connect (user, db) ->
+
+      # get site
+      log 'find the site'
+      db.get('sites').findOne {
+        slug: slug
+      }, (err, site) ->
+        exit err if err
+        exit 'could not find site' unless site
+        log "site found: #{site.get('_id').val()}"
+
+        # clear cache
+        api = 'http://local.lessthan3.com:3000/pkg/lt3-api/4.0/api'
+        resource = 'cache/bust'
+        request {
+          url: "#{api}/#{resource}"
+          qs:
+            site_id: site.get('_id').val()
+            token: user.token
+        }, (err, resp, body) ->
+          exit err if err
+          body = JSON.parse body
+          console.log "cache has been cleared for #{body.host}"
+          exit()
 
   # clone a site
   when 'clone'

@@ -1,3 +1,7 @@
+**v1.5.1** (2014-07-29)
+
+ - add cache:bust
+
 **v1.5.0** (2014-07-27)
 
  - pass in api.coffee arguments as the first variable instead of as 'this'
