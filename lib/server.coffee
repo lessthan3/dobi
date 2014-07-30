@@ -674,8 +674,10 @@ exports = module.exports = (cfg) ->
         admin: req.admin
         body: req.body
         cache: (options, fn) -> cache(options, fn)(req, res, next)
+        db: req.db
         error: error
         query: req.query
+        method: req.method
         next: next
         req: req
         res: res

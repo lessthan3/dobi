@@ -1,3 +1,7 @@
+**v1.5.3** (2014-07-30)
+
+ - shortcut req.db and req.method on api calls
+
 **v1.5.2** (2014-07-30)
 
  - have cache bust use live api instead of local
