@@ -1,3 +1,7 @@
+**v1.5.2** (2014-07-30)
+
+ - have cache bust use live api instead of local
+
 **v1.5.1** (2014-07-29)
 
  - add cache:bust

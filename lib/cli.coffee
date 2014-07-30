@@ -208,7 +208,7 @@ switch command
         log "site found: #{site.get('_id').val()}"
 
         # clear cache
-        api = 'http://local.lessthan3.com:3000/pkg/lt3-api/4.0/api'
+        api = 'http://www.lessthan3.com/pkg/lt3-api/4.0/api'
         resource = 'cache/bust'
         request {
           url: "#{api}/#{resource}"
