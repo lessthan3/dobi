@@ -60,6 +60,8 @@ connect = (next) ->
     user = config?.user
     exit "please login first: 'dobi login'" unless user
 
+    user.admin_uid = user.uid.replace /\./g, /,/
+
     log 'connect to database'
     db = new mongofb.client.Database {
       server: DATABASE_URL
@@ -264,7 +266,7 @@ switch command
             site.slug = dst_slug
             site.name = dst_slug
             site.settings.domain.url = "www.lessthan3.com/#{dst_slug}"
-            site.users[user.uid] = 'admin'
+            site.users[user.admin_uid] = 'admin'
             db.get('sites').insert site, (err, dst_site) ->
               exit err if err
 
@@ -314,7 +316,7 @@ switch command
           config.author.name = user.name
           config.author.email = user.email
           config.developers = {}
-          config.developers[user.uid] = 'admin'
+          config.developers[user.admin_uid] = 'admin'
           config = CSON.stringifySync(config).replace /\n\n/g, '\n'
           fs.writeFileSync config_path, config
 
@@ -373,7 +375,7 @@ switch command
 
         # make sure user is an admin
         config.developers ?= {}
-        config.developers[user.uid] = 'admin'
+        config.developers[user.admin_uid] = 'admin'
 
         # update main config
         ((next) ->
@@ -385,7 +387,7 @@ switch command
 
             # updating config
             if pkg_config
-              if not pkg_config.get("developers.#{user.uid}").val() == 'admin'
+              if not pkg_config.get("developers.#{user.admin_uid}").val() == 'admin'
                 exit "you don't have permission to deploy this package"
               config._id = pkg_config.get('_id').val()
               log 'updating package config'
@@ -616,7 +618,7 @@ switch command
 
         # make user an admin
         site.users ?= {}
-        site.users[user.uid] = 'admin'
+        site.users[user.admin_uid] = 'admin'
 
         # default site properties
         site.regions ?= {}

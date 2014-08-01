@@ -1,3 +1,7 @@
+**v1.5.4** (2014-08-01)
+
+ - use firebase safe uids
+
 **v1.5.3** (2014-07-30)
 
  - shortcut req.db and req.method on api calls
