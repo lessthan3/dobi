@@ -73,7 +73,7 @@ connect = (next) ->
       exit "error authenticating" if err
       log 'connected'
       next user, db
- 
+
 exit = (msg) ->
   log msg if msg
   process.exit()
@@ -186,7 +186,7 @@ switch command
           # write to file
           name = "backup-#{slug}-#{Date.now()}.cson"
           fs.writeFileSync path.join(CWD, name), data
-          
+
           # done
           exit "backup complete: #{name}"
 
@@ -449,7 +449,7 @@ switch command
   when 'docs'
     open 'http://www.dobi.io'
     exit()
-    
+
   # show usage
   when 'help'
     exit USAGE
@@ -694,8 +694,8 @@ switch command
 
   # check your authentication status
   when 'whoami'
-    login (config) ->
-      exit JSON.stringify user, null, 2 if config.user
+    login ({user}) ->
+      exit JSON.stringify user, null, 2 if user
       exit 'not logged in. try "dobi login"'
 
   # invalid command
