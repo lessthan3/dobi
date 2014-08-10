@@ -530,7 +530,7 @@ exports = module.exports = (cfg) ->
         finder.on 'file', (file, stat) ->
           files.push {
             ext: path.extname(file).replace /^\./, ''
-            path: file.replace root, ''
+            path: file.replace "#{root}/", ''
           }
         finder.on 'end', ->
           res.send files
