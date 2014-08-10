@@ -1,3 +1,8 @@
+**v1.6.3** (2014-08-10)
+
+ - fix bug with create command
+ - fix login bug
+
 **v1.6.2** (2014-08-10)
 
  - cache unauthorized cache clears

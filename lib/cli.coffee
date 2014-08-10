@@ -56,8 +56,7 @@ rl = readline.createInterface {
 }
 
 connect = (next) ->
-  login (config) ->
-    user = config?.user
+  login ({token, user}) ->
     exit "please login first: 'dobi login'" unless user
 
     user.admin_uid = user.uid.replace /\./g, /,/
@@ -68,8 +67,8 @@ connect = (next) ->
       firebase: FIREBASE_URL
     }
     db.cache = false
-    user.token = config.token
-    db.auth config.token, (err) ->
+    user.token = token
+    db.auth token, (err) ->
       exit "error authenticating" if err
       log 'connected'
       next user, db
@@ -106,7 +105,7 @@ login = (require_logged_in, next) ->
     if config.user
       next config
     else if not require_logged_in
-      next null
+      next {user: null}
     else
       log 'not logged in: must authenticate'
       log 'opening login portal in just a few moments'
@@ -299,8 +298,7 @@ switch command
     exit "invalid type: #{type}" if type not in ['app', 'plugin', 'library']
 
     # require login
-    login (config) ->
-      user = config?.user
+    login ({user}) ->
       exit "please login first: 'dobi login'" unless user
 
       # bootstrap the package
@@ -521,8 +519,8 @@ switch command
 
   # authenticate your user
   when 'login'
-    login true, (config) ->
-      exit JSON.stringify user, null, 2 if config.user
+    login true, ({user}) ->
+      exit JSON.stringify user, null, 2 if user
       exit 'not logged in. try "dobi login"'
 
   # open a site
