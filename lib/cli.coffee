@@ -323,7 +323,7 @@ switch command
           config.version = version
           config.author = {name: user.name, email: user.email}
           config.developers = {}
-          config.developers[user.admin_uid] = 'admin'
+          config.developers[user.uid] = 'admin'
           config = CSON.stringifySync(config).replace /\n\n/g, '\n'
           fs.writeFileSync config_path, config
 
