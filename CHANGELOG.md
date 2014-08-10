@@ -1,3 +1,7 @@
+**v1.6.4** (2014-08-10)
+
+ - add logout command
+
 **v1.6.3** (2014-08-10)
 
  - fix bug with create command

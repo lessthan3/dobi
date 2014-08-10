@@ -32,6 +32,7 @@ where <command> [command-specific-options] is one of:
   init                              initialize a workspace
   lint                              lint your package
   login                             authenticate your user
+  logout                            deauthenticate your user
   open <site-slug>                  open a site
   run                               run a development server
   setup <my-app> <site-slug>        setup a site using your app
@@ -96,6 +97,10 @@ getWorkspacePathSync = (current=CWD) ->
 
 log = (msg) ->
   console.log "[dobi] #{msg}"
+
+logout = (next) ->
+  saveUserConfig {}, ->
+    next()
 
 login = (require_logged_in, next) ->
   [require_logged_in, next] = [false, require_logged_in] unless next
@@ -516,12 +521,17 @@ switch command
         log 'Success! This package is lint free.'.green
       exit()
 
-
   # authenticate your user
   when 'login'
-    login true, ({user}) ->
-      exit JSON.stringify user, null, 2 if user
-      exit 'not logged in. try "dobi login"'
+    logout ->
+      login true, ({user}) ->
+        exit JSON.stringify user, null, 2 if user
+        exit 'not logged in. try "dobi login"'
+
+  # deauthenticate your user
+  when 'logout'
+    logout ->
+      exit 'you are now logged out'
 
   # open a site
   when 'open'
