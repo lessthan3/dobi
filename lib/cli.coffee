@@ -219,8 +219,13 @@ switch command
             token: user.token
         }, (err, resp, body) ->
           exit err if err
-          body = JSON.parse body
-          console.log "cache has been cleared for #{body.host}"
+          if resp.statusCode is 401
+            exit 'You are not authorized to clear this cache'
+          try
+            body = JSON.parse body
+            log "cache has been cleared for #{body.host}"
+          catch err
+            log 'failed to parse response'
           exit()
 
   # clone a site

@@ -1,3 +1,7 @@
+**v1.6.2** (2014-08-10)
+
+ - cache unauthorized cache clears
+
 **v1.6.1** (2014-08-10)
 
  - remove prefix slash from files.json paths
