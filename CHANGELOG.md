@@ -1,3 +1,7 @@
+**v1.6.5** (2014-08-10)
+
+ - watch out for bad args on dobi lint
+
 **v1.6.4** (2014-08-10)
 
  - add logout command

@@ -475,6 +475,9 @@ switch command
 
   # lint your package
   when 'lint'
+
+    exit "must specify package id@version" unless args[0]
+
     [id, version] = args[0].split '@'
     target = args[1]
 
