@@ -5,6 +5,7 @@ LRU = require 'lru-cache'
 async = require 'async'
 chokidar = require 'chokidar'
 express = require 'express'
+findit = require 'findit'
 fs = require 'fs'
 jwt = require 'jwt-simple'
 path = require 'path'
@@ -517,6 +518,22 @@ exports = module.exports = (cfg) ->
           return error 400, err if err
           next data
       )(req, res, next)
+
+    # Package Files
+    unless prod
+      router.route 'GET', '/pkg/:id/:version/files.json', (req, res, next) ->
+        contentType 'application/json'
+        root = path.join pkgDir(req.params.id, req.params.version)
+
+        files = []
+        finder = findit root
+        finder.on 'file', (file, stat) ->
+          files.push {
+            ext: path.extname(file).replace /^\./, ''
+            path: file.replace root, ''
+          }
+        finder.on 'end', ->
+          res.send files
 
     # Package Single File Reload
     unless prod

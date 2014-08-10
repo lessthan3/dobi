@@ -1,3 +1,7 @@
+**v1.6.0** (2014-08-10)
+
+ - add files.json dev server api call
+
 **v1.5.4** (2014-08-01)
 
  - use firebase safe uids
