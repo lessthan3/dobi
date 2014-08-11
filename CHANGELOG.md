@@ -1,3 +1,7 @@
+**v1.6.6** (2014-08-10
+
+ - clone bug fix
+
 **v1.6.5** (2014-08-10)
 
  - watch out for bad args on dobi lint

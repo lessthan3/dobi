@@ -60,7 +60,7 @@ connect = (next) ->
   login ({token, user}) ->
     exit "please login first: 'dobi login'" unless user
 
-    user.admin_uid = user.uid.replace /\./g, /,/
+    user.admin_uid = user.uid.replace /\./g, ','
 
     log 'connect to database'
     db = new mongofb.client.Database {
