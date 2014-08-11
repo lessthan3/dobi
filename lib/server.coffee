@@ -623,6 +623,9 @@ exports = module.exports = (cfg) ->
                     for sub in subs
                       source = source.replace new RegExp(sub[0], 'g'), sub[1]
 
+                    # ex: html.exports -> html.artist-hq.v3-0-0
+                    source = source.replace /.exports/g, ".#{id}.v#{version}"
+
                     # add variables code
                     return variables_code + source
                 }, (err) ->

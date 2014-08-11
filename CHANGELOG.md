@@ -1,4 +1,8 @@
-**v1.6.6** (2014-08-10
+**v1.6.7** (2014-08-10)
+
+ - fix .exports replacement for partial stylesheet loads
+
+**v1.6.6** (2014-08-10)
 
  - clone bug fix
 
