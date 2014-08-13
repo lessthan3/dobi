@@ -313,8 +313,7 @@ switch command
           config = CSON.parseFileSync config_path
           config.id = id
           config.version = version
-          config.author.name = user.name
-          config.author.email = user.email
+          config.author = {name: user.name, email: user.email}
           config.developers = {}
           config.developers[user.admin_uid] = 'admin'
           config = CSON.stringifySync(config).replace /\n\n/g, '\n'
