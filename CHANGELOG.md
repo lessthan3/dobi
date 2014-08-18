@@ -1,3 +1,7 @@
+**v1.6.8** (2014-08-17)
+
+ - added source maps for coffee -> js partials
+
 **v1.6.7** (2014-08-10)
 
  - fix .exports replacement for partial stylesheet loads
