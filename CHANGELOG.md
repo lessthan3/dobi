@@ -1,3 +1,40 @@
+**v1.6.8** (2014-08-17)
+
+ - added source maps for coffee -> js partials
+
+**v1.6.7** (2014-08-10)
+
+ - fix .exports replacement for partial stylesheet loads
+
+**v1.6.6** (2014-08-10)
+
+ - clone bug fix
+
+**v1.6.5** (2014-08-10)
+
+ - watch out for bad args on dobi lint
+
+**v1.6.4** (2014-08-10)
+
+ - add logout command
+
+**v1.6.3** (2014-08-10)
+
+ - fix bug with create command
+ - fix login bug
+
+**v1.6.2** (2014-08-10)
+
+ - cache unauthorized cache clears
+
+**v1.6.1** (2014-08-10)
+
+ - remove prefix slash from files.json paths
+
+**v1.6.0** (2014-08-10)
+
+ - add files.json dev server api call
+
 **v1.5.4** (2014-08-01)
 
  - use firebase safe uids

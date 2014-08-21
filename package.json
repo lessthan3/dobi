@@ -20,7 +20,7 @@
     }
   ],
   "dependencies": {
-    "asset-wrap":     "0.8.x",
+    "asset-wrap":     "0.9.x",
     "async":          "0.9.x",
     "chokidar":       "0.7.1",
     "coffeelint":     "1.4.x",
@@ -55,5 +55,5 @@
     "type": "git",
     "url": "git://github.com/lessthan3/dobi.git"
   },
-  "version": "1.5.4"
+  "version": "1.6.8"
 }

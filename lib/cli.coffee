@@ -32,6 +32,7 @@ where <command> [command-specific-options] is one of:
   init                              initialize a workspace
   lint                              lint your package
   login                             authenticate your user
+  logout                            deauthenticate your user
   open <site-slug>                  open a site
   run                               run a development server
   setup <my-app> <site-slug>        setup a site using your app
@@ -56,11 +57,10 @@ rl = readline.createInterface {
 }
 
 connect = (next) ->
-  login (config) ->
-    user = config?.user
+  login ({token, user}) ->
     exit "please login first: 'dobi login'" unless user
 
-    user.admin_uid = user.uid.replace /\./g, /,/
+    user.admin_uid = user.uid.replace /\./g, ','
 
     log 'connect to database'
     db = new mongofb.client.Database {
@@ -68,8 +68,8 @@ connect = (next) ->
       firebase: FIREBASE_URL
     }
     db.cache = false
-    user.token = config.token
-    db.auth config.token, (err) ->
+    user.token = token
+    db.auth token, (err) ->
       exit "error authenticating" if err
       log 'connected'
       next user, db
@@ -98,6 +98,10 @@ getWorkspacePathSync = (current=CWD) ->
 log = (msg) ->
   console.log "[dobi] #{msg}"
 
+logout = (next) ->
+  saveUserConfig {}, ->
+    next()
+
 login = (require_logged_in, next) ->
   [require_logged_in, next] = [false, require_logged_in] unless next
 
@@ -106,7 +110,7 @@ login = (require_logged_in, next) ->
     if config.user
       next config
     else if not require_logged_in
-      next null
+      next {user: null}
     else
       log 'not logged in: must authenticate'
       log 'opening login portal in just a few moments'
@@ -219,8 +223,13 @@ switch command
             token: user.token
         }, (err, resp, body) ->
           exit err if err
-          body = JSON.parse body
-          console.log "cache has been cleared for #{body.host}"
+          if resp.statusCode is 401
+            exit 'You are not authorized to clear this cache'
+          try
+            body = JSON.parse body
+            log "cache has been cleared for #{body.host}"
+          catch err
+            log 'failed to parse response'
           exit()
 
   # clone a site
@@ -294,8 +303,7 @@ switch command
     exit "invalid type: #{type}" if type not in ['app', 'plugin', 'library']
 
     # require login
-    login (config) ->
-      user = config?.user
+    login ({user}) ->
       exit "please login first: 'dobi login'" unless user
 
       # bootstrap the package
@@ -313,8 +321,7 @@ switch command
           config = CSON.parseFileSync config_path
           config.id = id
           config.version = version
-          config.author.name = user.name
-          config.author.email = user.email
+          config.author = {name: user.name, email: user.email}
           config.developers = {}
           config.developers[user.admin_uid] = 'admin'
           config = CSON.stringifySync(config).replace /\n\n/g, '\n'
@@ -468,6 +475,9 @@ switch command
 
   # lint your package
   when 'lint'
+
+    exit "must specify package id@version" unless args[0]
+
     [id, version] = args[0].split '@'
     target = args[1]
 
@@ -514,12 +524,17 @@ switch command
         log 'Success! This package is lint free.'.green
       exit()
 
-
   # authenticate your user
   when 'login'
-    login true, (config) ->
-      exit JSON.stringify user, null, 2 if config.user
-      exit 'not logged in. try "dobi login"'
+    logout ->
+      login true, ({user}) ->
+        exit JSON.stringify user, null, 2 if user
+        exit 'not logged in. try "dobi login"'
+
+  # deauthenticate your user
+  when 'logout'
+    logout ->
+      exit 'you are now logged out'
 
   # open a site
   when 'open'

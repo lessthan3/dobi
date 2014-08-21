@@ -5,6 +5,7 @@ LRU = require 'lru-cache'
 async = require 'async'
 chokidar = require 'chokidar'
 express = require 'express'
+findit = require 'findit'
 fs = require 'fs'
 jwt = require 'jwt-simple'
 path = require 'path'
@@ -518,18 +519,35 @@ exports = module.exports = (cfg) ->
           next data
       )(req, res, next)
 
+    # Package Files
+    unless prod
+      router.route 'GET', '/pkg/:id/:version/files.json', (req, res, next) ->
+        contentType 'application/json'
+        root = path.join pkgDir(req.params.id, req.params.version)
+
+        files = []
+        finder = findit root
+        finder.on 'file', (file, stat) ->
+          files.push {
+            ext: path.extname(file).replace /^\./, ''
+            path: file.replace "#{root}/", ''
+          }
+        finder.on 'end', ->
+          res.send files
+
     # Package Single File Reload
     unless prod
-      router.route 'GET', '/pkg/:id/:version/partial.:ext', (req, res, next) ->
+      partial = (req, res, next) ->
         return error 400, 'file required' unless req.query.file
 
         # grab parameters
         id = req.params.id
         version = req.params.version
         file = req.query.file
+        ext = req.params.ext
         filepath = path.join "#{pkgDir id, version}", file
-        ext = path.extname filepath
-        name = path.basename file, ext
+        target_ext = path.extname filepath
+        name = path.basename file, target_ext
 
         # make sure file exists
         fs.exists filepath, (exists) ->
@@ -538,17 +556,31 @@ exports = module.exports = (cfg) ->
           switch ext
 
             # schema files
-            when '.cson'
+            when 'json'
               readCSON filepath, (err, data) ->
                 return error 400, err if err
                 contentType 'text/javascript'
                 pkg = "lt3.pkg[\"#{id}\"][\"#{version}\"]"
                 res.send "#{pkg}.schema[\"#{name}\"] = #{JSON.stringify(data)}"
 
+            # source coffee-script
+            when 'coffee'
+              asset = new wrap.Asset {
+                src: filepath
+              }, (err) ->
+                return error 400, err if err
+                contentType 'text/coffeescript'
+                res.send asset.data
+
             # presenters and templates
-            when '.coffee'
+            when 'js', 'js.map'
               asset = new wrap.Coffee {
                 src: filepath
+                source_map: true
+                source_files: [
+                  req.url.replace /(.js.map|.js)/, '.coffee'
+                ]
+                generated_file: req.url.replace '.js.map', '.js'
                 preprocess: (source) ->
                   pkg = "lt3.pkg['#{id}']['#{version}']"
                   p = "#{pkg}.Presenters['#{name}'] extends lt3.presenters"
@@ -567,11 +599,16 @@ exports = module.exports = (cfg) ->
               }, (err) ->
                 return error 400, err if err
                 contentType 'text/javascript'
-                res.send asset.data
+                if ext is 'js'
+                  source_map_url = req.url.replace '.js', '.js.map'
+                  res.set 'X-SourceMap', source_map_url
+                  res.send asset.data
+                else if ext is 'js.map'
+                  res.send asset.v3_source_map
 
 
             # style files
-            when '.styl'
+            when 'css'
 
               # check for style/variables.styl
               variables_code = ''
@@ -606,6 +643,9 @@ exports = module.exports = (cfg) ->
                     for sub in subs
                       source = source.replace new RegExp(sub[0], 'g'), sub[1]
 
+                    # ex: html.exports -> html.artist-hq.v3-0-0
+                    source = source.replace /.exports/g, ".#{id}.v#{version}"
+
                     # add variables code
                     return variables_code + source
                 }, (err) ->
@@ -614,6 +654,10 @@ exports = module.exports = (cfg) ->
                   res.send asset.data
             else
               error 400, "invalid file type"
+      router.route 'GET', '/pkg/:id/:version/partial.:ext', partial
+      router.route 'GET', '/pkg/:id/:version/partial.js.map', (req, res, next) ->
+        req.params.ext = 'js.map'
+        partial req, res, next
 
     # Package Javascript
     router.route 'GET', '/pkg/:id/:version/main.js', (req, res, next) ->
