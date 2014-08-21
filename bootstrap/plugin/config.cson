@@ -1,0 +1,7 @@
+{
+  description: 'World Greetings'
+  id: 'bootstrap-plugin'
+  name: 'jQuery Hello World'
+  type: 'plugin'
+  version: '1.0.0'
+}
