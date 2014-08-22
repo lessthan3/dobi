@@ -1,4 +1,5 @@
 {
+  core: '2.0.0'
   description: 'World Greetings'
   id: 'bootstrap-plugin'
   name: 'jQuery Hello World'
