@@ -1,3 +1,8 @@
+**v1.6.9** (2014-08-21)
+
+ - file update fix for windows because of path separator
+ - preprocess partial coffee files
+
 **v1.6.8** (2014-08-17)
 
  - added source maps for coffee -> js partials

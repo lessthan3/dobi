@@ -410,8 +410,8 @@ exports = module.exports = (cfg) ->
     }
     watcher.on 'change', (filepath) ->
       filepath = filepath.replace pkg_dir, ''
-      re = /^[\/\\]([^\/\\]*)[\/\\]([^\/\\]*)[\/\\](.*)$/
-      [filepath, id, version, file] = filepath.match(re) or []
+      [_, id, version, file...] = filepath.split path.sep
+      file = file.join path.sep
       console.log "#{id} v#{version} updated"
       if user
         readConfig id, version, (err, config) ->
@@ -530,7 +530,7 @@ exports = module.exports = (cfg) ->
         finder.on 'file', (file, stat) ->
           files.push {
             ext: path.extname(file).replace /^\./, ''
-            path: file.replace "#{root}/", ''
+            path: file.replace "#{root}#{path.sep}", ''
           }
         finder.on 'end', ->
           res.send files
@@ -567,6 +567,21 @@ exports = module.exports = (cfg) ->
             when 'coffee'
               asset = new wrap.Asset {
                 src: filepath
+                preprocess: (source) ->
+                  pkg = "lt3.pkg['#{id}']['#{version}']"
+                  p = "#{pkg}.Presenters['#{name}'] extends lt3.presenters"
+                  t = "#{pkg}.Templates['#{name}']"
+                  subs = [
+                    ['exports.Collection',  "#{p}.Collection"]
+                    ['exports.Object',      "#{p}.Object"]
+                    ['exports.Page',        "#{p}.Page"]
+                    ['exports.Presenter',   "#{p}.Presenter"]
+                    ['exports.Region',      "#{p}.Region"]
+                    ['exports.Template',    "#{t}"]
+                  ]
+                  for sub in subs
+                    source = source.replace sub[0], sub[1]
+                  return source
               }, (err) ->
                 return error 400, err if err
                 contentType 'text/coffeescript'
