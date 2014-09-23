@@ -4,10 +4,13 @@ Firebase = require 'firebase'
 async = require 'async'
 coffeelint = require 'coffeelint'
 colors = require 'colors'
+columnify = require 'columnify'
+clipboard = require('copy-paste').noConflict()
 crypto = require 'crypto'
 extend =  require 'node.extend'
 findit = require 'findit'
 fs = require 'fs'
+htmlparser = require 'htmlparser2'
 mkdirp = require 'mkdirp'
 mongofb = require 'mongofb'
 ncp = require('ncp').ncp
@@ -16,6 +19,8 @@ optimist = require 'optimist'
 path = require 'path'
 readline = require 'readline'
 request = require 'request'
+xml2js = require 'xml2js'
+
 
 # usage
 USAGE = """
@@ -24,6 +29,7 @@ Usage: dobi <command> [command-specific-options]
 where <command> [command-specific-options] is one of:
   backup <site-slug>                backup a site
   cache:bust <site-slug>            clear the cache for a site
+  cache:warm <www.domain.com>       warm a cache for a domain
   clone <src-slug> <dst-slug>       clone a site
   create <my-package> <type=app>    create a new package
   deploy <my-app>                   deploy an app
@@ -55,6 +61,9 @@ rl = readline.createInterface {
   input: process.stdin
   output: process.stdout
 }
+XMLparser = new xml2js.Parser {explicitArray: false}
+
+
 
 connect = (next) ->
   login ({token, user}) ->
@@ -231,6 +240,173 @@ switch command
           catch err
             log 'failed to parse response'
           exit()
+
+  # clear the cache for a site
+  when 'cache:warm'
+    domain = args[0]
+    errors = []
+    script_urls = []
+    X_CACHE = {}
+    scripts_loaded = 0
+    sites_parsed = 0
+
+    # check arguments
+    exit "must specify domain" unless domain
+
+    # add http and sitemap
+    domain = "http://#{domain}"
+
+    # get site
+    log 'loading sitemap'
+
+    # get fn
+    get = (url, next) -> request {method: 'GET', url}, next
+
+    cacheCount = (x_cache, type) ->
+      X_CACHE[type] ?= {}
+      X_CACHE[type].hit ?= 0
+      X_CACHE[type].miss ?= 0
+      switch x_cache
+        when 'HIT'
+          X_CACHE[type].hit++
+        when 'MISS'
+          X_CACHE[type].miss++
+
+    # queue
+    site_queue = async.queue ((task, next) ->), 10
+
+    loadSitemap = (next) ->
+      get "#{domain}/sitemap.xml", (err, resp, body) ->
+        return next err if err
+        if resp.statusCode < 200 or resp.statusCode > 302
+          return next "bad #{body}"
+        next null, body
+
+    parseXML = (body, next) ->
+      XMLparser.parseString body, (err, result) ->
+        return next err if err
+        sites = (loc for {loc} in result.urlset.url)
+        log "#{sites.length} site locations retrieved"
+        next null, sites
+
+    loadSites = (sites, done) ->
+      scripts = []
+
+      # queue
+      site_queue = async.queue (({site}, next) ->
+        get site, (err, resp, body) ->
+          if resp.statusCode < 200 or resp.statusCode > 302 or err
+            if body is 'Unauthorized'
+              log "UNAUTHORIZED: #{site}".yellow
+            else
+              log "ERROR: #{body}. skipping #{site}.".red
+            return next()
+
+          log "HTML RETRIEVED: #{site}"
+          {headers} = resp
+          x_cache = headers['x-cache']
+          cacheCount x_cache, 'HTML'
+
+          sites_parsed++
+          parser = new htmlparser.Parser {
+            onopentag: (name, attribs) ->
+              switch attribs.type
+                when 'text/css'
+                  url = attribs.href
+                  if url and url not in script_urls
+                    script = {type: 'CSS', url, site}
+                    script_urls.push url
+                    scripts.push script
+                when 'text/javascript'
+                  url = attribs.src
+                  if url and url not in script_urls
+                    script = {type: 'JS', url, site}
+                    script_urls.push url
+                    scripts.push script
+            onend: ->
+              next()
+          }
+          parser.write body
+          parser.end()
+      ), 10
+
+      (site_queue.push {site}) for site in sites
+      site_queue.drain = -> done null, scripts
+
+    loadScripts = (scripts, done) ->
+      DOMAINtest = /^\/[^\/]/gi
+      HTTPtest = /^https*/gi
+
+      script_queue = async.queue (({script}, next) ->
+        {url, type, site} = script
+        if url.match DOMAINtest
+          url = "#{domain}#{url}"
+        else if not url.match HTTPtest
+          url = "http:#{url}"
+        get url, (err, resp, body) ->
+          if err or resp?.statusCode < 200 or resp?.statusCode > 302
+            errors.push {
+              error: err
+              body: body
+              site: site
+              url: url
+              response: resp?.statusCode
+            }
+            return next()
+
+          {headers} = resp
+          x_cache = headers['x-cache']
+          cacheCount x_cache, type
+
+          scripts_loaded++
+          next()
+      ), 10
+
+      (script_queue.push {script}) for script in scripts
+      script_queue.drain = -> done()
+
+    async.waterfall [
+      (next) -> loadSitemap next
+      (body, next) -> parseXML body, next
+      (sites, next) -> loadSites sites, next
+      (scripts, next) -> loadScripts scripts, next
+    ], (err) ->
+      {HTML, CSS, JS} = X_CACHE
+      exit err if err
+      c = console
+
+      cache_data = []
+      for type, {hit, miss} of X_CACHE
+        cache_data.push {type, hit, miss}
+
+      cache_table = columnify cache_data, {
+        columns: ['type', 'hit', 'miss']
+        columnSplitter: ' | '
+      }
+
+      c.log ''
+      log '= = = = = = = = = = = ='
+      log ''
+      log 'CACHE:WARM STATS'
+      log "SITES LOADED: #{sites_parsed}"
+      log "SCRIPTS LOADED: #{scripts_loaded}"
+      if errors
+        log "SCRIPT ERRORS: #{errors.length}".red
+      else
+        log 'SCRIPT ERRORS: 0'
+      c.log '\nCACHE STATS'
+      c.log "#{cache_table}\n"
+
+      if errors
+        errors_formatted = "```js\n#{JSON.stringify errors, null, 2}\n```"
+        clipboard.copy errors_formatted, ->
+          log 'Errors copied to clipboard'
+          log '= = = = = = = = = = = ='
+          exit()
+      else
+        log 'No errors!'
+        log '= = = = = = = = = = = ='
+        exit()
 
   # clone a site
   when 'clone'
