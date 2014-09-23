@@ -55,7 +55,7 @@ exports = module.exports = (cfg) ->
     schema = {}
     readConfig id, version, (err, config) ->
       return next err if err
-      
+
       # TODO (remove): backwards compatibility
       schema = config.pages if config.pages and config.core != '2.0.0'
       schema = config.settings if config.settings
@@ -64,7 +64,7 @@ exports = module.exports = (cfg) ->
         readSchemaDirectory root, 'schema', schema, (err) ->
           return next err if err
           next null, schema
-      
+
   # read all schema files from a direcotory
   readSchemaDirectory = (root, dir, schema, next) ->
 
@@ -116,7 +116,7 @@ exports = module.exports = (cfg) ->
           gatherJS ignore, id, version, callback
         ), (err, dep_assets) ->
           return next err if err
-          
+
           assets = []
           assets = assets.concat a for a in dep_assets
 
@@ -227,7 +227,7 @@ exports = module.exports = (cfg) ->
           pres = "#{pkg_id_version}.Presenters"
           tmpl = "#{pkg_id_version}.Templates"
           page = "#{pkg_id_version}.Pages" # TODO: deprecate
-          
+
           if asset.pkg_config.core is '2.0.0'
             for s in [lt3, pkg, pkg_id, pkg_id_version, pres, tmpl, page]
               header += check(s)
@@ -311,7 +311,7 @@ exports = module.exports = (cfg) ->
                     ]
                     for sub in subs
                       source = source.replace new RegExp(sub[0], 'g'), sub[1]
-      
+
                   # ex: html.exports -> html.artist-hq.v3-0-0
                   source = source.replace /.exports/g, ".#{id}.v#{version}"
 
@@ -329,7 +329,7 @@ exports = module.exports = (cfg) ->
               files ?= []
               add path.join(root, d, f) for f in files
               next()
-          
+
           checkDirectory 'style', ->
             assets = assets.concat a for a in dep_assets
 

@@ -4,6 +4,8 @@ Firebase = require 'firebase'
 async = require 'async'
 coffeelint = require 'coffeelint'
 colors = require 'colors'
+columnify = require 'columnify'
+clipboard = require('copy-paste').noConflict()
 crypto = require 'crypto'
 extend =  require 'node.extend'
 findit = require 'findit'
@@ -243,6 +245,8 @@ switch command
   when 'cache:warm'
     domain = args[0]
     errors = []
+    script_urls = []
+    X_CACHE = {}
     scripts_loaded = 0
     sites_parsed = 0
 
@@ -250,7 +254,7 @@ switch command
     exit "must specify domain" unless domain
 
     # add http and sitemap
-    domain = "http://#{domain}/sitemap.xml"
+    domain = "http://#{domain}"
 
     # get site
     log 'loading sitemap'
@@ -258,11 +262,21 @@ switch command
     # get fn
     get = (url, next) -> request {method: 'GET', url}, next
 
+    cacheCount = (x_cache, type) ->
+      X_CACHE[type] ?= {}
+      X_CACHE[type].hit ?= 0
+      X_CACHE[type].miss ?= 0
+      switch x_cache
+        when 'HIT'
+          X_CACHE[type].hit++
+        when 'MISS'
+          X_CACHE[type].miss++
+
     # queue
     site_queue = async.queue ((task, next) ->), 10
 
     loadSitemap = (next) ->
-      get domain, (err, resp, body) ->
+      get "#{domain}/sitemap.xml", (err, resp, body) ->
         return next err if err
         if resp.statusCode < 200 or resp.statusCode > 302
           return next "bad #{body}"
@@ -285,18 +299,30 @@ switch command
             if body is 'Unauthorized'
               log "UNAUTHORIZED: #{site}".yellow
             else
-              log "ERROR: bad #{body}. skipping #{site}.".red
+              log "ERROR: #{body}. skipping #{site}.".red
             return next()
 
-          log "HTML RETRIVED: #{site}"
+          log "HTML RETRIEVED: #{site}"
+          {headers} = resp
+          x_cache = headers['x-cache']
+          cacheCount x_cache, 'HTML'
+
           sites_parsed++
           parser = new htmlparser.Parser {
             onopentag: (name, attribs) ->
               switch attribs.type
-                when 'text/javascript', 'text/css'
-                  {src, href} = attribs
-                  script = src or href
-                  scripts.push script if script and script not in scripts
+                when 'text/css'
+                  url = attribs.href
+                  if url and url not in script_urls
+                    script = {type: 'CSS', url, site}
+                    script_urls.push url
+                    scripts.push script
+                when 'text/javascript'
+                  url = attribs.src
+                  if url and url not in script_urls
+                    script = {type: 'JS', url, site}
+                    script_urls.push url
+                    scripts.push script
             onend: ->
               next()
           }
@@ -308,24 +334,30 @@ switch command
       site_queue.drain = -> done null, scripts
 
     loadScripts = (scripts, done) ->
-      LT3test = /^\/pkg\//gi
+      DOMAINtest = /^\/[^\/]/gi
       HTTPtest = /^https*/gi
 
       script_queue = async.queue (({script}, next) ->
-        if script.match LT3test
-          url = "http://www.lessthan3.com#{script}"
-        else if script.match HTTPtest
-          url = script
-        else url = "http:#{script}"
+        {url, type, site} = script
+        if url.match DOMAINtest
+          url = "#{domain}#{url}"
+        else if not url.match HTTPtest
+          url = "http:#{url}"
         get url, (err, resp, body) ->
           if err or resp?.statusCode < 200 or resp?.statusCode > 302
             errors.push {
               error: err
               body: body
+              site: site
               url: url
               response: resp?.statusCode
             }
             return next()
+
+          {headers} = resp
+          x_cache = headers['x-cache']
+          cacheCount x_cache, type
+
           scripts_loaded++
           next()
       ), 10
@@ -339,17 +371,38 @@ switch command
       (sites, next) -> loadSites sites, next
       (scripts, next) -> loadScripts scripts, next
     ], (err) ->
+      {HTML, CSS, JS} = X_CACHE
       exit err if err
-      log '\n'
-      log '= = = = = = = = = = = =\n'
+      c = console
+
+      cache_data = []
+      for type, {hit, miss} of X_CACHE
+        cache_data.push {type, hit, miss}
+
+      cache_table = columnify cache_data, {
+        columns: ['type', 'hit', 'miss']
+        columnSplitter: ' | '
+      }
+
+      c.log ''
+      log '= = = = = = = = = = = ='
+      log ''
       log 'CACHE:WARM STATS'
       log "SITES LOADED: #{sites_parsed}"
       log "SCRIPTS LOADED: #{scripts_loaded}"
-      log "SCRIPT ERRORS: #{errors.length}\n"
+      log "SCRIPT ERRORS: #{errors.length}"
+      c.log '\nCACHE STATS'
+      c.log "#{cache_table}\n"
       log '= = = = = = = = = = = =\n'
+
       if errors
-        c = console; c.log errors
-      exit()
+        errors_formatted = "```js\n#{JSON.stringify errors, null, 2}\n```"
+        clipboard.copy errors_formatted, ->
+          log 'Errors copied to clipboard'
+          exit()
+      else
+        log 'No errors!'
+        exit()
 
   # clone a site
   when 'clone'
