@@ -258,6 +258,9 @@ switch command
     # get fn
     get = (url, next) -> request {method: 'GET', url}, next
 
+    # queue
+    site_queue = async.queue ((task, next) ->), 10
+
     loadSitemap = (next) ->
       get domain, (err, resp, body) ->
         return next err if err
@@ -274,7 +277,9 @@ switch command
 
     loadSites = (sites, done) ->
       scripts = []
-      async.eachSeries sites, ((site, next) ->
+
+      # queue
+      site_queue = async.queue (({site}, next) ->
         get site, (err, resp, body) ->
           if resp.statusCode < 200 or resp.statusCode > 302 or err
             if body is 'Unauthorized'
@@ -297,45 +302,52 @@ switch command
           }
           parser.write body
           parser.end()
-      ), (err) ->
-        return exit err if err
-        done null, scripts
+      ), 10
+
+      (site_queue.push {site}) for site in sites
+      site_queue.drain = -> done null, scripts
 
     loadScripts = (scripts, done) ->
       LT3test = /^\/pkg\//gi
       HTTPtest = /^https*/gi
-      async.each scripts, ((script, next) ->
+
+      script_queue = async.queue (({script}, next) ->
         if script.match LT3test
           url = "http://www.lessthan3.com#{script}"
         else if script.match HTTPtest
           url = script
-        else
-          url = "http:#{script}"
+        else url = "http:#{script}"
         get url, (err, resp, body) ->
           if err or resp?.statusCode < 200 or resp?.statusCode > 302
             errors.push {
               error: err
               body: body
               url: url
-              response: resp.statusCode
+              response: resp?.statusCode
             }
             return next()
-          scripts_loaded.push url
+          scripts_loaded++
           next()
-      ), done
+      ), 10
+
+      (script_queue.push {script}) for script in scripts
+      script_queue.drain = -> done()
 
     async.waterfall [
       (next) -> loadSitemap next
       (body, next) -> parseXML body, next
       (sites, next) -> loadSites sites, next
       (scripts, next) -> loadScripts scripts, next
-    ], (err, {errors, retrieved}) ->
+    ], (err) ->
       exit err if err
+      log '\n'
+      log '= = = = = = = = = = = =\n'
       log 'CACHE:WARM STATS'
-      log "sites retrived: #{sites_parsed}"
-      log "scripts loaded: #{scripts_loaded}"
-      log "errors: #{errors.length}"
-      log errors
+      log "SITES LOADED: #{sites_parsed}"
+      log "SCRIPTS LOADED: #{scripts_loaded}"
+      log "SCRIPT ERRORS: #{errors.length}\n"
+      log '= = = = = = = = = = = =\n'
+      c = console; c.log errors
       exit()
 
   # clone a site
