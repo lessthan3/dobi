@@ -8,6 +8,7 @@ crypto = require 'crypto'
 extend =  require 'node.extend'
 findit = require 'findit'
 fs = require 'fs'
+htmlparser = require 'htmlparser2'
 mkdirp = require 'mkdirp'
 mongofb = require 'mongofb'
 ncp = require('ncp').ncp
@@ -16,6 +17,8 @@ optimist = require 'optimist'
 path = require 'path'
 readline = require 'readline'
 request = require 'request'
+xml2js = require 'xml2js'
+
 
 # usage
 USAGE = """
@@ -24,7 +27,7 @@ Usage: dobi <command> [command-specific-options]
 where <command> [command-specific-options] is one of:
   backup <site-slug>                backup a site
   cache:bust <site-slug>            clear the cache for a site
-  cache:warm <domain>               warm a cache for a domain
+  cache:warm <www.domain.com>       warm a cache for a domain
   clone <src-slug> <dst-slug>       clone a site
   create <my-package> <type=app>    create a new package
   deploy <my-app>                   deploy an app
@@ -56,6 +59,9 @@ rl = readline.createInterface {
   input: process.stdin
   output: process.stdout
 }
+
+XMLparser = new xml2js.Parser {explicitArray: false}
+
 
 connect = (next) ->
   login ({token, user}) ->
@@ -232,6 +238,105 @@ switch command
           catch err
             log 'failed to parse response'
           exit()
+
+  # clear the cache for a site
+  when 'cache:warm'
+    domain = args[0]
+    errors = []
+    scripts_loaded = 0
+    sites_parsed = 0
+
+    # check arguments
+    exit "must specify domain" unless domain
+
+    # add http and sitemap
+    domain = "http://#{domain}/sitemap.xml"
+
+    # get site
+    log 'loading sitemap'
+
+    # get fn
+    get = (url, next) -> request {method: 'GET', url}, next
+
+    loadSitemap = (next) ->
+      get domain, (err, resp, body) ->
+        return next err if err
+        if resp.statusCode < 200 or resp.statusCode > 302
+          return next "bad #{body}"
+        next null, body
+
+    parseXML = (body, next) ->
+      XMLparser.parseString body, (err, result) ->
+        return next err if err
+        sites = (loc for {loc} in result.urlset.url)
+        log "#{sites.length} site locations retrieved"
+        next null, sites
+
+    loadSites = (sites, done) ->
+      scripts = []
+      async.eachSeries sites, ((site, next) ->
+        get site, (err, resp, body) ->
+          if resp.statusCode < 200 or resp.statusCode > 302 or err
+            if body is 'Unauthorized'
+              log "UNAUTHORIZED: #{site}".yellow
+            else
+              log "ERROR: bad #{body}. skipping #{site}.".red
+            return next()
+
+          log "HTML RETRIVED: #{site}"
+          sites_parsed++
+          parser = new htmlparser.Parser {
+            onopentag: (name, attribs) ->
+              switch attribs.type
+                when 'text/javascript', 'text/css'
+                  {src, href} = attribs
+                  script = src or href
+                  scripts.push script if script and script not in scripts
+            onend: ->
+              next()
+          }
+          parser.write body
+          parser.end()
+      ), (err) ->
+        return exit err if err
+        done null, scripts
+
+    loadScripts = (scripts, done) ->
+      LT3test = /^\/pkg\//gi
+      HTTPtest = /^https*/gi
+      async.each scripts, ((script, next) ->
+        if script.match LT3test
+          url = "http://www.lessthan3.com#{script}"
+        else if script.match HTTPtest
+          url = script
+        else
+          url = "http:#{script}"
+        get url, (err, resp, body) ->
+          if err or resp?.statusCode < 200 or resp?.statusCode > 302
+            errors.push {
+              error: err
+              body: body
+              url: url
+              response: resp.statusCode
+            }
+            return next()
+          scripts_loaded.push url
+          next()
+      ), done
+
+    async.waterfall [
+      (next) -> loadSitemap next
+      (body, next) -> parseXML body, next
+      (sites, next) -> loadSites sites, next
+      (scripts, next) -> loadScripts scripts, next
+    ], (err, {errors, retrieved}) ->
+      exit err if err
+      log 'CACHE:WARM STATS'
+      log "sites retrived: #{sites_parsed}"
+      log "scripts loaded: #{scripts_loaded}"
+      log "errors: #{errors.length}"
+      log errors
+      exit()
 
   # clone a site
   when 'clone'

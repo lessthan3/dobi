@@ -31,6 +31,7 @@
     "express":        "3.4.x",
     "findit":         "1.2.x",
     "firebase":       "1.0.x",
+    "htmlparser2":    "3.7.x",
     "mkdirp":         "0.5.x",
     "jwt-simple":     "0.2.x",
     "lru-cache":      "2.5.x",
@@ -39,7 +40,8 @@
     "node.extend":    "1.0.x",
     "open":           "0.0.x",
     "optimist":       "0.6.x",
-    "request":        "2.39.x"
+    "request":        "2.39.x",
+    "xml2js":         "0.4.x"
   },
   "description": "Dobi.io Developer Tools",
   "directories": {
