@@ -1,3 +1,7 @@
+**in process* (2014-09-22)
+
+ - allow custom cache age for js/css
+
 **v1.6.9** (2014-08-21)
 
  - file update fix for windows because of path separator
