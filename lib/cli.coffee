@@ -347,7 +347,8 @@ switch command
       log "SCRIPTS LOADED: #{scripts_loaded}"
       log "SCRIPT ERRORS: #{errors.length}\n"
       log '= = = = = = = = = = = =\n'
-      c = console; c.log errors
+      if errors
+        c = console; c.log errors
       exit()
 
   # clone a site
