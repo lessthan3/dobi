@@ -61,8 +61,8 @@ rl = readline.createInterface {
   input: process.stdin
   output: process.stdout
 }
-
 XMLparser = new xml2js.Parser {explicitArray: false}
+
 
 
 connect = (next) ->
@@ -390,18 +390,22 @@ switch command
       log 'CACHE:WARM STATS'
       log "SITES LOADED: #{sites_parsed}"
       log "SCRIPTS LOADED: #{scripts_loaded}"
-      log "SCRIPT ERRORS: #{errors.length}"
+      if errors
+        log "SCRIPT ERRORS: #{errors.length}".red
+      else
+        log 'SCRIPT ERRORS: 0'
       c.log '\nCACHE STATS'
       c.log "#{cache_table}\n"
-      log '= = = = = = = = = = = =\n'
 
       if errors
         errors_formatted = "```js\n#{JSON.stringify errors, null, 2}\n```"
         clipboard.copy errors_formatted, ->
           log 'Errors copied to clipboard'
+          log '= = = = = = = = = = = ='
           exit()
       else
         log 'No errors!'
+        log '= = = = = = = = = = = ='
         exit()
 
   # clone a site
