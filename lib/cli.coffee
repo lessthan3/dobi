@@ -24,6 +24,7 @@ Usage: dobi <command> [command-specific-options]
 where <command> [command-specific-options] is one of:
   backup <site-slug>                backup a site
   cache:bust <site-slug>            clear the cache for a site
+  cache:warm <domain>               warm a cache for a domain
   clone <src-slug> <dst-slug>       clone a site
   create <my-package> <type=app>    create a new package
   deploy <my-app>                   deploy an app
