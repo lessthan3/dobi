@@ -266,13 +266,14 @@ switch command
       PKGtest = /(\/pkg\/.+\/.+)\//gi
 
 
-      # get fn
+      # request fn
       get = (url, next) ->
         time_start = Date.now()
         request {method: 'GET', url}, (err, resp, body) ->
           resp?.headers?.time = Date.now() - time_start
           next err, resp, body
 
+      # update raw data
       cacheCount = (headers, type) ->
         x_cache = headers['x-cache']
         x_served_by = headers['x-served-by']
@@ -309,6 +310,7 @@ switch command
             return next "bad #{body}"
           next null, body
 
+      # parse sitemap.xml for sites
       parseXML = (body, next) ->
         XMLparser.parseString body, (err, result) ->
           return next err if err
@@ -317,6 +319,7 @@ switch command
           log "#{sites.length} site locations retrieved"
           next null, sites
 
+      # query DB for domains of site slugs
       getSiteDomains = (sites, done) ->
         SLUGS = for site in sites
           slug_test = new RegExp "#{DOMAIN}/(.+)", "gi"
@@ -353,7 +356,6 @@ switch command
           ), (err) ->
             done null, SITES
 
-
         async.waterfall [
           (next) -> getDomains next
           (domains, next) -> loadDomainSitemap domains, next
@@ -361,7 +363,7 @@ switch command
           sites.push site for site in new_sites
           done null, sites
 
-
+      # request each HTML URL
       loadSites = (sites, done) ->
         SCRIPTS = []
         SCRIPT_URLS = []
@@ -403,7 +405,7 @@ switch command
         ), ->
           done null, SCRIPTS
 
-
+      # create URLs for package/main.js
       getPackageScripts = (scripts, next) ->
         pkg_scripts = []
         for {url, type, site} in scripts
@@ -417,8 +419,8 @@ switch command
 
         next null, scripts
 
+      # request CSS and JS scripts
       loadScripts = (scripts, done) ->
-
         async.eachSeries scripts, ((script, next) ->
           {url, type, site} = script
           if url.match DOMAINtest
@@ -443,6 +445,7 @@ switch command
             next()
         ), done
 
+      # format errors to github markup, copy to clipboard
       compileErrors = (next) ->
         {ERRORS} = RAW_DATA
         return next() unless ERRORS.length > 0
@@ -451,8 +454,8 @@ switch command
           log "Errors copied to clipboard"
           next()
 
+      # compile raw data to pretty tables
       compileData = (next) ->
-
         data_config = {
           'cache:warm':
             data: {
@@ -528,6 +531,7 @@ switch command
 
         next null, metrics
 
+      # CACHE:WARM STARTS HERE
       async.waterfall [
         (next) -> loadSitemap DOMAIN, next
         (body, next) -> parseXML body, next
