@@ -323,10 +323,10 @@ switch command
           slug = slug_test.exec(site)?[1]
           slug if slug
 
-        db_sites = db.collection 'sites'
-
         getDomains = (done) ->
           DOMAINS = []
+          db_sites = db.collection 'sites'
+
           async.eachSeries SLUGS, ((slug, next) ->
             db_sites.findOne {'slug': slug}, (err, result) ->
               return next() if result is null
