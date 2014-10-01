@@ -740,9 +740,10 @@ exports = module.exports = (cfg) ->
         cache: (options, fn) -> cache(options, fn)(req, res, next)
         db: req.db
         error: error
-        query: req.query
         method: req.method
+        mongofb: req.mongofb
         next: next
+        query: req.query
         req: req
         res: res
         user: req.user
