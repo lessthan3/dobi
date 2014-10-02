@@ -370,7 +370,7 @@ switch command
 
         async.eachSeries sites, ((site, next) ->
           get site, (err, resp, body) ->
-            if resp.statusCode < 200 or resp.statusCode > 302 or err
+            if resp?.statusCode < 200 or resp?.statusCode > 302 or err
               switch body
                 when 'Unauthorized'
                   log "UNAUTHORIZED: #{site}".yellow
