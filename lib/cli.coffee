@@ -243,6 +243,10 @@ switch command
 
   # clear the cache for a site
   when 'cache:warm'
+    TIME_START = Date.now()
+    LAST_SCRIPT_LOADED = 0
+    SCRIPT_LOAD_TIME = 0
+    SECONDS_ELAPSED = 0
     DOMAIN = args[0]
     debug_mode = true if args[1] is 'debug'
     log 'DEBUG MODE' if debug_mode
@@ -478,6 +482,7 @@ switch command
             cacheCount resp.headers, type
 
             RAW_DATA.SCRIPTS_LOADED++
+            LAST_SCRIPT_LOADED = Date.now()
             next()
 
         if debug_mode
@@ -496,6 +501,8 @@ switch command
 
       # compile raw data to pretty tables
       compileData = (next) ->
+        SECONDS_ELAPSED = Math.floor (Date.now() - TIME_START) / 1000
+        SCRIPT_LOAD_TIME = Math.floor (LAST_SCRIPT_LOADED - TIME_START) / 1000
         data_config = {
           'cache:warm':
             data: {
@@ -588,6 +595,8 @@ switch command
         output = ['CACHE:WARM COMPLETE', border, '']
         for {title, table} in metrics
           output = output.concat([title, table, ''])
+        output.push "SCRIPTS LOAD TIME: #{SCRIPT_LOAD_TIME} seconds"
+        output.push "TOTAL RUN TIME: #{SECONDS_ELAPSED} seconds"
         log output.join '\n'
         process.exit()
 
