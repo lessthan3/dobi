@@ -247,6 +247,7 @@ switch command
     debug_mode = true if args[1] is 'debug'
     log 'DEBUG MODE' if debug_mode
     exit "must specify domain" unless DOMAIN
+    PROCESSED_PACKAGE_SCRIPTS = []
 
     # connect to DB
     connect (user, db) ->
@@ -336,26 +337,28 @@ switch command
           slug = slug_test.exec(site)?[1]
           slug if slug
 
-        getDomains = (done) ->
+        getDomains = (next) ->
           DOMAINS = []
           db_sites = db.collection 'sites'
 
-          async.eachSeries SLUGS, ((slug, next) ->
-            db_sites.findOne {'slug': slug}, (err, result) ->
-              return next() if result is null
+          db_sites.find {'slug': {$in: SLUGS}}, {
+            limit: 100000
+          }, (err, results) ->
+            return next err if err
+            for result in results
+              continue if result is null
               url = result.val().settings?.domain?.url
-              return next() unless url
+              continue unless url
               url = "http://#{url}" unless url.match HTTPtest
               if url not in sites and not url.match LT3test
                 DOMAINS.push url
                 log "ADDING: #{url}"
-              next()
-          ), (err) ->
-            done null, DOMAINS
+            next null, DOMAINS
 
         loadDomainSitemap = (domains, done) ->
           SITES = []
-          async.eachSeries domains, ((domain, next) ->
+
+          domain_iterator = (domain, next) ->
             async.waterfall [
               (_next) -> loadSitemap domain, _next
               (body, _next) -> parseXML body, _next
@@ -363,8 +366,11 @@ switch command
               return next() unless results
               SITES.push result for result in results
               next()
-          ), (err) ->
-            done null, SITES
+
+          if debug_mode
+            async.eachSeries domains, domain_iterator, -> done null, SITES
+          else
+            async.each domains, domain_iterator, -> done null, SITES
 
         async.waterfall [
           (next) -> getDomains next
@@ -378,7 +384,7 @@ switch command
         SCRIPTS = []
         SCRIPT_URLS = []
 
-        async.eachSeries sites, ((site, next) ->
+        site_iterator = (site, next) =>
           get site, (err, resp, body) ->
             if resp.statusCode < 200 or resp.statusCode > 302 or err
               switch body
@@ -400,38 +406,53 @@ switch command
                     if url and url not in SCRIPT_URLS
                       script = {type: 'CSS', url, site}
                       SCRIPT_URLS.push url
-                      SCRIPTS.push script
+                      if debug_mode
+                        SCRIPTS.push script
+                      else
+                        getPackageScripts [script], (err, scripts) ->
+                          loadScripts scripts
                   when 'text/javascript'
                     url = attribs.src
                     if url and url not in SCRIPT_URLS
                       script = {type: 'JS', url, site}
                       SCRIPT_URLS.push url
-                      SCRIPTS.push script
+                      if debug_mode
+                        SCRIPTS.push script
+                      else
+                        getPackageScripts [script], (err, scripts) ->
+                          loadScripts scripts
               onend: ->
                 next()
             }
             parser.write body
             parser.end()
-        ), ->
-          done null, SCRIPTS
+
+        if debug_mode
+          async.eachSeries sites, site_iterator, -> done null, SCRIPTS
+        else
+          async.each sites, site_iterator, -> done null, []
+
 
       # create URLs for package/main.js
       getPackageScripts = (scripts, next) ->
-        pkg_scripts = []
-        for {url, type, site} in scripts
+        return next() unless scripts
+        for script in scripts
+          {url, type, site} = script
           continue unless type is 'CSS'
           pkg = PKGtest.exec(url)?[1]
           continue unless pkg
           pkg_JS = "#{pkg}/main.js"
-          if pkg_JS not in pkg_scripts
+          if pkg_JS not in PROCESSED_PACKAGE_SCRIPTS
             scripts.push {site, type: 'JS', url: pkg_JS}
-            pkg_scripts.push pkg_JS
+            PROCESSED_PACKAGE_SCRIPTS.push pkg_JS
 
         next null, scripts
 
       # request CSS and JS scripts
-      loadScripts = (scripts, done) ->
-        async.eachSeries scripts, ((script, next) ->
+      loadScripts = (scripts = [], done) ->
+        return done() unless scripts
+        script_iterator = (script, next) ->
+          return next() unless script
           {url, type, site} = script
           if url.match DOMAINtest
             url = "#{DOMAIN}#{url}"
@@ -448,12 +469,16 @@ switch command
               }
               return next()
 
-            log "#{type} RETRIEVED: #{site}"
+            log "#{type} RETRIEVED: #{site}".green
             cacheCount resp.headers, type
 
             RAW_DATA.SCRIPTS_LOADED++
             next()
-        ), done
+
+        if debug_mode
+          async.eachSeries scripts, script_iterator, done
+        else
+          async.each scripts, script_iterator, done
 
       # format errors to github markup, copy to clipboard
       compileErrors = (next) ->
