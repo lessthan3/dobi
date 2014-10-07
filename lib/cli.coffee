@@ -29,7 +29,7 @@ Usage: dobi <command> [command-specific-options]
 where <command> [command-specific-options] is one of:
   backup <site-slug>                backup a site
   cache:bust <site-slug>            clear the cache for a site
-  cache:warm <www.domain.com>       warm a cache for a domain
+  cache:warm <www.domain.com>       warm a cache for a domain. takes 'debug'
   clone <src-slug> <dst-slug>       clone a site
   create <my-package> <type=app>    create a new package
   deploy <my-app>                   deploy an app
@@ -244,6 +244,8 @@ switch command
   # clear the cache for a site
   when 'cache:warm'
     DOMAIN = args[0]
+    debug_mode = true if args[1] is 'debug'
+    log 'DEBUG MODE' if debug_mode
     exit "must specify domain" unless DOMAIN
 
     # connect to DB
@@ -268,16 +270,18 @@ switch command
 
       # request fn
       get = (url, next) ->
-        time_start = Date.now()
-        request {method: 'GET', url}, (err, resp, body) ->
-          resp?.headers?.time = Date.now() - time_start
-          next err, resp, body
+        if debug_mode
+          time_start = Date.now() if debug_mode
+          request {method: 'GET', url}, (err, resp, body) ->
+            resp?.headers?.time = Date.now() - time_start
+            next err, resp, body
+        else
+          request {method: 'GET', url}, next
 
       # update raw data
       cacheCount = (headers, type) ->
         x_cache = headers['x-cache']
         x_served_by = headers['x-served-by']
-        request_time = headers['time']
 
         RAW_DATA.CACHE[type] ?= {}
         RAW_DATA.CACHE[type].hit ?= 0
@@ -287,18 +291,24 @@ switch command
         RAW_DATA.SERVERS[x_served_by].hit ?= 0
         RAW_DATA.SERVERS[x_served_by].miss ?= 0
 
+        switch x_cache
+          when 'HIT'
+            RAW_DATA.CACHE[type].hit++
+            RAW_DATA.SERVERS[x_served_by].hit++
+          when 'MISS'
+            RAW_DATA.CACHE[type].miss++
+            RAW_DATA.SERVERS[x_served_by].miss++
+
+        return unless debug_mode
+        request_time = headers['time']
         RAW_DATA.TIME[type] ?= {}
         RAW_DATA.TIME[type].hit ?= []
         RAW_DATA.TIME[type].miss ?= []
 
         switch x_cache
           when 'HIT'
-            RAW_DATA.CACHE[type].hit++
-            RAW_DATA.SERVERS[x_served_by].hit++
             RAW_DATA.TIME[type].hit.push request_time
           when 'MISS'
-            RAW_DATA.CACHE[type].miss++
-            RAW_DATA.SERVERS[x_served_by].miss++
             RAW_DATA.TIME[type].miss.push request_time
 
       # get sitemap
@@ -498,8 +508,10 @@ switch command
                 return -1 if a.server < b.server
                 return 0
               return result
+        }
 
-          time: {
+        if debug_mode
+          data_config.time = {
             data: RAW_DATA.TIME
             format:
               columns: ['type', 'hit', 'miss']
@@ -519,7 +531,6 @@ switch command
                 result.push metrics
               return result
           }
-        }
 
         metrics = []
         for metric, methods of data_config
