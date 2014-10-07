@@ -317,6 +317,8 @@ switch command
         log 'loading sitemap'
         get "#{domain}/sitemap.xml", (err, resp, body) ->
           return next err if err
+          unless resp
+            return next "no resp from domain"
           if resp.statusCode < 200 or resp.statusCode > 302
             return next "bad #{body}"
           next null, body
@@ -386,6 +388,9 @@ switch command
 
         site_iterator = (site, next) =>
           get site, (err, resp, body) ->
+            unless resp
+              log "NO RESPONSE FROM #{site}".red
+              return next()
             if resp.statusCode < 200 or resp.statusCode > 302 or err
               switch body
                 when 'Unauthorized'
