@@ -29,7 +29,7 @@ Usage: dobi <command> [command-specific-options]
 where <command> [command-specific-options] is one of:
   backup <site-slug>                backup a site
   cache:bust <site-slug>            clear the cache for a site
-  cache:warm <www.domain.com>       warm a cache for a domain
+  cache:warm <www.domain.com>       warm a cache for a domain. takes 'debug'
   clone <src-slug> <dst-slug>       clone a site
   create <my-package> <type=app>    create a new package
   deploy <my-app>                   deploy an app
@@ -243,8 +243,15 @@ switch command
 
   # clear the cache for a site
   when 'cache:warm'
+    TIME_START = Date.now()
+    LAST_SCRIPT_LOADED = 0
+    SCRIPT_LOAD_TIME = 0
+    SECONDS_ELAPSED = 0
     DOMAIN = args[0]
+    debug_mode = true if args[1] is 'debug'
+    log 'DEBUG MODE' if debug_mode
     exit "must specify domain" unless DOMAIN
+    PROCESSED_PACKAGE_SCRIPTS = []
 
     # connect to DB
     connect (user, db) ->
@@ -268,16 +275,18 @@ switch command
 
       # request fn
       get = (url, next) ->
-        time_start = Date.now()
-        request {method: 'GET', url}, (err, resp, body) ->
-          resp?.headers?.time = Date.now() - time_start
-          next err, resp, body
+        if debug_mode
+          time_start = Date.now() if debug_mode
+          request {method: 'GET', url}, (err, resp, body) ->
+            resp?.headers?.time = Date.now() - time_start
+            next err, resp, body
+        else
+          request {method: 'GET', url}, next
 
       # update raw data
       cacheCount = (headers, type) ->
         x_cache = headers['x-cache']
         x_served_by = headers['x-served-by']
-        request_time = headers['time']
 
         RAW_DATA.CACHE[type] ?= {}
         RAW_DATA.CACHE[type].hit ?= 0
@@ -287,18 +296,24 @@ switch command
         RAW_DATA.SERVERS[x_served_by].hit ?= 0
         RAW_DATA.SERVERS[x_served_by].miss ?= 0
 
+        switch x_cache
+          when 'HIT'
+            RAW_DATA.CACHE[type].hit++
+            RAW_DATA.SERVERS[x_served_by].hit++
+          when 'MISS'
+            RAW_DATA.CACHE[type].miss++
+            RAW_DATA.SERVERS[x_served_by].miss++
+
+        return unless debug_mode
+        request_time = headers['time']
         RAW_DATA.TIME[type] ?= {}
         RAW_DATA.TIME[type].hit ?= []
         RAW_DATA.TIME[type].miss ?= []
 
         switch x_cache
           when 'HIT'
-            RAW_DATA.CACHE[type].hit++
-            RAW_DATA.SERVERS[x_served_by].hit++
             RAW_DATA.TIME[type].hit.push request_time
           when 'MISS'
-            RAW_DATA.CACHE[type].miss++
-            RAW_DATA.SERVERS[x_served_by].miss++
             RAW_DATA.TIME[type].miss.push request_time
 
       # get sitemap
@@ -306,6 +321,8 @@ switch command
         log 'loading sitemap'
         get "#{domain}/sitemap.xml", (err, resp, body) ->
           return next err if err
+          unless resp
+            return next "no resp from domain"
           if resp.statusCode < 200 or resp.statusCode > 302
             return next "bad #{body}"
           next null, body
@@ -326,26 +343,28 @@ switch command
           slug = slug_test.exec(site)?[1]
           slug if slug
 
-        getDomains = (done) ->
+        getDomains = (next) ->
           DOMAINS = []
           db_sites = db.collection 'sites'
 
-          async.eachSeries SLUGS, ((slug, next) ->
-            db_sites.findOne {'slug': slug}, (err, result) ->
-              return next() if result is null
+          db_sites.find {'slug': {$in: SLUGS}}, {
+            limit: 100000
+          }, (err, results) ->
+            return next err if err
+            for result in results
+              continue if result is null
               url = result.val().settings?.domain?.url
-              return next() unless url
+              continue unless url
               url = "http://#{url}" unless url.match HTTPtest
               if url not in sites and not url.match LT3test
                 DOMAINS.push url
                 log "ADDING: #{url}"
-              next()
-          ), (err) ->
-            done null, DOMAINS
+            next null, DOMAINS
 
         loadDomainSitemap = (domains, done) ->
           SITES = []
-          async.eachSeries domains, ((domain, next) ->
+
+          domain_iterator = (domain, next) ->
             async.waterfall [
               (_next) -> loadSitemap domain, _next
               (body, _next) -> parseXML body, _next
@@ -353,8 +372,11 @@ switch command
               return next() unless results
               SITES.push result for result in results
               next()
-          ), (err) ->
-            done null, SITES
+
+          if debug_mode
+            async.eachSeries domains, domain_iterator, -> done null, SITES
+          else
+            async.each domains, domain_iterator, -> done null, SITES
 
         async.waterfall [
           (next) -> getDomains next
@@ -368,8 +390,11 @@ switch command
         SCRIPTS = []
         SCRIPT_URLS = []
 
-        async.eachSeries sites, ((site, next) ->
+        site_iterator = (site, next) =>
           get site, (err, resp, body) ->
+            unless resp
+              log "NO RESPONSE FROM #{site}".red
+              return next()
             if resp.statusCode < 200 or resp.statusCode > 302 or err
               switch body
                 when 'Unauthorized'
@@ -390,38 +415,53 @@ switch command
                     if url and url not in SCRIPT_URLS
                       script = {type: 'CSS', url, site}
                       SCRIPT_URLS.push url
-                      SCRIPTS.push script
+                      if debug_mode
+                        SCRIPTS.push script
+                      else
+                        getPackageScripts [script], (err, scripts) ->
+                          loadScripts scripts
                   when 'text/javascript'
                     url = attribs.src
                     if url and url not in SCRIPT_URLS
                       script = {type: 'JS', url, site}
                       SCRIPT_URLS.push url
-                      SCRIPTS.push script
+                      if debug_mode
+                        SCRIPTS.push script
+                      else
+                        getPackageScripts [script], (err, scripts) ->
+                          loadScripts scripts
               onend: ->
                 next()
             }
             parser.write body
             parser.end()
-        ), ->
-          done null, SCRIPTS
+
+        if debug_mode
+          async.eachSeries sites, site_iterator, -> done null, SCRIPTS
+        else
+          async.each sites, site_iterator, -> done null, []
+
 
       # create URLs for package/main.js
       getPackageScripts = (scripts, next) ->
-        pkg_scripts = []
-        for {url, type, site} in scripts
+        return next() unless scripts
+        for script in scripts
+          {url, type, site} = script
           continue unless type is 'CSS'
           pkg = PKGtest.exec(url)?[1]
           continue unless pkg
           pkg_JS = "#{pkg}/main.js"
-          if pkg_JS not in pkg_scripts
+          if pkg_JS not in PROCESSED_PACKAGE_SCRIPTS
             scripts.push {site, type: 'JS', url: pkg_JS}
-            pkg_scripts.push pkg_JS
+            PROCESSED_PACKAGE_SCRIPTS.push pkg_JS
 
         next null, scripts
 
       # request CSS and JS scripts
-      loadScripts = (scripts, done) ->
-        async.eachSeries scripts, ((script, next) ->
+      loadScripts = (scripts = [], done) ->
+        return done() unless scripts
+        script_iterator = (script, next) ->
+          return next() unless script
           {url, type, site} = script
           if url.match DOMAINtest
             url = "#{DOMAIN}#{url}"
@@ -438,12 +478,17 @@ switch command
               }
               return next()
 
-            log "#{type} RETRIEVED: #{site}"
+            log "#{type} RETRIEVED: #{site}".green
             cacheCount resp.headers, type
 
             RAW_DATA.SCRIPTS_LOADED++
+            LAST_SCRIPT_LOADED = Date.now()
             next()
-        ), done
+
+        if debug_mode
+          async.eachSeries scripts, script_iterator, done
+        else
+          async.each scripts, script_iterator, done
 
       # format errors to github markup, copy to clipboard
       compileErrors = (next) ->
@@ -456,6 +501,8 @@ switch command
 
       # compile raw data to pretty tables
       compileData = (next) ->
+        SECONDS_ELAPSED = Math.floor (Date.now() - TIME_START) / 1000
+        SCRIPT_LOAD_TIME = Math.floor (LAST_SCRIPT_LOADED - TIME_START) / 1000
         data_config = {
           'cache:warm':
             data: {
@@ -498,8 +545,10 @@ switch command
                 return -1 if a.server < b.server
                 return 0
               return result
+        }
 
-          time: {
+        if debug_mode
+          data_config.time = {
             data: RAW_DATA.TIME
             format:
               columns: ['type', 'hit', 'miss']
@@ -519,7 +568,6 @@ switch command
                 result.push metrics
               return result
           }
-        }
 
         metrics = []
         for metric, methods of data_config
@@ -547,6 +595,8 @@ switch command
         output = ['CACHE:WARM COMPLETE', border, '']
         for {title, table} in metrics
           output = output.concat([title, table, ''])
+        output.push "SCRIPTS LOAD TIME: #{SCRIPT_LOAD_TIME} seconds"
+        output.push "TOTAL RUN TIME: #{SECONDS_ELAPSED} seconds"
         log output.join '\n'
         process.exit()
 
