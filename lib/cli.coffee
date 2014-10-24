@@ -643,6 +643,9 @@ switch command
             site.slug = dst_slug
             site.name = dst_slug
             site.settings.domain.url = "www.lessthan3.com/#{dst_slug}"
+            site.settings.security.password = ''
+            for k, v of site.settings.services
+              site.settings.services[k] = ''
             site.users[user.admin_uid] = 'admin'
             db.get('sites').insert site, (err, dst_site) ->
               exit err if err
