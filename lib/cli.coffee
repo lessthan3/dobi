@@ -247,6 +247,7 @@ switch command
     LAST_SCRIPT_LOADED = 0
     SCRIPT_LOAD_TIME = 0
     SECONDS_ELAPSED = 0
+    RATE_LIMIT = 15
     DOMAIN = args[0]
     debug_mode = true if args[1] is 'debug'
     log 'DEBUG MODE' if debug_mode
@@ -376,7 +377,7 @@ switch command
           if debug_mode
             async.eachSeries domains, domain_iterator, -> done null, SITES
           else
-            async.each domains, domain_iterator, -> done null, SITES
+            async.eachLimit domains, RATE_LIMIT, domain_iterator, -> done null, SITES
 
         async.waterfall [
           (next) -> getDomains next
@@ -439,7 +440,7 @@ switch command
         if debug_mode
           async.eachSeries sites, site_iterator, -> done null, SCRIPTS
         else
-          async.each sites, site_iterator, -> done null, []
+          async.eachLimit sites, RATE_LIMIT, site_iterator, -> done null, []
 
 
       # create URLs for package/main.js
@@ -488,7 +489,7 @@ switch command
         if debug_mode
           async.eachSeries scripts, script_iterator, done
         else
-          async.each scripts, script_iterator, done
+          async.eachLimit scripts, RATE_LIMIT, script_iterator, done
 
       # format errors to github markup, copy to clipboard
       compileErrors = (next) ->
