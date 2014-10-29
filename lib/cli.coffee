@@ -647,6 +647,8 @@ switch command
             for k, v of site.settings.services
               site.settings.services[k] = ''
             site.users[user.admin_uid] = 'admin'
+            site.settings.seo = {}
+            site.settings.icons = {}
             db.get('sites').insert site, (err, dst_site) ->
               exit err if err
 
@@ -654,6 +656,7 @@ switch command
               async.forEach objects, ((object, next) ->
                 data = object.val()
                 delete data._id
+                data.seo = {}
                 data.site_id = dst_site.get('_id').val()
                 db.get('objects').insert data, (err) ->
                   exit err if err
