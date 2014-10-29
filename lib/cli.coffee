@@ -647,22 +647,8 @@ switch command
             for k, v of site.settings.services
               site.settings.services[k] = ''
             site.users[user.admin_uid] = 'admin'
-            site.settings.seo = {
-              description: ''
-              hide_from_search_engines: ''
-              image: ''
-              keywords: ''
-              title: ''
-            }
-            icons = {
-              apple57x57: ''
-              apple72x72: ''
-              apple114x114: ''
-              apple144x144: ''
-              favicon: ''
-            }
-            site.settings.icons = icons
-            site.settings.seo.icons = icons
+            site.settings.seo = {}
+            site.settings.icons = {}
             db.get('sites').insert site, (err, dst_site) ->
               exit err if err
 
