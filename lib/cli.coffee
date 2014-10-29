@@ -653,14 +653,16 @@ switch command
               image: ''
               keywords: ''
               title: ''
-              icons: {
-                apple57x57: ''
-                apple72x72: ''
-                apple114x114: ''
-                apple144x144: ''
-                favicon: ''
-              }
             }
+            icons = {
+              apple57x57: ''
+              apple72x72: ''
+              apple114x114: ''
+              apple144x144: ''
+              favicon: ''
+            }
+            site.settings.icons = icons
+            site.settings.seo.icons = icons
             db.get('sites').insert site, (err, dst_site) ->
               exit err if err
 
