@@ -654,6 +654,12 @@ switch command
               async.forEach objects, ((object, next) ->
                 data = object.val()
                 delete data._id
+                data.seo = {
+                  description: ''
+                  image: ''
+                  keywords: ''
+                  title: ''
+                }
                 data.site_id = dst_site.get('_id').val()
                 db.get('objects').insert data, (err) ->
                   exit err if err
