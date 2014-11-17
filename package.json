@@ -22,7 +22,7 @@
   "dependencies": {
     "asset-wrap":     "0.9.x",
     "async":          "0.9.x",
-    "chokidar":       "0.7.1",
+    "chokidar":       "0.10.x",
     "coffeelint":     "1.4.x",
     "coffee-script":  "1.7.x",
     "colors":         "0.6.2",
