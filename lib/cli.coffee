@@ -20,7 +20,7 @@ path = require 'path'
 readline = require 'readline'
 request = require 'request'
 xml2js = require 'xml2js'
-
+utils = require './utils'
 
 # usage
 USAGE = """
@@ -29,6 +29,7 @@ Usage: dobi <command> [command-specific-options]
 where <command> [command-specific-options] is one of:
   backup <site-slug>                backup a site
   cache:bust <site-slug>            clear the cache for a site
+  cache:refresh <www.domain.com>    clear and warm cache for domain
   cache:warm <www.domain.com>       warm a cache for a domain. takes 'debug'
   clone <src-slug> <dst-slug>       clone a site
   create <my-package> <type=app>    create a new package
@@ -63,79 +64,12 @@ rl = readline.createInterface {
 }
 XMLparser = new xml2js.Parser {explicitArray: false}
 
-
-
-connect = (next) ->
-  login ({token, user}) ->
-    exit "please login first: 'dobi login'" unless user
-
-    user.admin_uid = user.uid.replace /\./g, ','
-
-    log 'connect to database'
-    db = new mongofb.client.Database {
-      server: DATABASE_URL
-      firebase: FIREBASE_URL
-    }
-    db.cache = false
-    user.token = token
-    db.auth token, (err) ->
-      exit "error authenticating" if err
-      log 'connected'
-      next user, db
-
 exit = (msg) ->
   log msg if msg
   process.exit()
 
-getWorkspacePath = (current, next) ->
-  [current, next] = [CWD, current] if not next
-  fs.exists path.join(current, 'dobi.json'), (exists) ->
-    if exists
-      next current
-    else
-      parent = path.join current, '..'
-      return next null if parent is current
-      getWorkspacePath parent, next
-
-getWorkspacePathSync = (current=CWD) ->
-  return current if fs.existsSync path.join(current, 'dobi.json')
-  parent = path.join current, '..'
-  return null if parent is current
-  getWorkspacePathSync parent
-
-
 log = (msg) ->
   console.log "[dobi] #{msg}"
-
-logout = (next) ->
-  saveUserConfig {}, ->
-    next()
-
-login = (require_logged_in, next) ->
-  [require_logged_in, next] = [false, require_logged_in] unless next
-
-  log 'authenticating user'
-  readUserConfig (config) ->
-    if config.user
-      next config
-    else if not require_logged_in
-      next {user: null}
-    else
-      log 'not logged in: must authenticate'
-      log 'opening login portal in just a few moments'
-      setTimeout ( ->
-        open 'http://www.dobi.io/auth'
-        rl.question "Enter Token: ", (token) ->
-          exit 'must specify token' unless token
-          fb = new Firebase FIREBASE_URL
-          fb.auth token, (err, data) ->
-            exit 'invalid token' if err
-            config.user = data.auth
-            config.token = token
-            config.token_expires = data.expires
-            saveUserConfig config, ->
-              next config
-      ), 3000
 
 readUserConfig = (next) ->
   fs.exists USER_CONFIG_PATH, (exists) ->
@@ -146,12 +80,6 @@ readUserConfig = (next) ->
     else
       saveUserConfig {}, ->
         next {}
-
-saveUserConfig = (data, next) ->
-  config = JSON.stringify data
-  fs.writeFile USER_CONFIG_PATH, config, 'utf8', (err) ->
-    exit 'unable to write user config' if err
-    next()
 
 # get arguments and options
 argv = optimist.argv._
@@ -169,7 +97,7 @@ switch command
     exit "must specify site slug" unless slug
 
     # connect to database
-    connect (user, db) ->
+    utils.connect (user, db) ->
 
       # get site
       log 'find the site'
@@ -211,7 +139,7 @@ switch command
     exit "must specify site site_slug" unless slug
 
     # connect to database
-    connect (user, db) ->
+    utils.connect (user, db) ->
 
       # get site
       log 'find the site'
@@ -241,6 +169,12 @@ switch command
             log 'failed to parse response'
           exit()
 
+  # clear mongo, rebuild mongo, clear fastly, warm fastly
+  when 'cache:reset'
+    utils.connect (user, token) ->
+      console.log user, token
+      process.exit()
+
   # clear the cache for a site
   when 'cache:warm'
     TIME_START = Date.now()
@@ -255,7 +189,7 @@ switch command
     PROCESSED_PACKAGE_SCRIPTS = []
 
     # connect to DB
-    connect (user, db) ->
+    utils.connect (user, db) ->
 
       DOMAIN = "http://#{DOMAIN}"
       RAW_DATA = {
@@ -611,7 +545,7 @@ switch command
     exit "must specify site dst_slug" unless dst_slug
 
     # connect to database
-    connect (user, db) ->
+    utils.connect (user, db) ->
 
       # get site
       log 'find the site'
@@ -678,12 +612,12 @@ switch command
     exit "invalid type: #{type}" if type not in ['app', 'plugin', 'library']
 
     # require login
-    login ({user}) ->
+    utils.login ({user}) ->
       exit "please login first: 'dobi login'" unless user
 
       # bootstrap the package
       source = path.join __dirname, '..', 'bootstrap', type
-      workspace = getWorkspacePathSync()
+      workspace = utils.getWorkspacePathSync()
       exit 'must be in a workspace to create a package' unless workspace
       dest = path.join workspace, 'pkg', id, version
       mkdirp dest, (err) ->
@@ -714,7 +648,7 @@ switch command
     exit "must specify package id" unless id
     exit "must specify package version" unless version
 
-    workspace = getWorkspacePathSync()
+    workspace = utils.getWorkspacePathSync()
     exit 'must be in a workspace to deploy your package' unless workspace
 
     # read config.cson
@@ -753,7 +687,7 @@ switch command
       config.md5 = crypto.createHash('md5').update(data).digest('hex')
 
       # connect to database
-      connect (user, db) ->
+      utils.connect (user, db) ->
 
         # make sure user is an admin
         config.developers ?= {}
@@ -838,7 +772,7 @@ switch command
 
   # initialize a workspace
   when 'init'
-    workspace = getWorkspacePathSync()
+    workspace = utils.getWorkspacePathSync()
     exit "already in a workspace: #{workspace}" if workspace
     fs.writeFile path.join(CWD, 'dobi.json'), JSON.stringify({
       created: Date.now()
@@ -864,7 +798,7 @@ switch command
 
     # lint each file in the package
     results = []
-    workspace = getWorkspacePathSync()
+    workspace = utils.getWorkspacePathSync()
     exit 'must be in a workspace to lint your package' unless workspace
     package_path = path.join workspace, 'pkg', id, version
     finder = findit package_path
@@ -901,14 +835,14 @@ switch command
 
   # authenticate your user
   when 'login'
-    logout ->
-      login true, ({user}) ->
+    utils.logout ->
+      utils.login true, ({user}) ->
         exit JSON.stringify user, null, 2 if user
         exit 'not logged in. try "dobi login"'
 
   # deauthenticate your user
   when 'logout'
-    logout ->
+    utils.logout ->
       exit 'you are now logged out'
 
   # open a site
@@ -920,7 +854,7 @@ switch command
 
   # run a development server
   when 'run'
-    workspace = getWorkspacePathSync()
+    workspace = utils.getWorkspacePathSync()
     exit 'must be in a workspace to run the server' unless workspace
 
     # dependencies
@@ -955,11 +889,11 @@ switch command
     exit "must specify package version" unless version
     exit "must specify new site slug" unless slug
 
-    workspace = getWorkspacePathSync()
+    workspace = utils.getWorkspacePathSync()
     exit 'must be in a workspace to find your package' unless workspace
 
     # connect to database
-    connect (user, db) ->
+    utils.connect (user, db) ->
 
       # make sure slug isn't taken
       db.get('sites').findOne {
@@ -1043,7 +977,7 @@ switch command
 
   # daemonize a development server
   when 'start'
-    login (config) ->
+    utils.login (config) ->
       ((next) ->
         if config.pid
           log "killing running server: #{config.pid}" if config.pid
@@ -1067,7 +1001,7 @@ switch command
 
   # daemonize a development server
   when 'stop'
-    login (config) ->
+    utils.login (config) ->
       return exit() if not config.pid
       try process.kill config.pid, 'SIGHUP'
       config.pid = null
@@ -1084,7 +1018,7 @@ switch command
 
   # check your authentication status
   when 'whoami'
-    login ({user}) ->
+    utils.login ({user}) ->
       exit JSON.stringify user, null, 2 if user
       exit 'not logged in. try "dobi login"'
 
