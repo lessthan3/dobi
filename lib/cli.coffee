@@ -6,7 +6,6 @@ cluster = require 'cluster'
 coffeelint = require 'coffeelint'
 colors = require 'colors'
 columnify = require 'columnify'
-config = require '/u/config/dobi-server'
 clipboard = require('copy-paste').noConflict()
 crypto = require 'crypto'
 extend =  require 'node.extend'
@@ -66,7 +65,9 @@ rl = readline.createInterface {
 }
 XMLparser = new xml2js.Parser {explicitArray: false}
 
-
+config = {}
+if fs.existsSync '/u/config/dobi-server'
+  config = require '/u/config/dobi-server'
 
 connect = (next) ->
   login ({token, user}) ->
