@@ -24,7 +24,7 @@ Usage: dobi <command> [command-specific-options]
 where <command> [command-specific-options] is one of:
   backup <site-slug>                backup a site
   cache:bust <site-slug>            clear the cache for a site
-  cache:refresh <www.domain.com>    clear and warm cache for domain
+  cache:refresh <www.domain.com>    clear and warm cache for domain. takes 'debug'
   cache:warm <www.domain.com>       warm a cache for a domain. takes 'debug'
   clone <src-slug> <dst-slug>       clone a site
   create <my-package> <type=app>    create a new package
@@ -47,12 +47,8 @@ where <command> [command-specific-options] is one of:
 
 # constants
 CWD = process.cwd()
-DATABASE_URL = 'http://www.dobi.io/db/1.0'
-USER_HOME = process.env.HOME or process.env.HOMEPATH or process.env.USERPROFILE
-USER_CONFIG_PATH = "#{USER_HOME}/.lt3_config"
 
 # helpers
-
 exit = (msg) ->
   log msg if msg
   process.exit()
@@ -121,7 +117,7 @@ switch command
     utils.cacheBust {slug}, exit
 
   # clear mongo, rebuild mongo, clear fastly, warm fastly
-  when 'cache:reset'
+  when 'cache:refresh'
     DOMAIN = args[0]
     debug_mode = true if args[1] is 'debug'
     log 'DEBUG MODE' if debug_mode
@@ -132,7 +128,7 @@ switch command
         {metrics, times} = data
         border = '= = = = = = = = = = = = = = = = = = = = = = = ='
         return exit err if err
-        output = ['CACHE:RESET COMPLETE'.green, border, '']
+        output = ['CACHE:REFRESH COMPLETE'.green, border, '']
         for {title, table} in metrics
           output = output.concat([title, table, ''])
         output.push "SCRIPTS LOAD TIME: #{times.SCRIPT_LOAD_TIME} seconds"

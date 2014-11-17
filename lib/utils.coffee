@@ -222,6 +222,20 @@ module.exports =
       loadSites = (sites, done) ->
         SCRIPTS = []
         SCRIPT_URLS = []
+        COMPLETE = false
+
+        q = async.queue (task, next) ->
+          getPackageScripts [task.script], (err, scripts) ->
+            loadScripts scripts, ->
+              setTimeout (-> next()), 500
+
+        q.drain = ->
+          callback = ->
+            if COMPLETE
+              done null, []
+            else
+              setTimeout (-> callback()), 500
+          callback()
 
         site_iterator = (site, next) =>
           get site, (err, resp, body) ->
@@ -259,10 +273,9 @@ module.exports =
                       script = {type: 'JS', url, site}
                       SCRIPT_URLS.push url
                       if debug_mode
-                        SCRIPTS.push script
+                        SCRIPTS.push {type: 'JS', url, site}
                       else
-                        getPackageScripts [script], (err, scripts) ->
-                          loadScripts scripts
+                        q.push {script}
               onend: ->
                 next()
             }
@@ -272,7 +285,8 @@ module.exports =
         if debug_mode
           async.eachSeries sites, site_iterator, -> done null, SCRIPTS
         else
-          async.eachLimit sites, RATE_LIMIT, site_iterator, -> done null, []
+          async.eachLimit sites, RATE_LIMIT, site_iterator, ->
+            COMPLETE = true
 
       # create URLs for package/main.js
       getPackageScripts = (scripts, next) ->
@@ -282,10 +296,10 @@ module.exports =
           continue unless type is 'CSS'
           pkg = PKGtest.exec(url)?[1]
           continue unless pkg
-          pkg_JS = "#{pkg}/main.js"
-          if pkg_JS not in PROCESSED_PACKAGE_SCRIPTS
-            scripts.push {site, type: 'JS', url: pkg_JS}
-            PROCESSED_PACKAGE_SCRIPTS.push pkg_JS
+          pkg_JS = ["#{pkg}/main.js", "#{pkg}/main.js?_mongoWarming_=1823"]
+          for JS in pkg_JS
+            continue if JS in PROCESSED_PACKAGE_SCRIPTS
+            scripts.push {site, type: 'JS', url: JS}
 
         next null, scripts
 
@@ -293,8 +307,11 @@ module.exports =
       loadScripts = (scripts = [], done) ->
         return done() unless scripts
         script_iterator = (script, next) ->
+          {url, type, site} = script or {}
           return next() unless script
-          {url, type, site} = script
+          return next() if url in PROCESSED_PACKAGE_SCRIPTS
+          PROCESSED_PACKAGE_SCRIPTS.push url
+
           if url.match DOMAINtest
             url = "#{DOMAIN}#{url}"
           else unless url.match HTTPtest
@@ -474,18 +491,22 @@ module.exports =
       else
         log 'not logged in: must authenticate'
         log 'opening login portal in just a few moments'
-        setTimeout ( ->
-          open 'http://www.dobi.io/auth'
-          rl.question "Enter Token: ", (token) ->
-            exit 'must specify token' unless token
-            fb = new Firebase FIREBASE_URL
-            fb.auth token, (err, data) ->
-              exit 'invalid token' if err
-              config.user = data.auth
-              config.token = token
-              config.token_expires = data.expires
-              saveUserConfig config, ->
-                next config
+        setTimeout ( =>
+          url = 'http://www.dobi.io/auth'
+          request {url}, (err, resp, body) =>
+            if body.match /not found/gi
+              url = 'http://www.lessthan3.com/developers/auth'
+            open url
+            rl.question "Enter Token: ", (token) =>
+              exit 'must specify token' unless token
+              fb = new Firebase FIREBASE_URL
+              fb.auth token, (err, data) =>
+                exit 'invalid token' if err
+                config.user = data.auth
+                config.token = token
+                config.token_expires = data.expires
+                @saveUserConfig config, ->
+                  next config
         ), 3000
 
   logout: (next) ->
