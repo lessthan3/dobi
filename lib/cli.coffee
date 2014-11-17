@@ -118,8 +118,8 @@ login = (require_logged_in, next) ->
   [require_logged_in, next] = [false, require_logged_in] unless next
 
   log 'authenticating user'
-  readUserConfig (config) ->
-    if config.user
+  readUserConfig (user_config) ->
+    if user_config.user
       next config
     else if not require_logged_in
       next {user: null}
@@ -133,9 +133,9 @@ login = (require_logged_in, next) ->
           fb = new Firebase FIREBASE_URL
           fb.auth token, (err, data) ->
             exit 'invalid token' if err
-            config.user = data.auth
-            config.token = token
-            config.token_expires = data.expires
+            user_config.user = data.auth
+            user_config.token = token
+            user_config.token_expires = data.expires
             saveUserConfig config, ->
               next config
       ), 3000
@@ -725,19 +725,19 @@ switch command
     config_path = path.join package_path, 'config.cson'
     exists = fs.existsSync config_path
     exit 'package config.cson does not exist' unless exists
-    config = CSON.parseFileSync config_path if exists
-    config.files = []
-    config.private ?= false
+    pkg_config = CSON.parseFileSync config_path if exists
+    pkg_config.files = []
+    pkg_config.private ?= false
 
     # legacy
-    delete config.changelog
+    delete pkg_config.changelog
 
     # load files
     log "loading files"
     finder = findit package_path
     finder.on 'file', (file, stat) ->
       data = fs.readFileSync(file).toString 'base64'
-      config.files.push {
+      pkg_config.files.push {
         data: data
         ext: path.extname(file).replace /^\./, ''
         md5: crypto.createHash('md5').update(data).digest('hex')
@@ -748,34 +748,34 @@ switch command
     finder.on 'end', ->
 
       # sort files so md5 is consistent
-      config.files.sort (a, b) -> if a.path > b.path then 1 else -1
+      pkg_config.files.sort (a, b) -> if a.path > b.path then 1 else -1
 
       # update md5
       data = JSON.stringify config
-      config.md5 = crypto.createHash('md5').update(data).digest('hex')
+      pkg_config.md5 = crypto.createHash('md5').update(data).digest('hex')
 
       # connect to database
       connect (user, db) ->
 
         # make sure user is an admin
-        config.developers ?= {}
-        config.developers[user.admin_uid] = 'admin'
+        pkg_config.developers ?= {}
+        pkg_config.developers[user.admin_uid] = 'admin'
 
         # update main config
         ((next) ->
           log 'loading package config'
           db.get('packages_config').findOne {
             id: id
-          }, (err, pkg_config) ->
+          }, (err, doc) ->
             exit err if err
 
             # updating config
-            if pkg_config
-              if not pkg_config.get("developers.#{user.admin_uid}").val() == 'admin'
+            if doc
+              if not doc.get("developers.#{user.admin_uid}").val() == 'admin'
                 exit "you don't have permission to deploy this package"
-              config._id = pkg_config.get('_id').val()
+              pkg_config._id = doc.get('_id').val()
               log 'updating package config'
-              pkg_config.set config, (err) ->
+              doc.set config, (err) ->
                 exit err if err
                 next config
 
@@ -797,25 +797,23 @@ switch command
             exit err if err
 
             # set config reference
-            config.config_id = config._id
-            delete config._id
+            pkg_config.config_id = pkg_config._id
+            delete pkg_config._id
 
             ###
             # temp hack: allow package overwrite
             ###
             if pkg
               log 'package exists. overwriting'
-              config._id = pkg.get('_id').val()
+              pkg_config._id = pkg.get('_id').val()
               pkg.set config, (err) ->
                 exit err if err
                 exit "package #{id}@#{version} re-deployed"
-
 
             else
               db.get('packages').insert config, (err, pkg) ->
                 exit err if err
                 exit "package #{id}@#{version} deployed"
-
 
             ###
             # END HACK
@@ -950,8 +948,8 @@ switch command
       app.use express.methodOverride()
       app.use express.cookieParser()
       app.use dobi {
-        firebase: config.firebase
-        mongodb: config.mongo
+        firebase: config.firebase or null
+        mongodb: config.mongo or null
         pkg_dir: path.join workspace, 'pkg'
       }
       app.use app.router
@@ -986,8 +984,8 @@ switch command
         # read config.cson if it exists
         config_path = path.join workspace, 'pkg', id, version, 'config.cson'
         exists = fs.existsSync config_path
-        config = {}
-        config = CSON.parseFileSync config_path if exists
+        pkg_config = {}
+        pkg_config = CSON.parseFileSync config_path if exists
 
         # read setup.cson if it exists
         setup_path = path.join workspace, 'pkg', id, version, 'setup.cson'
@@ -1029,8 +1027,8 @@ switch command
         site.regions ?= {}
         site.style ?= {}
         site.collections ?= {}
-        config.collections ?= {}
-        for k, v of config.collections
+        pkg_config.collections ?= {}
+        for k, v of pkg_config.collections
           site.collections[k] ?= {}
           site.collections[k].slug ?= k
 
