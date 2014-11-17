@@ -2,11 +2,11 @@
 CSON = require 'cson'
 Firebase = require 'firebase'
 async = require 'async'
-coffeelint = require 'coffeelint'
 colors = require 'colors'
 columnify = require 'columnify'
 clipboard = require('copy-paste').noConflict()
 crypto = require 'crypto'
+dobiLint = require './dobi-lint'
 extend =  require 'node.extend'
 findit = require 'findit'
 fs = require 'fs'
@@ -863,41 +863,23 @@ switch command
     config = JSON.parse fs.readFileSync "#{__dirname}/lint.json"
 
     # lint each file in the package
-    results = []
+    files = []
     workspace = getWorkspacePathSync()
     exit 'must be in a workspace to lint your package' unless workspace
     package_path = path.join workspace, 'pkg', id, version
     finder = findit package_path
-    finder.on 'file', (file, stat) ->
-      ext = path.extname(file).replace /^\./, ''
-      return unless ext is 'coffee'
+    finder.on 'file', (file, stat) -> files.push file
 
-      # lint if no individual file specified, or if we match the target file
-      if not target or target is path.basename file
-        results.push {
-          file: file
-          errors: coffeelint.lint fs.readFileSync(file, 'utf8'), config
-        }
     finder.on 'end', ->
-
       success = true
-      for result in results
-        continue unless result.errors.length > 0
-        log result.file.green
-        for err in result.errors
-          success = false
-          color = if err.level is 'error' then 'red' else 'yellow'
-          line_number = "##{err.lineNumber}"
-          indent = '' ; indent += ' ' for i in [0...line_number.length + 2]
-          err.line = "#{err.line.replace /\s*(.*)/, "#{indent}$1"}" if err.line
-          err.context = if err.context then ": #{err.context}" else ''
-          log "#{line_number[color]}: #{err.message}#{err.context}"
-          log err.line.cyan if err.line
-          log ''
-
-      if success
-        log 'Success! This package is lint free.'.green
-      exit()
+      async.eachSeries files, ((file, next) ->
+        dobiLint file, (exit_code) ->
+          success = false if exit_code
+          next()
+      ), (err) ->
+        if success
+          log 'Success! This package is lint free.'.green
+        exit()
 
   # authenticate your user
   when 'login'
