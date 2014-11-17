@@ -1,22 +1,14 @@
 
 # dependencies
-CSON = require 'cson'
 Firebase = require 'firebase'
 async = require 'async'
-coffeelint = require 'coffeelint'
 colors = require 'colors'
 columnify = require 'columnify'
 clipboard = require('copy-paste').noConflict()
-crypto = require 'crypto'
-extend =  require 'node.extend'
-findit = require 'findit'
 fs = require 'fs'
 htmlparser = require 'htmlparser2'
-mkdirp = require 'mkdirp'
 mongofb = require 'mongofb'
-ncp = require('ncp').ncp
 open = require 'open'
-optimist = require 'optimist'
 path = require 'path'
 readline = require 'readline'
 request = require 'request'
@@ -29,9 +21,12 @@ rl = readline.createInterface {
 }
 XMLparser = new xml2js.Parser {explicitArray: false}
 
+exit = (msg) ->
+  log msg if msg
+  process.exit()
+
 log = (msg) ->
   console.log "[dobi] #{msg}"
-
 
 # constants
 CWD = process.cwd()
@@ -42,7 +37,415 @@ USER_CONFIG_PATH = "#{USER_HOME}/.lt3_config"
 
 module.exports =
 
+  cacheBust: ({slug, domain}, done) ->
 
+    # connect to database
+    @connect (user, db) ->
+
+      getSite = (next) ->
+        if slug
+          db.get('sites').findOne {
+            slug: slug
+          }, next
+        else if domain
+          db.get('sites').findOne {
+            'settings.domain.url': domain
+          }, next
+
+      # get site
+      log 'find the site'
+      getSite (err, site) ->
+        return done err if err
+        return done 'could not find site' unless site
+        log "site found: #{site.get('_id').val()}"
+
+        # clear cache
+        api = 'http://www.lessthan3.com/pkg/lt3-api/4.0/api'
+        resource = 'cache/bust'
+        request {
+          url: "#{api}/#{resource}"
+          qs:
+            site_id: site.get('_id').val()
+            token: user.token
+        }, (err, resp, body) ->
+          return done err if err
+          if resp.statusCode is 401
+            return done 'You are not authorized to clear this cache'
+          try
+            body = JSON.parse body
+            log "cache has been cleared for #{body.host}".green
+          catch err
+            return done 'failed to parse response'
+          done()
+
+  cacheWarm: ({DOMAIN, debug_mode}, done) ->
+    TIME_START = Date.now()
+    PROCESSED_PACKAGE_SCRIPTS = []
+    LAST_SCRIPT_LOADED = 0
+    SCRIPT_LOAD_TIME = 0
+    SECONDS_ELAPSED = 0
+    RATE_LIMIT = 15
+
+    # connect to DB
+    @connect (user, db) ->
+
+      DOMAIN = "http://#{DOMAIN}"
+      RAW_DATA = {
+        CACHE: {}
+        ERRORS: []
+        SCRIPTS_LOADED: 0
+        SERVERS: {}
+        SITES_PARSED: 0
+        TIME: {}
+      }
+
+      # regular expresssions
+      DOMAINtest = /^\/[^\/]/gi
+      HTTPtest = /^https*/gi
+      LT3test = /lessthan3.com/gi
+      PKGtest = /(\/pkg\/.+\/.+)\//gi
+
+
+      # request fn
+      get = (url, next) ->
+        if debug_mode
+          time_start = Date.now() if debug_mode
+          request {method: 'GET', url}, (err, resp, body) ->
+            resp?.headers?.time = Date.now() - time_start
+            next err, resp, body
+        else
+          request {method: 'GET', url}, next
+
+      # update raw data
+      cacheCount = (headers, type) ->
+        x_cache = headers['x-cache']
+        x_served_by = headers['x-served-by']
+
+        RAW_DATA.CACHE[type] ?= {}
+        RAW_DATA.CACHE[type].hit ?= 0
+        RAW_DATA.CACHE[type].miss ?= 0
+
+        RAW_DATA.SERVERS[x_served_by] ?= {}
+        RAW_DATA.SERVERS[x_served_by].hit ?= 0
+        RAW_DATA.SERVERS[x_served_by].miss ?= 0
+
+        switch x_cache
+          when 'HIT'
+            RAW_DATA.CACHE[type].hit++
+            RAW_DATA.SERVERS[x_served_by].hit++
+          when 'MISS'
+            RAW_DATA.CACHE[type].miss++
+            RAW_DATA.SERVERS[x_served_by].miss++
+
+        return unless debug_mode
+        request_time = headers['time']
+        RAW_DATA.TIME[type] ?= {}
+        RAW_DATA.TIME[type].hit ?= []
+        RAW_DATA.TIME[type].miss ?= []
+
+        switch x_cache
+          when 'HIT'
+            RAW_DATA.TIME[type].hit.push request_time
+          when 'MISS'
+            RAW_DATA.TIME[type].miss.push request_time
+
+      # get sitemap
+      loadSitemap = (domain, next) ->
+        log 'loading sitemap'
+        get "#{domain}/sitemap.xml", (err, resp, body) ->
+          return next err if err
+          unless resp
+            return next "no resp from domain"
+          if resp.statusCode < 200 or resp.statusCode > 302
+            return next "bad #{body}"
+          next null, body
+
+      # parse sitemap.xml for sites
+      parseXML = (body, next) ->
+        XMLparser.parseString body, (err, result) ->
+          return next err if err
+          sites = (loc for {loc} in result.urlset.url)
+          return next() unless sites
+          log "#{sites.length} site locations retrieved"
+          next null, sites
+
+      # query DB for domains of site slugs
+      getSiteDomains = (sites, done) ->
+        SLUGS = for site in sites
+          slug_test = new RegExp "#{DOMAIN}/(.+)", "gi"
+          slug = slug_test.exec(site)?[1]
+          slug if slug
+
+        getDomains = (next) ->
+          DOMAINS = []
+          db_sites = db.collection 'sites'
+
+          db_sites.find {'slug': {$in: SLUGS}}, {
+            limit: 100000
+          }, (err, results) ->
+            return next err if err
+            for result in results
+              continue if result is null
+              url = result.val().settings?.domain?.url
+              continue unless url
+              url = "http://#{url}" unless url.match HTTPtest
+              if url not in sites and not url.match LT3test
+                DOMAINS.push url
+                log "ADDING: #{url}"
+            next null, DOMAINS
+
+        loadDomainSitemap = (domains, done) ->
+          SITES = []
+
+          domain_iterator = (domain, next) ->
+            async.waterfall [
+              (_next) -> loadSitemap domain, _next
+              (body, _next) -> parseXML body, _next
+            ], (err, results) ->
+              return next() unless results
+              SITES.push result for result in results
+              next()
+
+          if debug_mode
+            async.eachSeries domains, domain_iterator, -> done null, SITES
+          else
+            async.eachLimit domains, RATE_LIMIT, domain_iterator, -> done null, SITES
+
+        async.waterfall [
+          (next) -> getDomains next
+          (domains, next) -> loadDomainSitemap domains, next
+        ], (err, new_sites) ->
+          sites.push site for site in new_sites
+          done null, sites
+
+      # request each HTML URL
+      loadSites = (sites, done) ->
+        SCRIPTS = []
+        SCRIPT_URLS = []
+
+        site_iterator = (site, next) =>
+          get site, (err, resp, body) ->
+            unless resp
+              log "NO RESPONSE FROM #{site}".red
+              return next()
+            if resp.statusCode < 200 or resp.statusCode > 302 or err
+              switch body
+                when 'Unauthorized'
+                  log "UNAUTHORIZED: #{site}".yellow
+                else
+                  log "ERROR: #{body}. skipping #{site}.".red
+              return next()
+
+            log "HTML RETRIEVED: #{site}"
+            cacheCount resp.headers, 'HTML'
+
+            RAW_DATA.SITES_PARSED++
+            parser = new htmlparser.Parser {
+              onopentag: (name, attribs) ->
+                switch attribs.type
+                  when 'text/css'
+                    url = attribs.href
+                    if url and url not in SCRIPT_URLS
+                      script = {type: 'CSS', url, site}
+                      SCRIPT_URLS.push url
+                      if debug_mode
+                        SCRIPTS.push script
+                      else
+                        getPackageScripts [script], (err, scripts) ->
+                          loadScripts scripts
+                  when 'text/javascript'
+                    url = attribs.src
+                    if url and url not in SCRIPT_URLS
+                      script = {type: 'JS', url, site}
+                      SCRIPT_URLS.push url
+                      if debug_mode
+                        SCRIPTS.push script
+                      else
+                        getPackageScripts [script], (err, scripts) ->
+                          loadScripts scripts
+              onend: ->
+                next()
+            }
+            parser.write body
+            parser.end()
+
+        if debug_mode
+          async.eachSeries sites, site_iterator, -> done null, SCRIPTS
+        else
+          async.eachLimit sites, RATE_LIMIT, site_iterator, -> done null, []
+
+      # create URLs for package/main.js
+      getPackageScripts = (scripts, next) ->
+        return next() unless scripts
+        for script in scripts
+          {url, type, site} = script
+          continue unless type is 'CSS'
+          pkg = PKGtest.exec(url)?[1]
+          continue unless pkg
+          pkg_JS = "#{pkg}/main.js"
+          if pkg_JS not in PROCESSED_PACKAGE_SCRIPTS
+            scripts.push {site, type: 'JS', url: pkg_JS}
+            PROCESSED_PACKAGE_SCRIPTS.push pkg_JS
+
+        next null, scripts
+
+      # request CSS and JS scripts
+      loadScripts = (scripts = [], done) ->
+        return done() unless scripts
+        script_iterator = (script, next) ->
+          return next() unless script
+          {url, type, site} = script
+          if url.match DOMAINtest
+            url = "#{DOMAIN}#{url}"
+          else unless url.match HTTPtest
+            url = "http:#{url}"
+          get url, (err, resp, body) ->
+            if err or resp?.statusCode < 200 or resp?.statusCode > 302
+              RAW_DATA.ERRORS.push {
+                error: err
+                body: body
+                site: site
+                url: url
+                response: resp?.statusCode
+              }
+              return next()
+
+            log "#{type} RETRIEVED: #{site}".green
+            cacheCount resp.headers, type
+
+            RAW_DATA.SCRIPTS_LOADED++
+            LAST_SCRIPT_LOADED = Date.now()
+            next()
+
+        if debug_mode
+          async.eachSeries scripts, script_iterator, done
+        else
+          async.eachLimit scripts, RATE_LIMIT, script_iterator, done
+
+      # format errors to github markup, copy to clipboard
+      compileErrors = (next) ->
+        {ERRORS} = RAW_DATA
+        return next() unless ERRORS.length > 0
+        err_format = "```js\n#{JSON.stringify ERRORS, null, 2}\n```"
+        clipboard.copy err_format, ->
+          log "Errors copied to clipboard".red
+          next()
+
+      # compile raw data to pretty tables
+      compileData = (next) ->
+        SECONDS_ELAPSED = Math.floor (Date.now() - TIME_START) / 1000
+        SCRIPT_LOAD_TIME = Math.floor (LAST_SCRIPT_LOADED - TIME_START) / 1000
+        data_config = {
+          'cache:warm':
+            data: {
+              'SITES LOADED': RAW_DATA.SITES_PARSED
+              'SCRIPTS LOADED': RAW_DATA.SCRIPTS_LOADED
+              'SCRIPT ERRORS': RAW_DATA.ERRORS.length
+            }
+            format:
+              columns: ['metric', 'count']
+              columnSplitter: ' | '
+            prepare: (data) ->
+              result = []
+              for metric, count of data
+                result.push {metric, count}
+              return result
+
+          cache:
+            data: RAW_DATA.CACHE
+            format:
+              columns: ['type', 'hit', 'miss']
+              columnSplitter: ' | '
+            prepare: (data) ->
+              result = []
+              for type, {hit, miss} of data
+                result.push {type, hit, miss}
+              return result
+
+          server:
+            data: RAW_DATA.SERVERS
+            format:
+              columns: ['server', 'hit', 'miss']
+              columnSplitter: ' | '
+            prepare: (data) ->
+              result = []
+              for server, {hit, miss} of data
+                continue unless server isnt 'undefined'
+                result.push {server, hit, miss}
+              result = result.sort (a, b) ->
+                return 1 if a.server > b.server
+                return -1 if a.server < b.server
+                return 0
+              return result
+        }
+
+        if debug_mode
+          data_config.time = {
+            data: RAW_DATA.TIME
+            format:
+              columns: ['type', 'hit', 'miss']
+              columnSplitter: ' | '
+            prepare: (data) ->
+              result = []
+              timeAvg = (times) ->
+                times ?= []
+                average = 0
+                average += time for time in times
+                average /= times.length if average > 0
+                return "#{Math.floor average}ms"
+              for type, {hit, miss} of data
+                metrics = {type}
+                for TYPE in ['hit', 'miss']
+                  metrics[TYPE] = timeAvg data[type][TYPE]
+                result.push metrics
+              return result
+          }
+
+        metrics = []
+        for metric, methods of data_config
+          {data, format, prepare} = methods
+          metrics.push {
+            title: "#{metric.toUpperCase()} STATS"
+            table: columnify prepare(data), format
+          }
+
+        next null, metrics
+
+      # CACHE:WARM STARTS HERE
+      async.waterfall [
+        (next) -> loadSitemap DOMAIN, next
+        (body, next) -> parseXML body, next
+        (sites, next) -> getSiteDomains sites, next
+        (sites, next) -> loadSites sites, next
+        (scripts, next) -> getPackageScripts scripts, next
+        (scripts, next) -> loadScripts scripts, next
+        (next) -> compileErrors next
+        (next) -> compileData next
+      ], (err, metrics) ->
+        return done err if err
+        data = {
+          metrics: metrics
+          times: {SCRIPT_LOAD_TIME, SECONDS_ELAPSED}
+        }
+        done null, data
+
+  connect: (next) ->
+    @login ({token, user}) ->
+      exit "please login first: 'dobi login'" unless user
+
+      user.admin_uid = user.uid.replace /\./g, ','
+
+      log 'connect to database'
+      db = new mongofb.client.Database {
+        server: DATABASE_URL
+        firebase: FIREBASE_URL
+      }
+      db.cache = false
+      user.token = token
+      db.auth token, (err) ->
+        exit "error authenticating" if err
+        log 'connected'
+        next user, db
 
   getWorkspacePath: (current, next) ->
     [current, next] = [CWD, current] if not next
@@ -86,8 +489,7 @@ module.exports =
         ), 3000
 
   logout: (next) ->
-    saveUserConfig {}, ->
-      next()
+    @saveUserConfig {}, next
 
   readUserConfig: (next) ->
     fs.exists USER_CONFIG_PATH, (exists) ->
