@@ -3,6 +3,7 @@ CSON = require 'cson'
 Firebase = require 'firebase'
 LRU = require 'lru-cache'
 async = require 'async'
+cluster = require 'cluster'
 chokidar = require 'chokidar'
 express = require 'express'
 findit = require 'findit'
@@ -409,16 +410,20 @@ exports = module.exports = (cfg) ->
 
 
   # Watch For File Changes
-  unless prod
-    watcher = chokidar.watch pkg_dir, {
-      ignored: /(^\.|\.swp$|\.tmp$|~$)/
-    }
-    watcher.on 'change', (filepath) ->
-      filepath = filepath.replace pkg_dir, ''
-      [_, id, version, file...] = filepath.split path.sep
-      file = file.join path.sep
-      console.log "#{id} v#{version} updated"
-      if user
+  if cfg.watch
+    if not user
+      console.log 'USER IS NOT LOGGED IN. CAN NOT WATCH FOR UPDATES'
+    else
+      watcher = chokidar.watch pkg_dir, {
+        ignored: /(^\.|\.swp$|\.tmp$|~$)/
+        usePolling: true
+      }
+      watcher.on 'change', (filepath) ->
+        console.log 'changed', filepath
+        filepath = filepath.replace pkg_dir, ''
+        [_, id, version, file...] = filepath.split path.sep
+        file = file.join path.sep
+        console.log "#{id} v#{version} updated"
         readConfig id, version, (err, config) ->
           return console.log(err) if err
           delete config.changelog

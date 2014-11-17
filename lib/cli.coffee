@@ -121,14 +121,14 @@ login = (require_logged_in, next) ->
   log 'authenticating user'
   readUserConfig (user_config) ->
     if user_config.user
-      next config
+      next user_config
     else if not require_logged_in
       next {user: null}
     else
       log 'not logged in: must authenticate'
       log 'opening login portal in just a few moments'
       setTimeout ( ->
-        open 'http://www.dobi.io/auth'
+        open 'http://www.lessthan3.com/developers/auth'
         rl.question "Enter Token: ", (token) ->
           exit 'must specify token' unless token
           fb = new Firebase FIREBASE_URL
@@ -137,8 +137,8 @@ login = (require_logged_in, next) ->
             user_config.user = data.auth
             user_config.token = token
             user_config.token_expires = data.expires
-            saveUserConfig config, ->
-              next config
+            saveUserConfig user_config, ->
+              next user_config
       ), 3000
 
 readUserConfig = (next) ->
@@ -926,7 +926,8 @@ switch command
 
     if cluster.isMaster
       console.log "master #{process.pid}: running"
-      cluster.fork() for i in os.cpus()
+      for cpu, index in os.cpus()
+        cluster.fork {CLUSTER_INDEX: index}
       cluster.on 'exit', (worker, code, signal) ->
         console.log "worker #{worker.process.pid}: died. restart..."
         console.log code
@@ -952,6 +953,7 @@ switch command
         firebase: config.firebase or null
         mongodb: config.mongo or null
         pkg_dir: path.join workspace, 'pkg'
+        watch: process.env.CLUSTER_INDEX is '0'
       }
       app.use app.router
       app.use express.errorHandler {dumpExceptions: true, showStack: true}
