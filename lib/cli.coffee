@@ -2,6 +2,7 @@
 CSON = require 'cson'
 Firebase = require 'firebase'
 async = require 'async'
+cluster = require 'cluster'
 coffeelint = require 'coffeelint'
 colors = require 'colors'
 columnify = require 'columnify'
@@ -17,6 +18,7 @@ mongofb = require 'mongofb'
 ncp = require('ncp').ncp
 open = require 'open'
 optimist = require 'optimist'
+os = require 'os'
 path = require 'path'
 readline = require 'readline'
 request = require 'request'
@@ -923,30 +925,41 @@ switch command
     workspace = getWorkspacePathSync()
     exit 'must be in a workspace to run the server' unless workspace
 
-    # dependencies
-    connect = require 'connect'
-    express = require 'express'
-    dobi = require './server'
-    pkg = require path.join '..', 'package'
+    if cluster.isMaster
+      console.log "master #{process.pid}: running"
+      cluster.fork() for i in os.cpus()
+      cluster.on 'exit', (worker, code, signal) ->
+        console.log "worker #{worker.process.pid}: died. restart..."
+        console.log code
+        console.log signal
+        cluster.fork()
+    else
+      console.log "worker #{process.pid}: running"
 
-    # configuration
-    app = express()
-    app.use express.logger '[:date] :status :method :url'
-    app.use connect.urlencoded()
-    app.use connect.json()
-    app.use express.methodOverride()
-    app.use express.cookieParser()
-    app.use dobi {
-      firebase: config.firebase
-      mongodb: config.mongo
-      pkg_dir: path.join workspace, 'pkg'
-    }
-    app.use app.router
-    app.use express.errorHandler {dumpExceptions: true, showStack: true}
+      # dependencies
+      connect = require 'connect'
+      express = require 'express'
+      dobi = require './server'
+      pkg = require path.join '..', 'package'
 
-    # listen
-    app.listen pkg.config.port
-    log "listening: #{pkg.config.port}"
+      # configuration
+      app = express()
+      app.use express.logger '[:date] :status :method :url'
+      app.use connect.urlencoded()
+      app.use connect.json()
+      app.use express.methodOverride()
+      app.use express.cookieParser()
+      app.use dobi {
+        firebase: config.firebase
+        mongodb: config.mongo
+        pkg_dir: path.join workspace, 'pkg'
+      }
+      app.use app.router
+      app.use express.errorHandler {dumpExceptions: true, showStack: true}
+
+      # listen
+      app.listen pkg.config.port
+      log "listening: #{pkg.config.port}"
 
   # setup a site using your app
   when 'setup'
