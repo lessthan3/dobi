@@ -1,7 +1,7 @@
 exports.Template = ->
-  div id: 'mobile-nav'
-  div class: 'main', ->
-    header id: 'header'
-    div id: 'content'
-    footer id: 'footer'
+  div '#mobile-nav'
+  div '.main', ->
+    header '#header'
+    div '#content'
+    footer '#footer'
 

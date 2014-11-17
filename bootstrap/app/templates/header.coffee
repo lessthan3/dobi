@@ -1,9 +1,9 @@
-exports.Template = ->
-  div class: 'mobile', ->
-    div class: 'mobile-nav-toggle', ->
-      i class: 'icon-menu'
+exports.Template = (data) ->
+  div '.mobile', ->
+    div '.mobile-nav-toggle', ->
+      i '.icon-menu'
 
-  div class: 'web', ->
-    a class: 'logo', href: '/', ->
+  div '.web', ->
+    a '.logo', href: '/', ->
       img 'data-ref': 'logo'
 

@@ -1,4 +1,5 @@
-class exports.Region
+class exports.Presenter
+  template_engine: 'teacup'
 
   events:
     'click .mobile-nav-toggle': 'onToggleMobileNav'
