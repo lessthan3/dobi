@@ -14,6 +14,7 @@
   regions: [
     'header'
     'footer'
+    'home'
     'mobile-nav'
   ]
   type: 'app'
