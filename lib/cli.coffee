@@ -5,6 +5,7 @@ async = require 'async'
 coffeelint = require 'coffeelint'
 colors = require 'colors'
 columnify = require 'columnify'
+config = require '/u/config/dobi-server'
 clipboard = require('copy-paste').noConflict()
 crypto = require 'crypto'
 extend =  require 'node.extend'
@@ -148,8 +149,8 @@ readUserConfig = (next) ->
         next {}
 
 saveUserConfig = (data, next) ->
-  config = JSON.stringify data
-  fs.writeFile USER_CONFIG_PATH, config, 'utf8', (err) ->
+  data = JSON.stringify data
+  fs.writeFile USER_CONFIG_PATH, data, 'utf8', (err) ->
     exit 'unable to write user config' if err
     next()
 
@@ -693,18 +694,17 @@ switch command
 
           # update config
           config_path = path.join dest, 'config.cson'
-          config = CSON.parseFileSync config_path
-          config.id = id
-          config.version = version
-          config.author = {name: user.name, email: user.email}
-          config.developers = {}
-          config.developers[user.admin_uid] = 'admin'
-          config = CSON.stringifySync(config).replace /\n\n/g, '\n'
-          fs.writeFileSync config_path, config
+          user_config = CSON.parseFileSync config_path
+          user_config.id = id
+          user_config.version = version
+          user_config.author = {name: user.name, email: user.email}
+          user_config.developers = {}
+          user_config.developers[user.admin_uid] = 'admin'
+          user_config = CSON.stringifySync(config).replace /\n\n/g, '\n'
+          fs.writeFileSync config_path, user_config
 
           # done
           exit 'package created successfully'
-
 
   # deploy an app
   when 'deploy'
@@ -937,6 +937,8 @@ switch command
     app.use express.methodOverride()
     app.use express.cookieParser()
     app.use dobi {
+      firebase: config.firebase
+      mongodb: config.mongo
       pkg_dir: path.join workspace, 'pkg'
     }
     app.use app.router
