@@ -879,6 +879,15 @@ switch command
       ), (err) ->
         if success
           log 'Success! This package is lint free.'.green
+        else
+          log ''
+          log ' ---------------------------------------------- '
+          log '|         * * * E P I C    F A I L * * *       |'
+          log '|                                              |'
+          log '| Some files failed dobi lint validation.      |'
+          log '|                                              |'
+          log ' ---------------------------------------------- '
+          log ''
         exit()
 
   # authenticate your user
