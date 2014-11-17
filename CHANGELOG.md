@@ -1,3 +1,8 @@
+**v1.7.2** (2014-11-17
+
+ - fix connect/updates for clustered dev
+ - update chokidar to 0.11
+
 **v1.7.1** (2014-11-17)
 
  - allow developer to not have a config file yet

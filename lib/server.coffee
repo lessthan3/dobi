@@ -12,10 +12,10 @@ jwt = require 'jwt-simple'
 path = require 'path'
 wrap = require 'asset-wrap'
 
+USER_HOME = process.env.HOME or process.env.HOMEPATH or process.env.USERPROFILE
 
 # Exports
 exports = module.exports = (cfg) ->
-
 
   # Settings
   lru_cache = new LRU {max: 50, maxAge: 1000*60*5}
@@ -23,13 +23,11 @@ exports = module.exports = (cfg) ->
   use_cache = prod
   use_compression = prod
   pkg_dir = cfg.pkg_dir or path.join __dirname, '..', '..', '..', 'pkg'
-
+  USER_CONNECT_PATH = "#{USER_HOME}/.dobi_connect"
 
   # Local Deveopment Variables
-  firebase = null
-  user = null
-
-
+  firebase = new Firebase 'https://lessthan3.firebaseio.com'
+  user_id = null
 
   # get the absolute directory of the specified package
   pkgDir = (id, version) ->
@@ -252,7 +250,6 @@ exports = module.exports = (cfg) ->
     for i in ignore
       return next(null, []) if [id, version] is i
 
-
     # read config
     readConfig id, version, (err, config) ->
       return next err, null if err
@@ -403,44 +400,59 @@ exports = module.exports = (cfg) ->
             res.send data
   cache = cfg.cache_function if cfg.cache_function
 
-
   # cache age
   cache_age = '1 day'
   cache_age = cfg.cache_age if cfg.cache_age
 
-
   # Watch For File Changes
   if cfg.watch
-    if not user
-      console.log 'USER IS NOT LOGGED IN. CAN NOT WATCH FOR UPDATES'
-    else
-      watcher = chokidar.watch pkg_dir, {
-        ignored: /(^\.|\.swp$|\.tmp$|~$)/
-        usePolling: true
-      }
-      watcher.on 'change', (filepath) ->
-        console.log 'changed', filepath
-        filepath = filepath.replace pkg_dir, ''
-        [_, id, version, file...] = filepath.split path.sep
-        file = file.join path.sep
-        console.log "#{id} v#{version} updated"
-        readConfig id, version, (err, config) ->
-          return console.log(err) if err
-          delete config.changelog
-          ref = firebase.child "users/#{user}/developer/listener"
 
-          config.modified =
-            time: Date.now()
-            base: path.basename file
-            ext: path.extname(file).replace '.', ''
-            file: file
-            name: path.basename file, path.extname(file)
+    # watch for user to connect
+    watcher = chokidar.watch USER_CONNECT_PATH, {
+      ignored: -> false
+      usePolling: true
+      interval: 500
+    }
+    watcher.on 'change', (filepath) ->
+      try
+        {user_id, token} = JSON.parse fs.readFileSync filepath
+        firebase.auth token
+        return
+      catch err
+        console.log err
 
-            # TODO: deprecate
-            file_ext: path.extname(file).replace '.', ''
-            file_name: path.basename file, path.extname(file)
-          ref.set config, (err) ->
-            console.log(err) if err
+    # watch for package file changes
+    watcher = chokidar.watch pkg_dir, {
+      ignored: /(^\.|\.swp$|\.tmp$|~$)/
+      usePolling: true
+      interval: 500
+    }
+    watcher.on 'change', (filepath) ->
+      if not user_id
+        console.log 'USER IS NOT CONNECTED. CAN NOT WATCH FOR UPDATES'
+        return
+
+      filepath = filepath.replace pkg_dir, ''
+      [_, id, version, file...] = filepath.split path.sep
+      file = file.join path.sep
+      console.log "#{id} v#{version} updated"
+      readConfig id, version, (err, config) ->
+        return console.log(err) if err
+        delete config.changelog
+        ref = firebase.child "users/#{user_id}/developer/listener"
+
+        config.modified =
+          time: Date.now()
+          base: path.basename file
+          ext: path.extname(file).replace '.', ''
+          file: file
+          name: path.basename file, path.extname(file)
+
+          # TODO: deprecate
+          file_ext: path.extname(file).replace '.', ''
+          file_name: path.basename file, path.extname(file)
+        ref.set config, (err) ->
+          console.log(err) if err
 
   # Middleware
   (req, res, next) ->
@@ -484,7 +496,6 @@ exports = module.exports = (cfg) ->
 
       """
 
-
     # Routes
     router = new express.Router()
 
@@ -497,19 +508,29 @@ exports = module.exports = (cfg) ->
     unless prod
       router.route 'GET', '/connect', (req, res, next) ->
         token = req.query.token
-        firebase = new Firebase 'https://lessthan3.firebaseio.com'
         firebase.auth token, (err, data) ->
           return error 400 if err
-          user = req.query.user._id
+          user_id = req.query.user._id
 
-          pkgs = {}
-          for i, id of fs.readdirSync pkg_dir
-            pkgs[id] = {}
-            pkg_path = "#{pkg_dir}/#{id}"
-            continue unless fs.lstatSync(pkg_path).isDirectory()
-            for i, version of fs.readdirSync pkg_path
-              pkgs[id][version] = 1
-          res.send pkgs
+          # notify watcher
+          console.log 'updating connect'
+          fs.writeFile USER_CONNECT_PATH, JSON.stringify({
+            data: data
+            token: token
+            user_id: user_id
+            timestamp: Date.now()
+          }, null, 2), 'utf8', (err) ->
+            return console.log err if err
+
+            # respond to user
+            pkgs = {}
+            for i, id of fs.readdirSync pkg_dir
+              pkgs[id] = {}
+              pkg_path = "#{pkg_dir}/#{id}"
+              continue unless fs.lstatSync(pkg_path).isDirectory()
+              for i, version of fs.readdirSync pkg_path
+                pkgs[id][version] = 1
+            res.send pkgs
 
     # Package Config
     router.route 'GET', '/pkg/:id/:version/config.json', (req, res, next) ->
@@ -630,7 +651,6 @@ exports = module.exports = (cfg) ->
                   res.send asset.data
                 else if ext is 'js.map'
                   res.send asset.v3_source_map
-
 
             # style files
             when 'css'
