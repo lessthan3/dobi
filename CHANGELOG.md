@@ -1,3 +1,7 @@
+**v1.7.1** (2014-11-17)
+
+ - allow developer to not have a config file yet
+
 **v1.7.0** (2014-11-17)
 
  - allow custom cache age for js/css
