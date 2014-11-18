@@ -2,6 +2,7 @@
 CSON = require 'cson'
 Firebase = require 'firebase'
 async = require 'async'
+cluster = require 'cluster'
 colors = require 'colors'
 columnify = require 'columnify'
 clipboard = require('copy-paste').noConflict()
@@ -16,6 +17,7 @@ mongofb = require 'mongofb'
 ncp = require('ncp').ncp
 open = require 'open'
 optimist = require 'optimist'
+os = require 'os'
 path = require 'path'
 readline = require 'readline'
 request = require 'request'
@@ -63,7 +65,9 @@ rl = readline.createInterface {
 }
 XMLparser = new xml2js.Parser {explicitArray: false}
 
-
+config = {}
+if fs.existsSync '/u/config/dobi-server'
+  config = require '/u/config/dobi-server'
 
 connect = (next) ->
   login ({token, user}) ->
@@ -115,26 +119,26 @@ login = (require_logged_in, next) ->
   [require_logged_in, next] = [false, require_logged_in] unless next
 
   log 'authenticating user'
-  readUserConfig (config) ->
-    if config.user
-      next config
+  readUserConfig (user_config) ->
+    if user_config.user
+      next user_config
     else if not require_logged_in
       next {user: null}
     else
       log 'not logged in: must authenticate'
       log 'opening login portal in just a few moments'
       setTimeout ( ->
-        open 'http://www.dobi.io/auth'
+        open 'http://www.lessthan3.com/developers/auth'
         rl.question "Enter Token: ", (token) ->
           exit 'must specify token' unless token
           fb = new Firebase FIREBASE_URL
           fb.auth token, (err, data) ->
             exit 'invalid token' if err
-            config.user = data.auth
-            config.token = token
-            config.token_expires = data.expires
-            saveUserConfig config, ->
-              next config
+            user_config.user = data.auth
+            user_config.token = token
+            user_config.token_expires = data.expires
+            saveUserConfig user_config, ->
+              next user_config
       ), 3000
 
 readUserConfig = (next) ->
@@ -148,8 +152,8 @@ readUserConfig = (next) ->
         next {}
 
 saveUserConfig = (data, next) ->
-  config = JSON.stringify data
-  fs.writeFile USER_CONFIG_PATH, config, 'utf8', (err) ->
+  data = JSON.stringify data
+  fs.writeFile USER_CONFIG_PATH, data, 'utf8', (err) ->
     exit 'unable to write user config' if err
     next()
 
@@ -693,18 +697,17 @@ switch command
 
           # update config
           config_path = path.join dest, 'config.cson'
-          config = CSON.parseFileSync config_path
-          config.id = id
-          config.version = version
-          config.author = {name: user.name, email: user.email}
-          config.developers = {}
-          config.developers[user.admin_uid] = 'admin'
-          config = CSON.stringifySync(config).replace /\n\n/g, '\n'
-          fs.writeFileSync config_path, config
+          user_config = CSON.parseFileSync config_path
+          user_config.id = id
+          user_config.version = version
+          user_config.author = {name: user.name, email: user.email}
+          user_config.developers = {}
+          user_config.developers[user.admin_uid] = 'admin'
+          user_config = CSON.stringifySync(config).replace /\n\n/g, '\n'
+          fs.writeFileSync config_path, user_config
 
           # done
           exit 'package created successfully'
-
 
   # deploy an app
   when 'deploy'
@@ -723,19 +726,19 @@ switch command
     config_path = path.join package_path, 'config.cson'
     exists = fs.existsSync config_path
     exit 'package config.cson does not exist' unless exists
-    config = CSON.parseFileSync config_path if exists
-    config.files = []
-    config.private ?= false
+    pkg_config = CSON.parseFileSync config_path if exists
+    pkg_config.files = []
+    pkg_config.private ?= false
 
     # legacy
-    delete config.changelog
+    delete pkg_config.changelog
 
     # load files
     log "loading files"
     finder = findit package_path
     finder.on 'file', (file, stat) ->
       data = fs.readFileSync(file).toString 'base64'
-      config.files.push {
+      pkg_config.files.push {
         data: data
         ext: path.extname(file).replace /^\./, ''
         md5: crypto.createHash('md5').update(data).digest('hex')
@@ -746,34 +749,34 @@ switch command
     finder.on 'end', ->
 
       # sort files so md5 is consistent
-      config.files.sort (a, b) -> if a.path > b.path then 1 else -1
+      pkg_config.files.sort (a, b) -> if a.path > b.path then 1 else -1
 
       # update md5
       data = JSON.stringify config
-      config.md5 = crypto.createHash('md5').update(data).digest('hex')
+      pkg_config.md5 = crypto.createHash('md5').update(data).digest('hex')
 
       # connect to database
       connect (user, db) ->
 
         # make sure user is an admin
-        config.developers ?= {}
-        config.developers[user.admin_uid] = 'admin'
+        pkg_config.developers ?= {}
+        pkg_config.developers[user.admin_uid] = 'admin'
 
         # update main config
         ((next) ->
           log 'loading package config'
           db.get('packages_config').findOne {
             id: id
-          }, (err, pkg_config) ->
+          }, (err, doc) ->
             exit err if err
 
             # updating config
-            if pkg_config
-              if not pkg_config.get("developers.#{user.admin_uid}").val() == 'admin'
+            if doc
+              if not doc.get("developers.#{user.admin_uid}").val() == 'admin'
                 exit "you don't have permission to deploy this package"
-              config._id = pkg_config.get('_id').val()
+              pkg_config._id = doc.get('_id').val()
               log 'updating package config'
-              pkg_config.set config, (err) ->
+              doc.set config, (err) ->
                 exit err if err
                 next config
 
@@ -795,25 +798,23 @@ switch command
             exit err if err
 
             # set config reference
-            config.config_id = config._id
-            delete config._id
+            pkg_config.config_id = pkg_config._id
+            delete pkg_config._id
 
             ###
             # temp hack: allow package overwrite
             ###
             if pkg
               log 'package exists. overwriting'
-              config._id = pkg.get('_id').val()
+              pkg_config._id = pkg.get('_id').val()
               pkg.set config, (err) ->
                 exit err if err
                 exit "package #{id}@#{version} re-deployed"
-
 
             else
               db.get('packages').insert config, (err, pkg) ->
                 exit err if err
                 exit "package #{id}@#{version} deployed"
-
 
             ###
             # END HACK
@@ -914,28 +915,43 @@ switch command
     workspace = getWorkspacePathSync()
     exit 'must be in a workspace to run the server' unless workspace
 
-    # dependencies
-    connect = require 'connect'
-    express = require 'express'
-    dobi = require './server'
-    pkg = require path.join '..', 'package'
+    if cluster.isMaster
+      console.log "master #{process.pid}: running"
+      for cpu, index in os.cpus()
+        cluster.fork {CLUSTER_INDEX: index}
+      cluster.on 'exit', (worker, code, signal) ->
+        console.log "worker #{worker.process.pid}: died. restart..."
+        console.log code
+        console.log signal
+        cluster.fork()
+    else
+      console.log "worker #{process.pid}: running"
 
-    # configuration
-    app = express()
-    app.use express.logger '[:date] :status :method :url'
-    app.use connect.urlencoded()
-    app.use connect.json()
-    app.use express.methodOverride()
-    app.use express.cookieParser()
-    app.use dobi {
-      pkg_dir: path.join workspace, 'pkg'
-    }
-    app.use app.router
-    app.use express.errorHandler {dumpExceptions: true, showStack: true}
+      # dependencies
+      connect = require 'connect'
+      express = require 'express'
+      dobi = require './server'
+      pkg = require path.join '..', 'package'
 
-    # listen
-    app.listen pkg.config.port
-    log "listening: #{pkg.config.port}"
+      # configuration
+      app = express()
+      app.use express.logger '[:date] :status :method :url'
+      app.use connect.urlencoded()
+      app.use connect.json()
+      app.use express.methodOverride()
+      app.use express.cookieParser()
+      app.use dobi {
+        firebase: config.firebase or null
+        mongodb: config.mongo or null
+        pkg_dir: path.join workspace, 'pkg'
+        watch: process.env.CLUSTER_INDEX is '0'
+      }
+      app.use app.router
+      app.use express.errorHandler {dumpExceptions: true, showStack: true}
+
+      # listen
+      app.listen pkg.config.port
+      log "listening: #{pkg.config.port}"
 
   # setup a site using your app
   when 'setup'
@@ -962,8 +978,8 @@ switch command
         # read config.cson if it exists
         config_path = path.join workspace, 'pkg', id, version, 'config.cson'
         exists = fs.existsSync config_path
-        config = {}
-        config = CSON.parseFileSync config_path if exists
+        pkg_config = {}
+        pkg_config = CSON.parseFileSync config_path if exists
 
         # read setup.cson if it exists
         setup_path = path.join workspace, 'pkg', id, version, 'setup.cson'
@@ -1005,8 +1021,8 @@ switch command
         site.regions ?= {}
         site.style ?= {}
         site.collections ?= {}
-        config.collections ?= {}
-        for k, v of config.collections
+        pkg_config.collections ?= {}
+        for k, v of pkg_config.collections
           site.collections[k] ?= {}
           site.collections[k].slug ?= k
 

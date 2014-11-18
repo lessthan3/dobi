@@ -22,7 +22,7 @@
   "dependencies": {
     "asset-wrap":     "0.9.x",
     "async":          "0.9.x",
-    "chokidar":       "0.7.1",
+    "chokidar":       "0.11.x",
     "coffeelint":     "1.4.x",
     "coffee-script":  "1.7.x",
     "colors":         "0.6.2",
@@ -38,6 +38,7 @@
     "mkdirp":         "0.5.x",
     "jwt-simple":     "0.2.x",
     "lru-cache":      "2.5.x",
+    "minimist":       "1.1.0",
     "mongofb":        "0.9.x",
     "ncp":            "0.5.1",
     "node.extend":    "1.0.x",
@@ -61,5 +62,5 @@
     "type": "git",
     "url": "git://github.com/lessthan3/dobi.git"
   },
-  "version": "1.6.9"
+  "version": "1.7.2"
 }
