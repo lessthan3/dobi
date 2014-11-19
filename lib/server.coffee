@@ -513,7 +513,6 @@ exports = module.exports = (cfg) ->
           user_id = req.query.user._id
 
           # notify watcher
-          console.log 'updating connect'
           fs.writeFile USER_CONNECT_PATH, JSON.stringify({
             data: data
             token: token

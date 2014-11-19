@@ -66,7 +66,7 @@ rl = readline.createInterface {
 XMLparser = new xml2js.Parser {explicitArray: false}
 
 config = {}
-if fs.existsSync '/u/config/dobi-server'
+if fs.existsSync '/u/config/dobi-server.coffee'
   config = require '/u/config/dobi-server'
 
 connect = (next) ->
@@ -921,8 +921,6 @@ switch command
         cluster.fork {CLUSTER_INDEX: index}
       cluster.on 'exit', (worker, code, signal) ->
         console.log "worker #{worker.process.pid}: died. restart..."
-        console.log code
-        console.log signal
         cluster.fork()
     else
       console.log "worker #{process.pid}: running"
