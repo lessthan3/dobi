@@ -22,27 +22,30 @@
   "dependencies": {
     "asset-wrap":     "0.9.x",
     "async":          "0.9.x",
-    "chokidar":       "0.7.1",
+    "chokidar":       "0.11.x",
     "coffeelint":     "1.4.x",
     "coffee-script":  "1.7.x",
     "colors":         "0.6.2",
     "columnify":      "1.2.1",
     "connect":        "2.17.x",
-    "copy-paste": "0.3.x",
+    "copy-paste":     "0.3.x",
     "cson":           "1.6.x",
     "express":        "3.4.x",
     "findit":         "1.2.x",
     "firebase":       "1.0.x",
     "htmlparser2":    "3.7.x",
+    "jsonlint":       "1.6.0",
     "mkdirp":         "0.5.x",
     "jwt-simple":     "0.2.x",
     "lru-cache":      "2.5.x",
+    "minimist":       "1.1.0",
     "mongofb":        "0.9.x",
     "ncp":            "0.5.1",
     "node.extend":    "1.0.x",
     "open":           "0.0.x",
     "optimist":       "0.6.x",
     "request":        "2.39.x",
+    "stylus-help":    "1.7.1",
     "xml2js":         "0.4.x"
   },
   "description": "Dobi.io Developer Tools",
@@ -59,5 +62,5 @@
     "type": "git",
     "url": "git://github.com/lessthan3/dobi.git"
   },
-  "version": "1.6.9"
+  "version": "1.7.2"
 }

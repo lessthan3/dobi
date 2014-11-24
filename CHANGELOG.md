@@ -1,6 +1,17 @@
-**in process* (2014-09-22)
+**v1.7.2** (2014-11-17
+
+ - fix connect/updates for clustered dev
+ - update chokidar to 0.11
+
+**v1.7.1** (2014-11-17)
+
+ - allow developer to not have a config file yet
+
+**v1.7.0** (2014-11-17)
 
  - allow custom cache age for js/css
+ - bump version on chokidar depedency
+ - cluster on dobi run for dev
 
 **v1.6.9** (2014-08-21)
 

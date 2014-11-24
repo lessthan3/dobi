@@ -2,9 +2,10 @@
 # dependencies
 CSON = require 'cson'
 async = require 'async'
-coffeelint = require 'coffeelint'
+cluster = require 'cluster'
 colors = require 'colors'
 crypto = require 'crypto'
+dobiLint = require './dobi-lint'
 extend =  require 'node.extend'
 findit = require 'findit'
 fs = require 'fs'
@@ -12,6 +13,7 @@ mkdirp = require 'mkdirp'
 ncp = require('ncp').ncp
 open = require 'open'
 optimist = require 'optimist'
+os = require 'os'
 path = require 'path'
 readline = require 'readline'
 request = require 'request'
@@ -49,6 +51,37 @@ where <command> [command-specific-options] is one of:
 CWD = process.cwd()
 
 # helpers
+<<<<<<< HEAD
+=======
+rl = readline.createInterface {
+  input: process.stdin
+  output: process.stdout
+}
+XMLparser = new xml2js.Parser {explicitArray: false}
+
+config = {}
+if fs.existsSync '/u/config/dobi-server'
+  config = require '/u/config/dobi-server'
+
+connect = (next) ->
+  login ({token, user}) ->
+    exit "please login first: 'dobi login'" unless user
+
+    user.admin_uid = user.uid.replace /\./g, ','
+
+    log 'connect to database'
+    db = new mongofb.client.Database {
+      server: DATABASE_URL
+      firebase: FIREBASE_URL
+    }
+    db.cache = false
+    user.token = token
+    db.auth token, (err) ->
+      exit "error authenticating" if err
+      log 'connected'
+      next user, db
+
+>>>>>>> upstream/master
 exit = (msg) ->
   log msg if msg
   process.exit()
@@ -56,6 +89,55 @@ exit = (msg) ->
 log = (msg) ->
   console.log "[dobi] #{msg}"
 
+<<<<<<< HEAD
+=======
+logout = (next) ->
+  saveUserConfig {}, ->
+    next()
+
+login = (require_logged_in, next) ->
+  [require_logged_in, next] = [false, require_logged_in] unless next
+
+  log 'authenticating user'
+  readUserConfig (user_config) ->
+    if user_config.user
+      next user_config
+    else if not require_logged_in
+      next {user: null}
+    else
+      log 'not logged in: must authenticate'
+      log 'opening login portal in just a few moments'
+      setTimeout ( ->
+        open 'http://www.lessthan3.com/developers/auth'
+        rl.question "Enter Token: ", (token) ->
+          exit 'must specify token' unless token
+          fb = new Firebase FIREBASE_URL
+          fb.auth token, (err, data) ->
+            exit 'invalid token' if err
+            user_config.user = data.auth
+            user_config.token = token
+            user_config.token_expires = data.expires
+            saveUserConfig user_config, ->
+              next user_config
+      ), 3000
+
+readUserConfig = (next) ->
+  fs.exists USER_CONFIG_PATH, (exists) ->
+    if exists
+      fs.readFile USER_CONFIG_PATH, 'utf8', (err, data) ->
+        exit 'unable to read user config' if err
+        next JSON.parse data
+    else
+      saveUserConfig {}, ->
+        next {}
+
+saveUserConfig = (data, next) ->
+  data = JSON.stringify data
+  fs.writeFile USER_CONFIG_PATH, data, 'utf8', (err) ->
+    exit 'unable to write user config' if err
+    next()
+
+>>>>>>> upstream/master
 # get arguments and options
 argv = optimist.argv._
 command = argv[0]
@@ -249,18 +331,17 @@ switch command
 
           # update config
           config_path = path.join dest, 'config.cson'
-          config = CSON.parseFileSync config_path
-          config.id = id
-          config.version = version
-          config.author = {name: user.name, email: user.email}
-          config.developers = {}
-          config.developers[user.admin_uid] = 'admin'
-          config = CSON.stringifySync(config).replace /\n\n/g, '\n'
-          fs.writeFileSync config_path, config
+          user_config = CSON.parseFileSync config_path
+          user_config.id = id
+          user_config.version = version
+          user_config.author = {name: user.name, email: user.email}
+          user_config.developers = {}
+          user_config.developers[user.admin_uid] = 'admin'
+          user_config = CSON.stringifySync(config).replace /\n\n/g, '\n'
+          fs.writeFileSync config_path, user_config
 
           # done
           exit 'package created successfully'
-
 
   # deploy an app
   when 'deploy'
@@ -279,19 +360,19 @@ switch command
     config_path = path.join package_path, 'config.cson'
     exists = fs.existsSync config_path
     exit 'package config.cson does not exist' unless exists
-    config = CSON.parseFileSync config_path if exists
-    config.files = []
-    config.private ?= false
+    pkg_config = CSON.parseFileSync config_path if exists
+    pkg_config.files = []
+    pkg_config.private ?= false
 
     # legacy
-    delete config.changelog
+    delete pkg_config.changelog
 
     # load files
     log "loading files"
     finder = findit package_path
     finder.on 'file', (file, stat) ->
       data = fs.readFileSync(file).toString 'base64'
-      config.files.push {
+      pkg_config.files.push {
         data: data
         ext: path.extname(file).replace /^\./, ''
         md5: crypto.createHash('md5').update(data).digest('hex')
@@ -302,34 +383,34 @@ switch command
     finder.on 'end', ->
 
       # sort files so md5 is consistent
-      config.files.sort (a, b) -> if a.path > b.path then 1 else -1
+      pkg_config.files.sort (a, b) -> if a.path > b.path then 1 else -1
 
       # update md5
       data = JSON.stringify config
-      config.md5 = crypto.createHash('md5').update(data).digest('hex')
+      pkg_config.md5 = crypto.createHash('md5').update(data).digest('hex')
 
       # connect to database
       utils.connect (user, db) ->
 
         # make sure user is an admin
-        config.developers ?= {}
-        config.developers[user.admin_uid] = 'admin'
+        pkg_config.developers ?= {}
+        pkg_config.developers[user.admin_uid] = 'admin'
 
         # update main config
         ((next) ->
           log 'loading package config'
           db.get('packages_config').findOne {
             id: id
-          }, (err, pkg_config) ->
+          }, (err, doc) ->
             exit err if err
 
             # updating config
-            if pkg_config
-              if not pkg_config.get("developers.#{user.admin_uid}").val() == 'admin'
+            if doc
+              if not doc.get("developers.#{user.admin_uid}").val() == 'admin'
                 exit "you don't have permission to deploy this package"
-              config._id = pkg_config.get('_id').val()
+              pkg_config._id = doc.get('_id').val()
               log 'updating package config'
-              pkg_config.set config, (err) ->
+              doc.set config, (err) ->
                 exit err if err
                 next config
 
@@ -351,25 +432,23 @@ switch command
             exit err if err
 
             # set config reference
-            config.config_id = config._id
-            delete config._id
+            pkg_config.config_id = pkg_config._id
+            delete pkg_config._id
 
             ###
             # temp hack: allow package overwrite
             ###
             if pkg
               log 'package exists. overwriting'
-              config._id = pkg.get('_id').val()
+              pkg_config._id = pkg.get('_id').val()
               pkg.set config, (err) ->
                 exit err if err
                 exit "package #{id}@#{version} re-deployed"
-
 
             else
               db.get('packages').insert config, (err, pkg) ->
                 exit err if err
                 exit "package #{id}@#{version} deployed"
-
 
             ###
             # END HACK
@@ -419,41 +498,32 @@ switch command
     config = JSON.parse fs.readFileSync "#{__dirname}/lint.json"
 
     # lint each file in the package
-    results = []
+    files = []
     workspace = utils.getWorkspacePathSync()
     exit 'must be in a workspace to lint your package' unless workspace
     package_path = path.join workspace, 'pkg', id, version
     finder = findit package_path
-    finder.on 'file', (file, stat) ->
-      ext = path.extname(file).replace /^\./, ''
-      return unless ext is 'coffee'
+    finder.on 'file', (file, stat) -> files.push file
 
-      # lint if no individual file specified, or if we match the target file
-      if not target or target is path.basename file
-        results.push {
-          file: file
-          errors: coffeelint.lint fs.readFileSync(file, 'utf8'), config
-        }
     finder.on 'end', ->
-
       success = true
-      for result in results
-        continue unless result.errors.length > 0
-        log result.file.green
-        for err in result.errors
-          success = false
-          color = if err.level is 'error' then 'red' else 'yellow'
-          line_number = "##{err.lineNumber}"
-          indent = '' ; indent += ' ' for i in [0...line_number.length + 2]
-          err.line = "#{err.line.replace /\s*(.*)/, "#{indent}$1"}" if err.line
-          err.context = if err.context then ": #{err.context}" else ''
-          log "#{line_number[color]}: #{err.message}#{err.context}"
-          log err.line.cyan if err.line
+      async.eachSeries files, ((file, next) ->
+        dobiLint file, (exit_code) ->
+          success = false if exit_code
+          next()
+      ), (err) ->
+        if success
+          log 'Success! This package is lint free.'.green
+        else
           log ''
-
-      if success
-        log 'Success! This package is lint free.'.green
-      exit()
+          log ' ---------------------------------------------- '
+          log '|         * * * E P I C    F A I L * * *       |'
+          log '|                                              |'
+          log '| Some files failed dobi lint validation.      |'
+          log '|                                              |'
+          log ' ---------------------------------------------- '
+          log ''
+        exit()
 
   # authenticate your user
   when 'login'
@@ -479,28 +549,43 @@ switch command
     workspace = utils.getWorkspacePathSync()
     exit 'must be in a workspace to run the server' unless workspace
 
-    # dependencies
-    connect = require 'connect'
-    express = require 'express'
-    dobi = require './server'
-    pkg = require path.join '..', 'package'
+    if cluster.isMaster
+      console.log "master #{process.pid}: running"
+      for cpu, index in os.cpus()
+        cluster.fork {CLUSTER_INDEX: index}
+      cluster.on 'exit', (worker, code, signal) ->
+        console.log "worker #{worker.process.pid}: died. restart..."
+        console.log code
+        console.log signal
+        cluster.fork()
+    else
+      console.log "worker #{process.pid}: running"
 
-    # configuration
-    app = express()
-    app.use express.logger '[:date] :status :method :url'
-    app.use connect.urlencoded()
-    app.use connect.json()
-    app.use express.methodOverride()
-    app.use express.cookieParser()
-    app.use dobi {
-      pkg_dir: path.join workspace, 'pkg'
-    }
-    app.use app.router
-    app.use express.errorHandler {dumpExceptions: true, showStack: true}
+      # dependencies
+      connect = require 'connect'
+      express = require 'express'
+      dobi = require './server'
+      pkg = require path.join '..', 'package'
 
-    # listen
-    app.listen pkg.config.port
-    log "listening: #{pkg.config.port}"
+      # configuration
+      app = express()
+      app.use express.logger '[:date] :status :method :url'
+      app.use connect.urlencoded()
+      app.use connect.json()
+      app.use express.methodOverride()
+      app.use express.cookieParser()
+      app.use dobi {
+        firebase: config.firebase or null
+        mongodb: config.mongo or null
+        pkg_dir: path.join workspace, 'pkg'
+        watch: process.env.CLUSTER_INDEX is '0'
+      }
+      app.use app.router
+      app.use express.errorHandler {dumpExceptions: true, showStack: true}
+
+      # listen
+      app.listen pkg.config.port
+      log "listening: #{pkg.config.port}"
 
   # setup a site using your app
   when 'setup'
@@ -527,8 +612,8 @@ switch command
         # read config.cson if it exists
         config_path = path.join workspace, 'pkg', id, version, 'config.cson'
         exists = fs.existsSync config_path
-        config = {}
-        config = CSON.parseFileSync config_path if exists
+        pkg_config = {}
+        pkg_config = CSON.parseFileSync config_path if exists
 
         # read setup.cson if it exists
         setup_path = path.join workspace, 'pkg', id, version, 'setup.cson'
@@ -570,8 +655,8 @@ switch command
         site.regions ?= {}
         site.style ?= {}
         site.collections ?= {}
-        config.collections ?= {}
-        for k, v of config.collections
+        pkg_config.collections ?= {}
+        for k, v of pkg_config.collections
           site.collections[k] ?= {}
           site.collections[k].slug ?= k
 
