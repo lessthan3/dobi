@@ -12,15 +12,14 @@
     },
     "no_trailing_whitespace": {
         "name": "no_trailing_whitespace",
-        "level": "error",
+        "level": "ignore",
         "allowed_in_comments": false,
-        "allowed_in_empty_lines": true
+        "allowed_in_empty_lines": false
     },
     "max_line_length": {
         "name": "max_line_length",
         "value": 80,
-        "level": "error",
-        "limitComments": true
+        "level": "error"
     },
     "line_endings": {
         "name": "line_endings",
@@ -76,11 +75,11 @@
     },
     "no_stand_alone_at": {
         "name": "no_stand_alone_at",
-        "level": "warn"
+        "level": "error"
     },
     "space_operators": {
         "name": "space_operators",
-        "level": "ignore"
+        "level": "error"
     },
     "duplicate_key": {
         "name": "duplicate_key",
@@ -126,6 +125,6 @@
     },
     "no_empty_functions": {
         "name": "no_empty_functions",
-        "level": "warn"
+        "level": "ignore"
     }
 }

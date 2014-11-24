@@ -34,6 +34,7 @@
     "findit":         "1.2.x",
     "firebase":       "1.0.x",
     "htmlparser2":    "3.7.x",
+    "jsonlint":       "1.6.0",
     "mkdirp":         "0.5.x",
     "jwt-simple":     "0.2.x",
     "lru-cache":      "2.5.x",
@@ -44,6 +45,7 @@
     "open":           "0.0.x",
     "optimist":       "0.6.x",
     "request":        "2.39.x",
+    "stylus-help":    "1.7.1",
     "xml2js":         "0.4.x"
   },
   "description": "Dobi.io Developer Tools",
