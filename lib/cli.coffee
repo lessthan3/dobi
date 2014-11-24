@@ -51,37 +51,10 @@ where <command> [command-specific-options] is one of:
 CWD = process.cwd()
 
 # helpers
-<<<<<<< HEAD
-=======
-rl = readline.createInterface {
-  input: process.stdin
-  output: process.stdout
-}
-XMLparser = new xml2js.Parser {explicitArray: false}
-
 config = {}
 if fs.existsSync '/u/config/dobi-server'
   config = require '/u/config/dobi-server'
 
-connect = (next) ->
-  login ({token, user}) ->
-    exit "please login first: 'dobi login'" unless user
-
-    user.admin_uid = user.uid.replace /\./g, ','
-
-    log 'connect to database'
-    db = new mongofb.client.Database {
-      server: DATABASE_URL
-      firebase: FIREBASE_URL
-    }
-    db.cache = false
-    user.token = token
-    db.auth token, (err) ->
-      exit "error authenticating" if err
-      log 'connected'
-      next user, db
-
->>>>>>> upstream/master
 exit = (msg) ->
   log msg if msg
   process.exit()
@@ -89,55 +62,6 @@ exit = (msg) ->
 log = (msg) ->
   console.log "[dobi] #{msg}"
 
-<<<<<<< HEAD
-=======
-logout = (next) ->
-  saveUserConfig {}, ->
-    next()
-
-login = (require_logged_in, next) ->
-  [require_logged_in, next] = [false, require_logged_in] unless next
-
-  log 'authenticating user'
-  readUserConfig (user_config) ->
-    if user_config.user
-      next user_config
-    else if not require_logged_in
-      next {user: null}
-    else
-      log 'not logged in: must authenticate'
-      log 'opening login portal in just a few moments'
-      setTimeout ( ->
-        open 'http://www.lessthan3.com/developers/auth'
-        rl.question "Enter Token: ", (token) ->
-          exit 'must specify token' unless token
-          fb = new Firebase FIREBASE_URL
-          fb.auth token, (err, data) ->
-            exit 'invalid token' if err
-            user_config.user = data.auth
-            user_config.token = token
-            user_config.token_expires = data.expires
-            saveUserConfig user_config, ->
-              next user_config
-      ), 3000
-
-readUserConfig = (next) ->
-  fs.exists USER_CONFIG_PATH, (exists) ->
-    if exists
-      fs.readFile USER_CONFIG_PATH, 'utf8', (err, data) ->
-        exit 'unable to read user config' if err
-        next JSON.parse data
-    else
-      saveUserConfig {}, ->
-        next {}
-
-saveUserConfig = (data, next) ->
-  data = JSON.stringify data
-  fs.writeFile USER_CONFIG_PATH, data, 'utf8', (err) ->
-    exit 'unable to write user config' if err
-    next()
-
->>>>>>> upstream/master
 # get arguments and options
 argv = optimist.argv._
 command = argv[0]
