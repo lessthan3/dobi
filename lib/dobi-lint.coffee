@@ -25,7 +25,7 @@ fail = (line_number, message, line) ->
 module.exports = (filename, next) ->
 
     read = (filename) ->
-      next 0 unless fs.existsSync filename
+      return next 0 unless fs.existsSync filename
       fs.readFileSync filename, 'utf8'
 
     # file info
@@ -34,7 +34,7 @@ module.exports = (filename, next) ->
     lines = contents.split '\n'
 
     # only check certain extensions
-    next() unless ext in EXTENSIONS
+    return next() unless ext in EXTENSIONS
 
     # trailing whitespace is not allowed
     msg = 'Trailing whitespace is not allowed'
