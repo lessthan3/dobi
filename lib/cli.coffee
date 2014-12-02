@@ -38,7 +38,7 @@ where <command> [command-specific-options] is one of:
   docs                              open the dobi docs
   help                              show usage
   init                              initialize a workspace
-  lint                              lint package or -f <file> to lint file
+  lint <id@version> | -p <path>     lint package or -p <path> to lint file/dir
   login                             authenticate your user
   logout                            deauthenticate your user
   open <site-slug>                  open a site
