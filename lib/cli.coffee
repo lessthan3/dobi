@@ -38,7 +38,7 @@ where <command> [command-specific-options] is one of:
   docs                              open the dobi docs
   help                              show usage
   init                              initialize a workspace
-  lint                              lint your package
+  lint                              lint package or -f <file> to lint file
   login                             authenticate your user
   logout                            deauthenticate your user
   open <site-slug>                  open a site
@@ -852,44 +852,70 @@ switch command
   # lint your package
   when 'lint'
 
-    exit "must specify package id@version" unless args[0]
+    # set default target type
+    target_type = 'package'
 
-    [id, version] = args[0].split '@'
-    target = args[1]
+    getPath = (next) ->
+      target = optimist.argv.p
+      if target
+        return next 'must specify file path' unless typeof target is 'string'
+        return next "file or folder doesn't exist" unless fs.existsSync target
+        target_is_directory = fs.lstatSync(target).isDirectory()
 
-    exit "must specify package id" unless id
-    exit "must specify package version" unless version
+        target_type = 'file'
+        target_type = if target_is_directory
+        next null, target
 
-    # read lint config
-    config = JSON.parse fs.readFileSync "#{__dirname}/lint.json"
+      else
+        [id, version] = args[0].split '@'
 
-    # lint each file in the package
-    files = []
-    workspace = getWorkspacePathSync()
-    exit 'must be in a workspace to lint your package' unless workspace
-    package_path = path.join workspace, 'pkg', id, version
-    finder = findit package_path
-    finder.on 'file', (file, stat) -> files.push file
+        for k, v of {id, version}
+          return next "must specify package #{k}" unless v
 
-    finder.on 'end', ->
+        workspace = getWorkspacePathSync()
+        if not workspace
+          return next 'must be in a workspace to lint your package'
+        pkg_path = path.join workspace, 'pkg', id, version
+        return next 'package not found' unless fs.existsSync pkg_path
+        next null, pkg_path
+
+    collectFiles = (path, next) ->
+      return next null, [path] if target_type is 'file'
+      files = []
+      ignored_dirs = ['.git', 'node_modules']
+
+      finder = findit path
+      finder.on 'directory', (dir, stat, stop) -> stop() if dir in ignored_dirs
+      finder.on 'file', (file) -> files.push file
+      finder.on 'end', -> next null, files
+
+    lintPath = (files, done) ->
       success = true
       async.eachSeries files, ((file, next) ->
         dobiLint file, (exit_code) ->
           success = false if exit_code
           next()
       ), (err) ->
-        if success
-          log 'Success! This package is lint free.'.green
-        else
-          log ''
-          log ' ---------------------------------------------- '
-          log '|         * * * E P I C    F A I L * * *       |'
-          log '|                                              |'
-          log '| Some files failed dobi lint validation.      |'
-          log '|                                              |'
-          log ' ---------------------------------------------- '
-          log ''
-        exit()
+        done null, success
+
+    async.waterfall [
+      (next) -> getPath next
+      (path, next) -> collectFiles path, next
+      (files, next) -> lintPath files, next
+    ], (err, success) ->
+      exit err if err
+      if success
+        log "Success! This #{target_type} is lint free.".green
+      else
+        log ''
+        log ' ---------------------------------------------- '
+        log '|         * * * E P I C    F A I L * * *       |'
+        log '|                                              |'
+        log '| Some files failed dobi lint validation.      |'
+        log '|                                              |'
+        log ' ---------------------------------------------- '
+        log ''
+      exit()
 
   # authenticate your user
   when 'login'
