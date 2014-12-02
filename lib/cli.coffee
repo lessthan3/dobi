@@ -863,7 +863,7 @@ switch command
         target_is_directory = fs.lstatSync(target).isDirectory()
 
         target_type = 'file'
-        target_type = if target_is_directory
+        target_type = 'directory' if target_is_directory
         next null, target
 
       else
