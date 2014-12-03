@@ -1,4 +1,9 @@
-**v1.7.2** (2014-11-17
+**v1.7.3** (2014-12-03)
+
+ - revert cluster for now
+ - allow linting on a per file basis
+
+**v1.7.2** (2014-11-17)
 
  - fix connect/updates for clustered dev
  - update chokidar to 0.11

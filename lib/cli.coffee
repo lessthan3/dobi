@@ -941,7 +941,8 @@ switch command
     workspace = getWorkspacePathSync()
     exit 'must be in a workspace to run the server' unless workspace
 
-    if cluster.isMaster
+    # can add back a command line option for cluster in the future
+    if false # if cluster.isMaster
       console.log "master #{process.pid}: running"
       for cpu, index in os.cpus()
         cluster.fork {CLUSTER_INDEX: index}
