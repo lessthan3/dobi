@@ -37,7 +37,7 @@
     },
     "camel_case_classes": {
         "name": "camel_case_classes",
-        "level": "error"
+        "level": "ignore"
     },
     "colon_assignment_spacing": {
         "name": "colon_assignment_spacing",
