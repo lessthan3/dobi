@@ -24,6 +24,8 @@ fail = (line_number, message, line) ->
 
 module.exports = (filename, next) ->
 
+  ERRORS = []
+
   read = (filename) ->
     return next 0 unless fs.existsSync filename
     fs.readFileSync filename, 'utf8'
