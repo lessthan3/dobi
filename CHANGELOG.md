@@ -1,3 +1,7 @@
+**v1.7.4** (2014-12-04)
+
+ - fix lint issue
+
 **v1.7.3** (2014-12-03)
 
  - revert cluster for now
