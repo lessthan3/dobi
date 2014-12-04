@@ -1,4 +1,8 @@
-**v1.7.4** (2014-12-04)
+**v1.7.5** (2014-12-04)
+
+ - fix watch issue for non-cluster mode
+
+**v1.7.4** (2014-12-03)
 
  - fix lint issue
 
