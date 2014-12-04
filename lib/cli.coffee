@@ -943,14 +943,14 @@ switch command
 
     # can add back a command line option for cluster in the future
     if false # if cluster.isMaster
-      console.log "master #{process.pid}: running"
+      log "master #{process.pid}: running"
       for cpu, index in os.cpus()
         cluster.fork {CLUSTER_INDEX: index}
       cluster.on 'exit', (worker, code, signal) ->
-        console.log "worker #{worker.process.pid}: died. restart..."
+        log "worker #{worker.process.pid}: died. restart..."
         cluster.fork()
     else
-      console.log "worker #{process.pid}: running"
+      log "worker #{process.pid}: running"
 
       # dependencies
       connect = require 'connect'
@@ -969,7 +969,7 @@ switch command
         firebase: config.firebase or null
         mongodb: config.mongo or null
         pkg_dir: path.join workspace, 'pkg'
-        watch: process.env.CLUSTER_INDEX is '0'
+        watch: process.env.CLUSTER_INDEX in ['0', undefined]
       }
       app.use app.router
       app.use express.errorHandler {dumpExceptions: true, showStack: true}
