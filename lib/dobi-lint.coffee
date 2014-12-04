@@ -133,7 +133,7 @@ module.exports = (filename, next) ->
 
     msg = 'a single space is required after the # of a comment'
     for line, index in lines
-      if /^(\s)*#[^\s#{]/.test line
+      if /^(\s)*#[^\s=#{]/.test line
         fail index + 1, msg, line
 
     msg = 'an empty line is required prior to a single line comment'
