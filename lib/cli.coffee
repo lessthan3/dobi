@@ -915,7 +915,7 @@ switch command
         log '|                                              |'
         log ' ---------------------------------------------- '
         log ''
-      exit()
+      process.exit(1 unless success)
 
   # authenticate your user
   when 'login'
