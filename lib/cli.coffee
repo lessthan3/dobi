@@ -856,7 +856,6 @@ switch command
     target_type = 'package'
 
     # target and silent_fail arguments
-    # silent fail only used by pre-commit script
     target = optimist.argv.p
     silent_fail = optimist.argv.s
 
