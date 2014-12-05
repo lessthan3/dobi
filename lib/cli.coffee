@@ -855,8 +855,12 @@ switch command
     # set default target type
     target_type = 'package'
 
+    # target and silent_fail arguments
+    # silent fail only used by pre-commit script
+    target = optimist.argv.p
+    silent_fail = optimist.argv.s
+
     getPath = (next) ->
-      target = optimist.argv.p
       if target
         return next 'must specify file path' unless typeof target is 'string'
         return next "file or folder doesn't exist" unless fs.existsSync target
@@ -906,7 +910,7 @@ switch command
       exit err if err
       if success
         log "Success! This #{target_type} is lint free.".green
-      else
+      else unless silent_fail
         log ''
         log ' ---------------------------------------------- '
         log '|         * * * E P I C    F A I L * * *       |'
@@ -915,7 +919,7 @@ switch command
         log '|                                              |'
         log ' ---------------------------------------------- '
         log ''
-      process.exit(1 unless success)
+      process.exit not success
 
   # authenticate your user
   when 'login'
