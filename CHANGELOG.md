@@ -1,3 +1,7 @@
+**v1.7.6** (2014-12-05)
+
+ - return proper exit code from dobi lint
+
 **v1.7.5** (2014-12-04)
 
  - fix watch issue for non-cluster mode
