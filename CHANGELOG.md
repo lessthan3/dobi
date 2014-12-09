@@ -1,3 +1,7 @@
+**v1.7.7** (2014-12-08)
+
+ - update stylus-help to 1.7.3
+
 **v1.7.6** (2014-12-05)
 
  - return proper exit code from dobi lint
