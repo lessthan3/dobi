@@ -1,3 +1,4 @@
+###
 # dependencies
 CSON = require 'cson'
 Firebase = require 'firebase'
@@ -22,7 +23,8 @@ path = require 'path'
 readline = require 'readline'
 request = require 'request'
 xml2js = require 'xml2js'
-
+###
+process.exit()
 
 # usage
 USAGE = """
@@ -852,22 +854,23 @@ switch command
   # lint your package
   when 'lint'
 
-    # set default target type
-    target_type = 'package'
-
     # target and silent_fail arguments
-    target = optimist.argv.p
+    targets = optimist.argv.p
     silent_fail = optimist.argv.s
 
     getPath = (next) ->
-      if target
-        return next 'must specify file path' unless typeof target is 'string'
-        return next "file or folder doesn't exist" unless fs.existsSync target
-        target_is_directory = fs.lstatSync(target).isDirectory()
+      if targets
+        targets = [targets].concat optimist.argv._[1..]
+        files = []
+        for target in targets
+          return next 'must specify file path' unless typeof target is 'string'
+          return next "file or folder doesn't exist" unless fs.existsSync target
+          target_is_directory = fs.lstatSync(target).isDirectory()
+          type = 'file'
+          type = 'directory' if target_is_directory
+          files.push {path: target, type: type}
 
-        target_type = 'file'
-        target_type = 'directory' if target_is_directory
-        next null, target
+        next null, files
 
       else
         [id, version] = args[0].split '@'
@@ -880,17 +883,31 @@ switch command
           return next 'must be in a workspace to lint your package'
         pkg_path = path.join workspace, 'pkg', id, version
         return next 'package not found' unless fs.existsSync pkg_path
-        next null, pkg_path
+        next null, [{path: pkg_path, type: 'directory'}]
 
-    collectFiles = (path, next) ->
-      return next null, [path] if target_type is 'file'
-      files = []
-      ignored_dirs = ['.git', 'node_modules']
+    collectFiles = (paths, done) ->
+      async.concat paths, ((item, next) ->
+        {type, path} = item
+        switch type
 
-      finder = findit path
-      finder.on 'directory', (dir, stat, stop) -> stop() if dir in ignored_dirs
-      finder.on 'file', (file) -> files.push file
-      finder.on 'end', -> next null, files
+          when 'file'
+            next null, path
+
+          when 'directory'
+            files = []
+            ignored_dirs = ['.git', 'node_modules']
+
+            finder = findit path
+            finder.on 'directory', (dir, stat, stop) ->
+              stop() if dir in ignored_dirs
+            finder.on 'file', (file) ->
+              files.push file
+            finder.on 'end', ->
+              next null, files
+
+      ), (err, files) ->
+        return done err if err
+        done null, files
 
     lintPath = (files, done) ->
       success = true
@@ -908,7 +925,7 @@ switch command
     ], (err, success) ->
       exit err if err
       if success
-        log "Success! This #{target_type} is lint free.".green
+        log "Success! These files are lint free.".green
       else unless silent_fail
         log ''
         log ' ---------------------------------------------- '
