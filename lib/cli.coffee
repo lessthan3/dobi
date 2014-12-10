@@ -1,4 +1,3 @@
-###
 # dependencies
 CSON = require 'cson'
 Firebase = require 'firebase'
@@ -23,8 +22,6 @@ path = require 'path'
 readline = require 'readline'
 request = require 'request'
 xml2js = require 'xml2js'
-###
-process.exit()
 
 # usage
 USAGE = """
