@@ -1,3 +1,7 @@
+**v1.7.8** (2014-12-19)
+
+ - multiple files linting with -p
+
 **v1.7.7** (2014-12-08)
 
  - update stylus-help to 1.7.3
