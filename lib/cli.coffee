@@ -608,6 +608,7 @@ switch command
   when 'clone'
 
     id_mapping = {}
+    objects_cloned = []
     src_slug = args[0]
     dst_slug = args[1]
 
@@ -667,40 +668,35 @@ switch command
                 data.site_id = dst_site.get('_id').val()
                 db.get('objects').insert data, (err, new_data) ->
                   id_mapping[old_id] = new_data.val()._id
+                  objects_cloned.push new_data
                   exit err if err
                   next()
               ), (err) ->
 
                 # clean up references
-                db.get('objects').find {
-                  site_id: dst_site.get('_id').val()
-                }, {
-                  limit: 100000
-                }, (err, objects) ->
+                async.map objects_cloned ((object, next) =>
+                  object_val = object.val()
+                  str_json = JSON.stringify(object_val, null, 3)
+                  replaced = false
 
-                  async.forEach objects, ((object, next) ->
-                    object_val = object.val()
-                    str_json = JSON.stringify(object_val, null, 3)
-                    replaced = false
+                  # replace mapping
+                  for key, value of id_mapping
+                    if str_json.indexOf(key) > -1
+                      og_key = new RegExp(key, 'g');
+                      replaced = true
+                      str_json = str_json.replace(og_key, value)
 
-                    # replace mapping
-                    for key, value of id_mapping
-                      if str_json.indexOf(key) > -1
-                        og_key = new RegExp(key, 'g');
-                        replaced = true
-                        str_json = str_json.replace(og_key, value)
+                  if replaced
+                    new_json = JSON.parse(str_json)
 
-                    if replaced
-                      new_json = JSON.parse(str_json)
-
-                      # set new data with updated mapping
-                      object.get('data').set new_json.data, (err) ->
-                        next()
-                    else
+                    # set new data with updated mapping
+                    object.get('data').set new_json.data, (err) ->
                       next()
-                  ), (err) ->
-                    exit err if err
-                    exit 'clone complete may need to wait 60 seconds for cache to clear'
+                  else
+                    next()
+                ), (err) ->
+                  exit err if err
+                  exit 'clone complete may need to wait 60 seconds for cache to clear'
 
 
   # create a new package
