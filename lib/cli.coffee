@@ -127,7 +127,7 @@ login = (require_logged_in, next) ->
       log 'not logged in: must authenticate'
       log 'opening login portal in just a few moments'
       setTimeout ( ->
-        open 'http://www.lessthan3.com/developers/auth'
+        open 'http://www.maestro.io/developers/auth'
         rl.question "Enter Token: ", (token) ->
           exit 'must specify token' unless token
           fb = new Firebase FIREBASE_URL
@@ -226,7 +226,7 @@ switch command
         log "site found: #{site.get('_id').val()}"
 
         # clear cache
-        api = 'http://www.lessthan3.com/pkg/lt3-api/4.0/api'
+        api = 'http://www.maestro.io/pkg/lt3-api/4.0/api'
         resource = 'cache/bust'
         request {
           url: "#{api}/#{resource}"
@@ -646,7 +646,7 @@ switch command
             site = src_site.val()
             site.slug = dst_slug
             site.name = dst_slug
-            site.settings.domain.url = "www.lessthan3.com/#{dst_slug}"
+            site.settings.domain.url = "www.maestro.io/#{dst_slug}"
             site.settings.security.password = ''
             for k, v of site.settings.services
               site.settings.services[k] = ''
@@ -948,7 +948,7 @@ switch command
 
   # open a site
   when 'open'
-    url = 'http://www.lessthan3.com'
+    url = 'http://www.maestro.io'
     url += "/#{arg}" for arg in args
     open url
     exit()
@@ -1048,7 +1048,7 @@ switch command
             version: version
           settings:
             domain:
-              url: "http://www.lessthan3.com/#{slug}"
+              url: "http://www.maestro.io/#{slug}"
             transitions:
               mobile: 'slide'
               web: 'fade'
@@ -1085,7 +1085,7 @@ switch command
             log 'objects have been created'
             log 'loading site in just a moment'
             setTimeout ( ->
-              open "http://www.lessthan3.com/#{slug}?dev=1"
+              open "http://www.maestro.io/#{slug}?dev=1"
               exit()
             ), 3000
 
