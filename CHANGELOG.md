@@ -1,3 +1,7 @@
+**v1.7.9** (2015-01-06)
+
+ - change lessthan3.com references to maestro.io
+
 **v1.7.8** (2014-12-19)
 
  - multiple files linting with -p
