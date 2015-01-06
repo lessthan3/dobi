@@ -606,6 +606,8 @@ switch command
 
   # clone a site
   when 'clone'
+
+    id_mapping = {}
     src_slug = args[0]
     dst_slug = args[1]
 
@@ -659,15 +661,48 @@ switch command
               # insert pages
               async.forEach objects, ((object, next) ->
                 data = object.val()
+                old_id = data._id
                 delete data._id
                 data.seo = {}
                 data.site_id = dst_site.get('_id').val()
-                db.get('objects').insert data, (err) ->
+                db.get('objects').insert data, (err, new_data) ->
+                  console.log 'old', old_id, 'new', new_data.val()._id
+                  id_mapping[old_id] = new_data.val()._id
                   exit err if err
                   next()
               ), (err) ->
-                exit err if err
-                exit 'clone complete'
+
+                # clean up references
+                db.get('objects').find {
+                  site_id: dst_site.get('_id').val()
+                }, {
+                  limit: 100000
+                }, (err, objects) ->
+
+                  async.forEach objects, ((object, next) ->
+                    object_val = object.val()
+                    str_json = JSON.stringify(object_val, null, 3)
+                    replaced = false
+
+                    # replace mapping
+                    for key, value of id_mapping
+                      if str_json.indexOf(key) > -1
+                        og_key = new RegExp(key, 'g');
+                        replaced = true
+                        str_json = str_json.replace(og_key, value)
+
+                    if replaced
+                      new_json = JSON.parse(str_json)
+
+                      # set new data with updated mapping
+                      object.get('data').set new_json.data, (err) ->
+                        next()
+                    else
+                      next()
+                  ), (err) ->
+                    exit err if err
+                    exit 'clone complete may need to wait 60 seconds for cache to clear'
+
 
   # create a new package
   when 'create'
