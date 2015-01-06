@@ -666,7 +666,6 @@ switch command
                 data.seo = {}
                 data.site_id = dst_site.get('_id').val()
                 db.get('objects').insert data, (err, new_data) ->
-                  console.log 'old', old_id, 'new', new_data.val()._id
                   id_mapping[old_id] = new_data.val()._id
                   exit err if err
                   next()
