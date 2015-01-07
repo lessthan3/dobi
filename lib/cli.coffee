@@ -670,7 +670,6 @@ switch command
                   next null, new_data
                   exit err if err
               ), (err, objects_cloned) ->
-                console.log objects_cloned, 'zzzz'
 
                 # clean up references
                 async.forEach objects_cloned, ((object, next) ->
