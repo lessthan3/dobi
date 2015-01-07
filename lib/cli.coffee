@@ -615,87 +615,101 @@ switch command
     exit "must specify site src_slug" unless src_slug
     exit "must specify site dst_slug" unless dst_slug
 
-    # connect to database
-    connect (user, db) ->
+    # run clone
+    async.waterfall [
 
-      # get site
-      log 'find the site'
-      db.get('sites').findOne {
-        slug: src_slug
-      }, (err, src_site) ->
-        exit err if err
-        exit 'could not find site' unless src_site
-        log "site found: #{src_site.get('_id').val()}"
+      # connect to database
+      (next) ->
+        connect (user, db) ->
+          db.sites = db.get 'sites'
+          db.objects = db.get 'objects'
+          next null, db
 
-        # get objects
+      # get the source site
+      (db, next) ->
+        log 'find the source site'
+        db.sites.findOne {
+          slug: src_slug
+        }, (err, src_site) ->
+          return next err if err
+          return next 'could not find source site' if not src_site
+          log "source site found: #{src_site.get('_id').val()}"
+          next null, {db, src_site}
+
+      # get the source site's objects
+      ({db, src_site}, next) ->
         log 'find the objects'
-        db.get('objects').find {
+        db.objects.find {
           site_id: src_site.get('_id').val()
         }, {
           limit: 100000
-        }, (err, objects) ->
-          exit err if err
-          log "#{objects.length} objects found"
+        }, (err, src_objects) ->
+          return next err if err
+          log "#{src_objects.length} objects found"
+          next null, {db, src_site, src_objects}
 
-          # make sure new site doesn't already exist
-          db.get('sites').findOne {
-            slug: dst_slug
-          }, (err, dst_site) ->
-            exit err if err
-            exit 'dst_slug already taken' if dst_site
+      # make sure new site doesn't already exist
+      ({db, src_site, src_objects}, next) ->
+        log 'make sure new site is available'
+        db.sites.findOne {
+          slug: dst_slug
+        }, (err, dst_site) ->
+          err = 'dst_slug already taken' if dst_site
+          next err, {db, src_site, src_objects}
 
-            # create new site
-            site = src_site.val()
-            site.slug = dst_slug
-            site.name = dst_slug
-            site.settings.domain.url = "www.maestro.io/#{dst_slug}"
-            site.settings.security.password = ''
-            for k, v of site.settings.services
-              site.settings.services[k] = ''
-            site.users[user.admin_uid] = 'admin'
-            site.settings.seo = {}
-            site.settings.icons = {}
-            db.get('sites').insert site, (err, dst_site) ->
-              exit err if err
+      # create new site
+      ({db, src_site, src_objects}, next) ->
+        site = src_site.val()
+        site.slug = dst_slug
+        site.name = dst_slug
+        site.settings.domain.url = "www.maestro.io/#{dst_slug}"
+        site.settings.security.password = ''
+        for k, v of site.settings.services
+          site.settings.services[k] = ''
+        site.users[user.admin_uid] = 'admin'
+        site.settings.seo = {}
+        site.settings.icons = {}
+        db.sites.insert site, (err, dst_site) ->
+          next err, {db, src_site, src_objects, dst_site}
 
-              # insert pages
-              async.map objects, ((object, next) ->
-                data = object.val()
-                old_id = data._id
-                delete data._id
-                data.seo = {}
-                data.site_id = dst_site.get('_id').val()
-                db.get('objects').insert data, (err, new_doc) ->
-                  id_mapping[old_id] = new_doc.val()._id
-                  next null, new_doc
-                  exit err if err
-              ), (err, objects_cloned) ->
+      # insert objects
+      ({db, src_site, src_objects, dst_site}, next) ->
+        ids = {}
+        async.map src_objects, ((src_object, callback) ->
+          data = src_object.val()
+          src_id = data._id
+          delete data._id
+          data.seo = {}
+          data.site_id = dst_site.get('_id').val()
+          db.objects.insert data, (err, dst_object) ->
+            return callback err if err
+            dst_id = dst_object.get('_id').val()
+            ids[src_id] = dst_id
+            callback null, dst_object
+        ), (err, dst_objects) ->
+          next err, {db, src_site, src_objects, dst_site, dst_objects, ids}
 
-                # clean up references
-                async.forEach objects_cloned, ((object, next) ->
-                  object_val = object.val()
-                  str_json = JSON.stringify(object_val, null, 3)
-                  replaced = false
+      # update object references
+      ({db, src_site, src_objects, dst_site, dst_objects, ids}, next) ->
+        async.forEach dst_objects, ((dst_object, callback) ->
+          data_ref = dst_object.get 'data'
+          data = JSON.stringify data_ref.val()
 
-                  # replace mapping
-                  for key, value of id_mapping
-                    if str_json.indexOf(key) > -1
-                      og_key = new RegExp(key, 'g');
-                      replaced = true
-                      str_json = str_json.replace(og_key, value)
+          updated = false
+          for src_id, dst_id of ids
+            if data.indexOf(src_id) > -1
+              data = json.replace new RegExp(src_id, 'g'), dst_id
+              updated = true
 
-                  if replaced
-                    new_json = JSON.parse(str_json)
-
-                    # set new data with updated mapping
-                    object.get('data').set new_json.data, (err) ->
-                      next()
-                  else
-                    next()
-                ), (err) ->
-                  exit err if err
-                  exit 'clone complete may need to wait 60 seconds for cache to clear'
-
+          if updated
+            data = JSON.parse data
+            data_ref.set data, callback
+          else
+            callback()
+        ), next
+    ], (err) ->
+      exit err if err
+      exit 'clone complete'
 
   # create a new package
   when 'create'
