@@ -1,3 +1,7 @@
+**v1.8.0** (2015-01-06)
+
+ - fix references in dobi clone
+
 **v1.7.9** (2015-01-06)
 
  - change lessthan3.com references to maestro.io
