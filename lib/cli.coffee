@@ -607,7 +607,6 @@ switch command
   # clone a site
   when 'clone'
 
-    id_mapping = {}
     src_slug = args[0]
     dst_slug = args[1]
 
@@ -623,10 +622,10 @@ switch command
         connect (user, db) ->
           db.sites = db.get 'sites'
           db.objects = db.get 'objects'
-          next null, db
+          next null, {db, user}
 
       # get the source site
-      (db, next) ->
+      ({db, user}, next) ->
         log 'find the source site'
         db.sites.findOne {
           slug: src_slug
@@ -634,10 +633,10 @@ switch command
           return next err if err
           return next 'could not find source site' if not src_site
           log "source site found: #{src_site.get('_id').val()}"
-          next null, {db, src_site}
+          next null, {db, user, src_site}
 
       # get the source site's objects
-      ({db, src_site}, next) ->
+      ({db, user, src_site}, next) ->
         log 'find the objects'
         db.objects.find {
           site_id: src_site.get('_id').val()
@@ -646,19 +645,19 @@ switch command
         }, (err, src_objects) ->
           return next err if err
           log "#{src_objects.length} objects found"
-          next null, {db, src_site, src_objects}
+          next null, {db, user, src_site, src_objects}
 
       # make sure new site doesn't already exist
-      ({db, src_site, src_objects}, next) ->
+      ({db, user, src_site, src_objects}, next) ->
         log 'make sure new site is available'
         db.sites.findOne {
           slug: dst_slug
         }, (err, dst_site) ->
           err = 'dst_slug already taken' if dst_site
-          next err, {db, src_site, src_objects}
+          next err, {db, user, src_site, src_objects}
 
       # create new site
-      ({db, src_site, src_objects}, next) ->
+      ({db, user, src_site, src_objects}, next) ->
         site = src_site.val()
         site.slug = dst_slug
         site.name = dst_slug
@@ -670,10 +669,10 @@ switch command
         site.settings.seo = {}
         site.settings.icons = {}
         db.sites.insert site, (err, dst_site) ->
-          next err, {db, src_site, src_objects, dst_site}
+          next err, {db, src_objects, dst_site}
 
       # insert objects
-      ({db, src_site, src_objects, dst_site}, next) ->
+      ({db, src_objects, dst_site}, next) ->
         ids = {}
         async.map src_objects, ((src_object, callback) ->
           data = src_object.val()
@@ -687,10 +686,10 @@ switch command
             ids[src_id] = dst_id
             callback null, dst_object
         ), (err, dst_objects) ->
-          next err, {db, src_site, src_objects, dst_site, dst_objects, ids}
+          next err, {db, dst_objects, ids}
 
       # update object references
-      ({db, src_site, src_objects, dst_site, dst_objects, ids}, next) ->
+      ({db, dst_objects, ids}, next) ->
         async.forEach dst_objects, ((dst_object, callback) ->
           data_ref = dst_object.get 'data'
           data = JSON.stringify data_ref.val()
