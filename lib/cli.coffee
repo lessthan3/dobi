@@ -697,7 +697,7 @@ switch command
           updated = false
           for src_id, dst_id of ids
             if data.indexOf(src_id) > -1
-              data = json.replace new RegExp(src_id, 'g'), dst_id
+              data = data.replace new RegExp(src_id, 'g'), dst_id
               updated = true
 
           if updated
