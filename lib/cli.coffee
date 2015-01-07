@@ -665,9 +665,9 @@ switch command
                 delete data._id
                 data.seo = {}
                 data.site_id = dst_site.get('_id').val()
-                db.get('objects').insert data, (err, new_data) ->
-                  id_mapping[old_id] = new_data.val()._id
-                  next null, new_data
+                db.get('objects').insert data, (err, new_doc) ->
+                  id_mapping[old_id] = new_doc.val()._id
+                  next null, new_doc
                   exit err if err
               ), (err, objects_cloned) ->
 
