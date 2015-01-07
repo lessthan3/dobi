@@ -608,7 +608,6 @@ switch command
   when 'clone'
 
     id_mapping = {}
-    objects_cloned = []
     src_slug = args[0]
     dst_slug = args[1]
 
@@ -660,7 +659,7 @@ switch command
               exit err if err
 
               # insert pages
-              async.forEach objects, ((object, next) ->
+              async.map objects, ((object, next) ->
                 data = object.val()
                 old_id = data._id
                 delete data._id
@@ -668,13 +667,13 @@ switch command
                 data.site_id = dst_site.get('_id').val()
                 db.get('objects').insert data, (err, new_data) ->
                   id_mapping[old_id] = new_data.val()._id
-                  objects_cloned.push new_data
+                  next null, new_data
                   exit err if err
-                  next()
-              ), (err) ->
+              ), (err, objects_cloned) ->
+                console.log objects_cloned, 'zzzz'
 
                 # clean up references
-                async.map objects_cloned ((object, next) =>
+                async.forEach objects_cloned, ((object, next) ->
                   object_val = object.val()
                   str_json = JSON.stringify(object_val, null, 3)
                   replaced = false
