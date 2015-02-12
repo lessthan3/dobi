@@ -1,3 +1,7 @@
+**v1.8.1** (2015-02-12)
+
+ - upgrade stylus linter
+
 **v1.8.0** (2015-01-06)
 
  - fix references in dobi clone
