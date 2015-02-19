@@ -1,3 +1,7 @@
+**1.8.2** (2015-02-18)
+
+ - --secure option for dobi run
+
 **v1.8.1** (2015-02-12)
 
  - upgrade stylus linter

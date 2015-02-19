@@ -1014,6 +1014,8 @@ switch command
       connect = require 'connect'
       express = require 'express'
       dobi = require './server'
+      http = require 'http'
+      https = require 'https'
       pkg = require path.join '..', 'package'
 
       # configuration
@@ -1033,8 +1035,19 @@ switch command
       app.use express.errorHandler {dumpExceptions: true, showStack: true}
 
       # listen
-      app.listen pkg.config.port
-      log "listening: #{pkg.config.port}"
+      # http
+      if optimist.argv.secure
+        root = "#{__dirname}/ssl"
+        console.log fs.readFileSync("#{root}/localhost.maestro.io.key").toString()
+        console.log fs.readFileSync("#{root}/localhost.maestro.io.crt").toString()
+        https.createServer({
+          key: fs.readFileSync("#{root}/localhost.maestro.io.key").toString()
+          cert: fs.readFileSync("#{root}/localhost.maestro.io.crt").toString()
+        }, app).listen pkg.config.port
+        log "listening https: #{pkg.config.port}"
+      else
+        app.listen pkg.config.port
+        log "listening http: #{pkg.config.port}"
 
   # setup a site using your app
   when 'setup'
