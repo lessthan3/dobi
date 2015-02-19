@@ -1038,8 +1038,6 @@ switch command
       # http
       if optimist.argv.secure
         root = "#{__dirname}/ssl"
-        console.log fs.readFileSync("#{root}/localhost.maestro.io.key").toString()
-        console.log fs.readFileSync("#{root}/localhost.maestro.io.crt").toString()
         https.createServer({
           key: fs.readFileSync("#{root}/localhost.maestro.io.key").toString()
           cert: fs.readFileSync("#{root}/localhost.maestro.io.crt").toString()
