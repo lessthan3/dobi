@@ -1,3 +1,7 @@
+**1.8.4** (2015-02-19)
+ 
+ - do not crash on lstat error
+
 **1.8.2** (2015-02-18)
 
  - --secure option for dobi run

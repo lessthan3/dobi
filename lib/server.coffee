@@ -526,9 +526,12 @@ exports = module.exports = (cfg) ->
             for i, id of fs.readdirSync pkg_dir
               pkgs[id] = {}
               pkg_path = "#{pkg_dir}/#{id}"
-              continue unless fs.lstatSync(pkg_path).isDirectory()
-              for i, version of fs.readdirSync pkg_path
-                pkgs[id][version] = 1
+              try
+                continue unless fs.lstatSync(pkg_path).isDirectory()
+                for i, version of fs.readdirSync pkg_path
+                  pkgs[id][version] = 1
+              catch err
+                console.log 'WARNING: ', err
             res.send pkgs
 
     # Package Config
