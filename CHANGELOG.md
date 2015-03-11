@@ -1,3 +1,7 @@
+**1.8.5** (2015-03-11)
+
+ - use core 2.0.0 style package build if core is defined in config
+
 **1.8.4** (2015-02-19)
  
  - do not crash on lstat error

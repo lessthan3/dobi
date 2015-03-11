@@ -56,7 +56,7 @@ exports = module.exports = (cfg) ->
       return next err if err
 
       # TODO (remove): backwards compatibility
-      schema = config.pages if config.pages and config.core != '2.0.0'
+      schema = config.pages if config.pages and not config.core
       schema = config.settings if config.settings
 
       readSchemaDirectory root, 'models', schema, (err) ->
@@ -128,7 +128,7 @@ exports = module.exports = (cfg) ->
             name = path.basename src, '.coffee'
 
             # new apps
-            if config.core is '2.0.0'
+            if config.core
               asset = new wrap.Coffee {
                 src: src
                 preprocess: (source) ->
@@ -227,7 +227,7 @@ exports = module.exports = (cfg) ->
           tmpl = "#{pkg_id_version}.Templates"
           page = "#{pkg_id_version}.Pages" # TODO: deprecate
 
-          if asset.pkg_config.core is '2.0.0'
+          if asset.pkg_config.core
             for s in [lt3, pkg, pkg_id, pkg_id_version, pres, tmpl, page]
               header += check(s)
             header += check("#{pkg_id_version}.config", asset.pkg_config)
@@ -298,7 +298,7 @@ exports = module.exports = (cfg) ->
                   version = config.version.replace /\./g, '-'
                   name = path.basename src, ext
 
-                  if config.core = '2.0.0'
+                  if config.core
                     p = ".#{id}.v#{version} .#{name}"
                     subs = [
                       ['.exports.collection',  "#{p}.collection"]
