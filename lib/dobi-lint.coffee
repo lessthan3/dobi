@@ -143,6 +143,34 @@ module.exports = (filename, next) ->
         if prev isnt '' and not /^(\s)*#/.test prev
           fail index + 1, msg, line
 
+
+    ###
+      # string starts
+      # whitespace 0 or more
+      # not : or # or ( or ) or whitespace 1 or more [CAPTURED]
+      # grab (
+      # grab all non ) characters (atleast 1)
+      # find a )
+      # string ends
+    ###
+    ### sample catches
+      $wrap = @$el.find('> .background.temp')
+      $el = if e then $(e.currentTarget) else @$el.find('.footer span').eq(0
+      $others = @$el.find('.filter').not($filter)
+    ###
+
+    ### ignores because of repeated .data function
+      $(a).data('index') - $(b).data('index')
+    ###
+    msg = 'excess parenthesis or spacing detected'
+    for line, index in lines
+      match = line.match(/\s*([^:#()\s]+)\([^)]+\)$/)?[1]
+
+      # if the function used more than once in the same
+      # line then allow it
+      if match and line.indexOf(match) is line.lastIndexOf(match)
+        fail index + 1, msg, line
+
   # lint all edited coffee files
   if ext is 'coffee'
     config = JSON.parse read "#{__dirname}/lint.json"
