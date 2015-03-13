@@ -155,7 +155,7 @@ module.exports = (filename, next) ->
     ###
     ### sample catches
       $wrap = @$el.find('> .background.temp')
-      $el = if e then $(e.currentTarget) else @$el.find('.footer span').eq(0
+      $el = if e then $(e.currentTarget) else @$el.find('.footer span').eq(0)
       $others = @$el.find('.filter').not($filter)
     ###
 
