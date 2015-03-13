@@ -1,3 +1,7 @@
+**1.8.6** (2015-03-13)
+
+ - extra parens lint check
+
 **1.8.5** (2015-03-11)
 
  - use core 2.0.0 style package build if core is defined in config
