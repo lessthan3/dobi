@@ -1,3 +1,7 @@
+**1.8.7** (2015-04-08)
+
+ - if parsing body fails on cache:bust, print the body with the error
+
 **1.8.6** (2015-03-13)
 
  - extra parens lint check
