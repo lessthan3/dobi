@@ -241,7 +241,8 @@ switch command
             body = JSON.parse body
             log "cache has been cleared for #{body.host}"
           catch err
-            log 'failed to parse response'
+            log 'failed to parse response:'
+            log body
           exit()
 
   # clear the cache for a site
