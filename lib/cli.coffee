@@ -1092,7 +1092,7 @@ switch command
             exit "object in setup.cson missing 'slug'"
 
         # update properties for this site
-        site = extend true, {}, setup.site or {}, {
+        site = extend true, {}, {
           created: Date.now()
           name: slug
           package:
@@ -1105,7 +1105,7 @@ switch command
               mobile: 'slide'
               web: 'fade'
           slug: slug
-        }
+        }, setup.site or {}
 
         # make user an admin
         site.users ?= {}
