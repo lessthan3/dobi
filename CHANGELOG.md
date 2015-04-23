@@ -1,3 +1,7 @@
+**1.8.7** (2015-04-23)
+
+ - setup.cson data bug fix
+
 **1.8.6** (2015-03-13)
 
  - extra parens lint check
