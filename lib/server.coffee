@@ -459,18 +459,14 @@ exports = module.exports = (cfg) ->
 
     # Helpers
     auth = (req, res, next) ->
-      if req.query.token
-        token = req.query.token
-        delete req.query.token
-
-        if cfg.firebase
+      token = req.query?.token or req.body?.token
+      if token and cfg.firebase
           try
             payload = jwt.decode token, cfg.firebase.secret
+            req.user = payload.d
+            req.admin = payload.admin
           catch err
-            return res.send 400, "invalid token: #{err}" if err
-
-          req.user = payload.d
-          req.admin = payload.admin
+            req.token_parse_error = err
 
       next()
 
