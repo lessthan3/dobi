@@ -638,12 +638,23 @@ switch command
       # get the source site's objects
       ({db, user, src_site}, next) ->
         log 'find the objects'
-        db.objects.find {
-          site_id: src_site.get('_id').val()
-        }, {
-          limit: 100000
-        }, (err, src_objects) ->
-          return next err if err
+        grab_data = (page, total_src_objects, finish_grab) ->
+          db.objects.find {
+            site_id: src_site.get('_id').val()
+          }, {
+            limit: 1000
+            skip: (page - 1) * 1000
+          }, (err, src_objects) ->
+            return next err if err
+            total_src_objects = total_src_objects.concat src_objects
+            if src_objects?.length >= 1000
+              page++
+              grab_data page, total_src_objects, finish_grab
+              log "#{total_src_objects.length} objects found.. grabbing next page"
+            else
+              finish_grab total_src_objects
+
+        grab_data 1, [], (src_objects) =>
           log "#{src_objects.length} objects found"
           next null, {db, user, src_site, src_objects}
 
@@ -668,13 +679,16 @@ switch command
         site.users[user.admin_uid] = 'admin'
         site.settings.seo = {}
         site.settings.icons = {}
+        log 'inserting site'
         db.sites.insert site, (err, dst_site) ->
           next err, {db, src_objects, dst_site}
 
       # insert objects
       ({db, src_objects, dst_site}, next) ->
         ids = {}
-        async.map src_objects, ((src_object, callback) ->
+        log 'inserting objects'
+        objects_inserted = 0
+        async.mapLimit src_objects, 10, ((src_object, callback) ->
           data = src_object.val()
           src_id = data._id
           delete data._id
@@ -682,14 +696,17 @@ switch command
           data.site_id = dst_site.get('_id').val()
           db.objects.insert data, (err, dst_object) ->
             return callback err if err
+            objects_inserted++
             dst_id = dst_object.get('_id').val()
             ids[src_id] = dst_id
+            log "#{objects_inserted} objects inserted"
             callback null, dst_object
         ), (err, dst_objects) ->
           next err, {db, dst_objects, ids}
 
       # update object references
       ({db, dst_objects, ids}, next) ->
+        log 'fixing refs'
         async.forEach dst_objects, ((dst_object, callback) ->
           data_ref = dst_object.get 'data'
           data = JSON.stringify data_ref.val()
