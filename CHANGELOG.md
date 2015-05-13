@@ -1,3 +1,7 @@
+**1.8.9** (2015-05-13)
+
+ - allow clone for sites with more than 1000 pages
+
 **1.8.8** (2015-04-30)
 
  - leave token in request

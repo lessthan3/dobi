@@ -467,7 +467,6 @@ exports = module.exports = (cfg) ->
             req.admin = payload.admin
           catch err
             req.token_parse_error = err
-
       next()
 
     contentType = (type) ->
