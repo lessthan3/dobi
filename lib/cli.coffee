@@ -672,6 +672,8 @@ switch command
         site = src_site.val()
         site.slug = dst_slug
         site.name = dst_slug
+        site.created = Date.now()
+        site.last_modified = Date.now()
         site.settings.domain.url = "www.maestro.io/#{dst_slug}"
         site.settings.security.password = ''
         for k, v of site.settings.services
@@ -693,6 +695,8 @@ switch command
           src_id = data._id
           delete data._id
           data.seo = {}
+          data.created = Date.now()
+          data.last_modified = Date.now()
           data.site_id = dst_site.get('_id').val()
           db.objects.insert data, (err, dst_object) ->
             return callback err if err
