@@ -39,7 +39,10 @@ exports = module.exports = (cfg) ->
       if exists
         CSON.parseFile file, 'utf8', next
       else
-        next "#{file} does not exist"
+        if prod
+          next "file does not exists"
+        else
+          next "#{file} does not exist"
 
   # read a full package config
   readConfig = (id, version, next) ->
@@ -579,7 +582,11 @@ exports = module.exports = (cfg) ->
 
         # make sure file exists
         fs.exists filepath, (exists) ->
-          return error 404, "File #{file} does not exists" unless exists
+          if not exists
+            if prod
+              return error 404, "File does not exist"
+            else
+              return error 404, "File #{file} does not exist"
 
           switch ext
 
@@ -728,12 +735,20 @@ exports = module.exports = (cfg) ->
       id = req.params.id
       version = req.params.version
       file = req.params[0]
+
+      # validate input
+      if not /^[A-Za-z0-9+@/_\-\.]+$/.test file
+        return error 400, 'not a valid filename'
+
       filepath = path.join "#{pkgDir id, version}", 'public', file
       fs.exists filepath, (exists) ->
         if exists
           res.sendfile filepath, {maxAge: 1000*60*5}
         else
-          error 404, "File #{file} does not exists"
+          if prod
+            error 404, "File does not exists"
+          else
+            error 404, "File #{file} does not exists"
 
     # API Calls
     apiCallHandler = (req, res, next) ->

@@ -1,3 +1,7 @@
+**1.8.10** (2015-06-01)
+
+ - watch out for XSS vulnerability: script in invalid filenames
+
 **1.8.9** (2015-05-13)
 
  - allow clone for sites with more than 1000 pages
