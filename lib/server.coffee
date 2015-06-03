@@ -54,6 +54,7 @@ exports = module.exports = (cfg) ->
       if prod
         delete config.author
         delete config.changelog
+        delete config.contact
 
       next null, config
 
