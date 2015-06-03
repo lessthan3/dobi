@@ -1,3 +1,7 @@
+**1.8.12** (2015-06-03)
+
+ - validate input on css to protect against javascript injection in css
+
 **1.8.11** (2015-06-03)
 
  - remove sensitive package information on production

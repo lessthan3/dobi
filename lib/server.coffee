@@ -731,6 +731,12 @@ exports = module.exports = (cfg) ->
       cache({age: cache_age, qs: true}, (req, res, next) ->
         gatherCSS [], req.params.id, req.params.version, (err, assets) ->
           return error 400, err if err
+
+          # validate input
+          for k, v of req.query
+            if not /^[A-Za-z0-9+@/_\-\.\#:;]+$/.test v
+              return error 400, 'invalid query parameter'
+
           wrapCSS assets, req.query, (err, data) ->
             return error 400, err if err
             next data
