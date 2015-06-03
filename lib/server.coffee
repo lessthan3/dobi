@@ -734,7 +734,7 @@ exports = module.exports = (cfg) ->
 
           # validate input
           for k, v of req.query
-            if not /^[A-Za-z0-9+@/_\-\.\#:;]+$/.test v
+            if not /^[A-Za-z0-9_+@\/\-\.\#\$:;\s\[\]]*$/.test v
               return error 400, 'invalid query parameter'
 
           wrapCSS assets, req.query, (err, data) ->
