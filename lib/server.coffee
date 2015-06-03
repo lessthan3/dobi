@@ -49,6 +49,12 @@ exports = module.exports = (cfg) ->
     root = path.join pkgDir(id, version)
     readCSON path.join(root, 'config.cson'), (err, config) ->
       return next err if err
+
+      # remove sensitive information on prod
+      if prod
+        delete config.author
+        delete config.changelog
+
       next null, config
 
   # read package schema

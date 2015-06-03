@@ -1,3 +1,7 @@
+**1.8.11** (2015-06-03)
+
+ - remove sensitive package information on production
+
 **1.8.10** (2015-06-01)
 
  - watch out for XSS vulnerability: script in invalid filenames
