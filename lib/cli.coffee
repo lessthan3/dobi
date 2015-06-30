@@ -675,6 +675,7 @@ switch command
         site.created = Date.now()
         site.last_modified = Date.now()
         site.settings.domain.url = "www.maestro.io/#{dst_slug}"
+        site.settings.security ?= {}
         site.settings.security.password = ''
         for k, v of site.settings.services
           site.settings.services[k] = ''

@@ -1,3 +1,7 @@
+**1.8.13** (2015-06-30)
+
+ - make sure security settings is defined when cloning
+
 **1.8.12** (2015-06-03)
 
  - validate input on css to protect against javascript injection in css
