@@ -1,3 +1,7 @@
+**1.8.16** (2015-09-09)
+
+ - require lowercase alphanumeric or hyphen for dobi rename
+
 **1.8.15** (2015-09-09)
 
  - update cson

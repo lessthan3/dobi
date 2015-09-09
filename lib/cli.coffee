@@ -1026,6 +1026,13 @@ switch command
     exit "must specify a source slug" unless src_slug
     exit "must specify a destination slug" unless dst_slug
 
+    # validate slug
+    if not /^[0-9a-z\-]+$/.test dst_slug
+      exit '
+        invalid destination slug.
+        you may only use lowercase letters, numbers, and hyphens
+      '
+
     # run rename
     async.waterfall [
 
