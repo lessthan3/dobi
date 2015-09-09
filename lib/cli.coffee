@@ -41,6 +41,7 @@ where <command> [command-specific-options] is one of:
   login                             authenticate your user
   logout                            deauthenticate your user
   open <site-slug>                  open a site
+  rename <src-slug> <dst-slug>      move a site to a new slug
   run                               run a development server
   setup <my-app> <site-slug>        setup a site using your app
   start                             daemonize a development server
@@ -1015,6 +1016,60 @@ switch command
     url += "/#{arg}" for arg in args
     open url
     exit()
+
+  # move a site to a new slug
+  when 'rename'
+    src_slug = args[0]
+    dst_slug = args[1]
+
+    # check arguments
+    exit "must specify a source slug" unless src_slug
+    exit "must specify a destination slug" unless dst_slug
+
+    # run rename
+    async.waterfall [
+
+      # connect to database
+      (next) ->
+        connect (user, db) ->
+          db.sites = db.get 'sites'
+          next null, {db, user}
+
+      # get the source site
+      ({db, user}, next) ->
+        log 'find the source site'
+        db.sites.findOne {
+          slug: src_slug
+        }, (err, site) ->
+          return next err if err
+          return next 'could not find source site' if not site
+          log "source site found: #{site.get('_id').val()}"
+          next null, {db, user, site}
+
+      # make sure new site doesn't already exist
+      ({db, user, site}, next) ->
+        log 'make sure new slug is available'
+        db.sites.findOne {
+          slug: dst_slug
+        }, (err, dst_site) ->
+          err = 'dst_slug already taken' if dst_site
+          log 'destination slug is available. moving your site'
+          next err, {db, user, site}
+
+      # update the slug
+      ({db, user, site}, next) ->
+        site.get('slug').set dst_slug, (err) ->
+          next err, {db, user, site}
+
+      # update the domain
+      ({db, user, site}, next) ->
+        url = "http://www.maestro.io/#{dst_slug}"
+        site.get('settings.domain.url').set url, (err) ->
+          next err, {db, user, site}
+
+    ], (err) ->
+      exit err if err
+      exit 'rename is complete'
 
   # run a development server
   when 'run'

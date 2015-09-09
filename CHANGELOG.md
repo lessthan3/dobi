@@ -1,3 +1,7 @@
+**1.8.14** (2015-09-09)
+
+ - rename command to move sites to new slugs
+
 **1.8.13** (2015-06-30)
 
  - make sure security settings is defined when cloning
