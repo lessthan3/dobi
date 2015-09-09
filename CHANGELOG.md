@@ -1,3 +1,7 @@
+**1.8.15** (2015-09-09)
+
+ - update cson
+
 **1.8.14** (2015-09-09)
 
  - rename command to move sites to new slugs
