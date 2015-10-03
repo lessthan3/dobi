@@ -2,7 +2,7 @@
 # dependencies
 coffeelint = require 'coffeelint'
 colors = require 'colors'
-cson = require 'cson'
+cson = require 'season'
 fs = require 'fs'
 jsonlint = require 'jsonlint'
 path = require 'path'

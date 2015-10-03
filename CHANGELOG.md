@@ -1,3 +1,7 @@
+**2.0.1** (2015-10-02)
+
+ - upgrade dobi-lint to use season
+
 **2.0.0** (2015-10-02)
 
  - ditch cson for season
