@@ -1,5 +1,5 @@
 # dependencies
-CSON = require 'cson'
+CSON = require 'season'
 Firebase = require 'firebase'
 async = require 'async'
 cluster = require 'cluster'
@@ -195,7 +195,7 @@ switch command
           log "#{objects.length} objects found"
 
           # format data
-          data = CSON.stringifySync({
+          data = CSON.stringify({
             site: site.val()
             objects: (object.val() for object in objects)
           }).replace /\n\n/g, '\n'
@@ -760,13 +760,13 @@ switch command
 
           # update config
           config_path = path.join dest, 'config.cson'
-          user_config = CSON.parseFileSync config_path
+          user_config = CSON.readFileSync config_path
           user_config.id = id
           user_config.version = version
           user_config.author = {name: user.name, email: user.email}
           user_config.developers = {}
           user_config.developers[user.admin_uid] = 'admin'
-          user_config = CSON.stringifySync(config).replace /\n\n/g, '\n'
+          user_config = CSON.stringify(config).replace /\n\n/g, '\n'
           fs.writeFileSync config_path, user_config
 
           # done
@@ -789,7 +789,7 @@ switch command
     config_path = path.join package_path, 'config.cson'
     exists = fs.existsSync config_path
     exit 'package config.cson does not exist' unless exists
-    pkg_config = CSON.parseFileSync config_path if exists
+    pkg_config = CSON.readFileSync config_path if exists
     pkg_config.files = []
     pkg_config.private ?= false
 
@@ -1157,13 +1157,13 @@ switch command
         config_path = path.join workspace, 'pkg', id, version, 'config.cson'
         exists = fs.existsSync config_path
         pkg_config = {}
-        pkg_config = CSON.parseFileSync config_path if exists
+        pkg_config = CSON.readFileSync config_path if exists
 
         # read setup.cson if it exists
         setup_path = path.join workspace, 'pkg', id, version, 'setup.cson'
         exists = fs.existsSync setup_path
         setup = {}
-        setup = CSON.parseFileSync setup_path if exists
+        setup = CSON.readFileSync setup_path if exists
 
         # check validity of setup.cson
         setup.objects ?= []

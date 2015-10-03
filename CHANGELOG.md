@@ -1,3 +1,7 @@
+**2.0.0** (2015-10-02)
+
+ - ditch cson for season
+
 **1.8.16** (2015-09-09)
 
  - require lowercase alphanumeric or hyphen for dobi rename

@@ -1,5 +1,5 @@
 # Dependencies
-CSON = require 'cson'
+CSON = require 'season'
 Firebase = require 'firebase'
 LRU = require 'lru-cache'
 async = require 'async'
@@ -37,7 +37,7 @@ exports = module.exports = (cfg) ->
   readCSON = (file, next) ->
     fs.exists file, (exists) ->
       if exists
-        CSON.parseFile file, 'utf8', next
+        CSON.readFile file, next
       else
         if prod
           next "file does not exists"
@@ -47,6 +47,7 @@ exports = module.exports = (cfg) ->
   # read a full package config
   readConfig = (id, version, next) ->
     root = path.join pkgDir(id, version)
+    console.log 'read', path.join(root, 'config.cson')
     readCSON path.join(root, 'config.cson'), (err, config) ->
       return next err if err
 
