@@ -56,23 +56,58 @@ View your site, running your new app:
 
 ## Examples
 
-* http://www.electricdaisycarnival.co.uk
-* http://abgt.aboveandbeyond.nu/abgt
-* http://www.hardsummer.com
-* http://www.harddayofthedead.com
-* http://www.dobi.io
-* http://www.lessthan3.com/dzekoandtorres
-* http://www.lessthan3.com/garethemery
-* http://www.movement.us
-* http://www.monstercat.com/live
-* http://www.richarddurand.com
-* http://www.3lau.com
-* http://www.krewella.com/get-wet
-* http://www.savagemondays.com
-
-
-
-
-
-
-
+* 2014.ultraeurope.com
+* 2014.ultramusicfestival.com
+* 2015.ultramusicfestival.com
+* askimu.ironman.com
+* edccurated.insomniac.com
+* explore.maestro.io
+* info.maestro.io
+* live.capcomprotour.com
+* live.centurionboats.com
+* live.deadmau5.com
+* live.esl-one.com
+* live.esports-conference.com
+* live.eversport.tv
+* live.heroicrecordings.com
+* live.monstercat.com
+* live.movistarchile.tv
+* live.nolchashows.com
+* live.peakmind.org
+* live.power106.com
+* live.renmanmb.com
+* live.silk-music.com
+* live.stustaculum.de
+* live.tbrownltd.com
+* live.thebpmfestival.com
+* live.ultramusicfestival.com
+* music.digicelgroup.com
+* scheduler.insomniac.com
+* tv.moceandistrict.com
+* tv.nickyromero.com
+* tv.steveaoki.com
+* www.3lau.com
+* www.amsterdammusicfestival.tv
+* www.audiendj.com
+* www.battleviewer.com
+* www.crosscounter.tv
+* www.deltavcapital.com
+* www.djbobbypuma.com
+* www.dobi.io
+* www.dzekoandtorres.com
+* www.elrealomega.com
+* www.ibizauncut.com
+* www.jalenanderic.com
+* www.martingarrix.com
+* www.meshblorg.com
+* www.morgan-page.com
+* www.motiofficial.com
+* www.musicalfreedom.com
+* www.netwrkmgmt.com
+* www.noisehouse.com
+* www.papigordo.com
+* www.porterrobinson.com
+* www.richarddurand.com
+* www.slanderofficial.com
+* www.thebpmfestival.com
+* www.throughtimeand.space
