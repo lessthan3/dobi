@@ -122,9 +122,13 @@ module.exports = (filename, next) ->
 
   # make sure cson files are parsable
   if ext is 'cson'
-    result = cson.parseSync contents
-    if result.constructor is SyntaxError
-      fail result.location.first_line, result.toString()
+    try
+      cson.readFileSync filename
+    catch err
+      if err.constructor is SyntaxError
+        fail err.location.first_line, err.toString()
+      else
+        fail 'unknown', err
 
   # coffee single line comments
   # - require a space after the #
