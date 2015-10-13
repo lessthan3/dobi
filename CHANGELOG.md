@@ -1,3 +1,7 @@
+**2.0.2** (2015-10-12)
+
+ - fix regress: dobi-lint failed on cson files after season upgrade
+
 **2.0.1** (2015-10-02)
 
  - upgrade dobi-lint to use season
