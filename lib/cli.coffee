@@ -729,6 +729,22 @@ switch command
           else
             callback()
         ), next
+
+        # fix references in regions
+       ({db, dst_objects, ids}, next) ->
+          log 'fixing region refs'
+          data = JSON.stringify dst_site.get('regions').val()
+          updated = false
+          for src_id, dst_id of ids
+            if data.indexOf(src_id) > -1
+              data = data.replace new RegExp(src_id, 'g'), dst_id
+              updated = true
+          if updated
+            data = JSON.parse data
+            dst_site.get('regions').set data, callback
+
+          next null, {db, dst_objects, ids}
+
     ], (err) ->
       exit err if err
       exit 'clone complete'
