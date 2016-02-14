@@ -708,7 +708,22 @@ switch command
             log "#{objects_inserted} objects inserted"
             callback null, dst_object
         ), (err, dst_objects) ->
-          next err, {db, dst_objects, ids}
+          next err, {db, dst_objects, ids, dst_site}
+
+      # fix references in regions
+     ({db, dst_objects, ids, dst_site}, next) ->
+        log 'fixing region refs'
+        data = JSON.stringify dst_site.get('regions').val()
+        updated = false
+        for src_id, dst_id of ids
+          if data.indexOf(src_id) > -1
+            data = data.replace new RegExp(src_id, 'g'), dst_id
+            updated = true
+        if updated
+          data = JSON.parse data
+          dst_site.get('regions').set data
+
+        next null, {db, dst_objects, ids, dst_site}
 
       # update object references
       ({db, dst_objects, ids}, next) ->
@@ -729,21 +744,6 @@ switch command
           else
             callback()
         ), next
-
-        # fix references in regions
-       ({db, dst_objects, ids}, next) ->
-          log 'fixing region refs'
-          data = JSON.stringify dst_site.get('regions').val()
-          updated = false
-          for src_id, dst_id of ids
-            if data.indexOf(src_id) > -1
-              data = data.replace new RegExp(src_id, 'g'), dst_id
-              updated = true
-          if updated
-            data = JSON.parse data
-            dst_site.get('regions').set data, callback
-
-          next null, {db, dst_objects, ids}
 
     ], (err) ->
       exit err if err
