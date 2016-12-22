@@ -13,6 +13,7 @@ path = require 'path'
 wrap = require 'asset-wrap'
 
 USER_HOME = process.env.HOME or process.env.HOMEPATH or process.env.USERPROFILE
+file_watcher = null
 
 # Exports
 exports = module.exports = (cfg) ->
@@ -47,7 +48,6 @@ exports = module.exports = (cfg) ->
   # read a full package config
   readConfig = (id, version, next) ->
     root = path.join pkgDir(id, version)
-    console.log 'read', path.join(root, 'config.cson')
     readCSON path.join(root, 'config.cson'), (err, config) ->
       return next err if err
 
@@ -419,12 +419,12 @@ exports = module.exports = (cfg) ->
   if cfg.watch
 
     # watch for user to connect
-    watcher = chokidar.watch USER_CONNECT_PATH, {
+    user_watcher = chokidar.watch USER_CONNECT_PATH, {
       ignored: -> false
       usePolling: true
       interval: 500
     }
-    watcher.on 'change', (filepath) ->
+    user_watcher.on 'change', (filepath) ->
       try
         {user_id, token} = JSON.parse fs.readFileSync filepath
         firebase.auth token
@@ -432,13 +432,19 @@ exports = module.exports = (cfg) ->
       catch err
         console.log err
 
-    # watch for package file changes
-    watcher = chokidar.watch pkg_dir, {
+    file_watcher = chokidar.watch '', {
       ignored: /(^\.|\.swp$|\.tmp$|~$)/
       usePolling: true
       interval: 500
     }
-    watcher.on 'change', (filepath) ->
+
+    # watch for package file changes
+    file_watcher.on 'add', ->
+      count = Object.keys(file_watcher.getWatched()).length
+      console.log "COUNT ADDED: #{count}"
+      file_watcher.unwatch()
+
+    file_watcher.on 'change', (filepath) ->
       if not user_id
         console.log 'USER IS NOT CONNECTED. CAN NOT WATCH FOR UPDATES'
         return
@@ -546,6 +552,7 @@ exports = module.exports = (cfg) ->
       cache({age: cache_age}, (req, res, next) ->
         readConfig req.params.id, req.params.version, (err, data) ->
           return error 400, err if err
+          console.log 'config', data
           next data
       )(req, res, next)
 
@@ -555,6 +562,7 @@ exports = module.exports = (cfg) ->
       cache({age: cache_age}, (req, res, next) ->
         readSchema req.params.id, req.params.version, (err, data) ->
           return error 400, err if err
+          console.log 'schema', data
           next data
       )(req, res, next)
 
@@ -719,6 +727,7 @@ exports = module.exports = (cfg) ->
     # Package Javascript
     router.route 'GET', '/pkg/:id/:version/main.js', (req, res, next) ->
       contentType 'text/javascript'
+      file_watcher.add pkgDir req.params.id, req.params.version
       cache({age: cache_age}, (req, res, next) ->
         gatherJS [], req.params.id, req.params.version, (err, assets) ->
           return error 400, err if err
@@ -730,6 +739,7 @@ exports = module.exports = (cfg) ->
     # Package Stylesheet
     router.route 'GET', '/pkg/:id/:version/style.css', (req, res, next) ->
       contentType 'text/css'
+      file_watcher.add pkgDir req.params.id, req.params.version
       cache({age: cache_age, qs: true}, (req, res, next) ->
         gatherCSS [], req.params.id, req.params.version, (err, assets) ->
           return error 400, err if err
@@ -771,6 +781,7 @@ exports = module.exports = (cfg) ->
       version = req.params.version
 
       package_path = path.join "#{pkgDir id, version}"
+      file_watcher.add package_path
       api_path = path.join package_path, 'api.coffee'
 
       # don't cache api.coffee files on dev
