@@ -290,36 +290,38 @@ switch command
 
       # update raw data
       cacheCount = (headers, type) ->
-        x_cache = headers['x-cache']
-        x_served_by = headers['x-served-by']
+        x_served_by = headers['x-served-by']?.split ', '
 
-        RAW_DATA.CACHE[type] ?= {}
-        RAW_DATA.CACHE[type].hit ?= 0
-        RAW_DATA.CACHE[type].miss ?= 0
+        for server, index in x_served_by or []
+          x_cache = headers['x-cache'].split(', ')?[index]
 
-        RAW_DATA.SERVERS[x_served_by] ?= {}
-        RAW_DATA.SERVERS[x_served_by].hit ?= 0
-        RAW_DATA.SERVERS[x_served_by].miss ?= 0
+          RAW_DATA.CACHE[type] ?= {}
+          RAW_DATA.CACHE[type].hit ?= 0
+          RAW_DATA.CACHE[type].miss ?= 0
 
-        switch x_cache
-          when 'HIT'
-            RAW_DATA.CACHE[type].hit++
-            RAW_DATA.SERVERS[x_served_by].hit++
-          when 'MISS'
-            RAW_DATA.CACHE[type].miss++
-            RAW_DATA.SERVERS[x_served_by].miss++
+          RAW_DATA.SERVERS[server] ?= {}
+          RAW_DATA.SERVERS[server].hit ?= 0
+          RAW_DATA.SERVERS[server].miss ?= 0
 
-        return unless debug_mode
-        request_time = headers['time']
-        RAW_DATA.TIME[type] ?= {}
-        RAW_DATA.TIME[type].hit ?= []
-        RAW_DATA.TIME[type].miss ?= []
+          switch x_cache
+            when 'HIT'
+              RAW_DATA.CACHE[type].hit++
+              RAW_DATA.SERVERS[server].hit++
+            when 'MISS'
+              RAW_DATA.CACHE[type].miss++
+              RAW_DATA.SERVERS[server].miss++
 
-        switch x_cache
-          when 'HIT'
-            RAW_DATA.TIME[type].hit.push request_time
-          when 'MISS'
-            RAW_DATA.TIME[type].miss.push request_time
+          return unless debug_mode
+          request_time = headers['time']
+          RAW_DATA.TIME[type] ?= {}
+          RAW_DATA.TIME[type].hit ?= []
+          RAW_DATA.TIME[type].miss ?= []
+
+          switch x_cache
+            when 'HIT'
+              RAW_DATA.TIME[type].hit.push request_time
+            when 'MISS'
+              RAW_DATA.TIME[type].miss.push request_time
 
       # get sitemap
       loadSitemap = (domain, next) ->
@@ -336,7 +338,7 @@ switch command
       parseXML = (body, next) ->
         XMLparser.parseString body, (err, result) ->
           return next err if err
-          sites = (loc for {loc} in result.urlset.url)
+          sites = (loc for {loc} in result.urlset?.url)
           return next() unless sites
           log "#{sites.length} site locations retrieved"
           next null, sites
@@ -352,18 +354,29 @@ switch command
           DOMAINS = []
           db_sites = db.collection 'sites'
 
-          db_sites.find {'slug': {$in: SLUGS}}, {
-            limit: 100000
-          }, (err, results) ->
+          buckets = []
+          bucket_size = 100
+          for i in [0... Math.ceil SLUGS.length / bucket_size]
+            start = i * bucket_size
+            end = i * bucket_size + bucket_size
+            buckets.push SLUGS.slice start, end
+
+          async.each buckets, ((slugs, next) ->
+            db_sites.find {'slug': {$in: slugs}}, {
+              limit: bucket_size
+            }, (err, results) ->
+              return next err if err
+              for result in results
+                continue if result is null
+                url = result.val().settings?.domain?.url
+                continue unless url
+                url = "http://#{url}" unless url.match HTTPtest
+                if url not in sites and not url.match LT3test
+                  DOMAINS.push url
+                  log "ADDING: #{url}"
+              next()
+          ), (err) ->
             return next err if err
-            for result in results
-              continue if result is null
-              url = result.val().settings?.domain?.url
-              continue unless url
-              url = "http://#{url}" unless url.match HTTPtest
-              if url not in sites and not url.match LT3test
-                DOMAINS.push url
-                log "ADDING: #{url}"
             next null, DOMAINS
 
         loadDomainSitemap = (domains, done) ->
@@ -374,6 +387,7 @@ switch command
               (_next) -> loadSitemap domain, _next
               (body, _next) -> parseXML body, _next
             ], (err, results) ->
+              return next err if err
               return next() unless results
               SITES.push result for result in results
               next()
@@ -387,6 +401,7 @@ switch command
           (next) -> getDomains next
           (domains, next) -> loadDomainSitemap domains, next
         ], (err, new_sites) ->
+          return exit err if err
           sites.push site for site in new_sites
           done null, sites
 
