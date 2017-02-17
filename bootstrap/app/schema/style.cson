@@ -1,0 +1,6 @@
+{
+  color: 'string'
+  theme: {type: 'string', enum: ['light', 'dark']}
+  title_font: 'font'
+  body_font: 'font'
+}

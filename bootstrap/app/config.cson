@@ -1,0 +1,24 @@
+{
+  author:
+    name: "Bryant Williams"
+    email: "b.n.williams@gmail.com"
+  collections:
+    'projects': 'project'
+  core: '2.0.0'
+  description: "My first dobi app"
+  id: "bootstrap-app"
+  name: "My First Dobi App"
+  pages: [
+    'biography'
+    'instagram'
+    'soundcloud'
+    'project-gallery'
+  ]
+  regions: [
+    'header'
+    'footer'
+    'mobile-nav'
+  ]
+  type: 'app'
+  version: "1.0.0"
+}

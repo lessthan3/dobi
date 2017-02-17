@@ -1,0 +1,66 @@
+.exports.region
+  > .sidebar
+    background-color $frame_bg_color
+    box-shadow inset -10px 0 6px -6px rgba(0,0,0,0.4)
+    font-size 0.9em
+    font-weight bold
+    height 100%
+    overflow auto
+    overflow-scrolling touch
+    position fixed
+    top 0
+    transform translate3d(-200px, 0, 0)
+    transition all .3s ease-out
+    width 200px
+    z-index 9999
+    > a.logo
+      background-color darken($frame_bg_color, 20)
+      box-shadow inset -10px 0 6px -6px rgba(0,0,0,0.4)
+      border-bottom 1px solid #333
+      display block
+      line-height 0px
+      text-align center
+      width 100%
+      vertical-align middle
+      > img
+        box-sizing border-box
+        padding 5px 15px
+        vertical-align middle
+        max-height 100%
+        max-width 100%
+    > nav.navigation
+      > ul
+        > li
+          > a
+            color $text_color
+            display block
+            padding 12px 0px 12px 36px
+            border-bottom 1px solid #333
+            text-transform uppercase
+            font-size 12px
+            &:hover
+              background darken($frame_bg_color, 10)
+              box-shadow inset -10px 0 6px -6px rgba(0,0,0,0.4)
+
+.exports.region
+  > .overlay
+    background black
+    height 100%
+    opacity 0
+    position fixed
+    top 0
+    transform translate3d(100%, 0, 0)
+    transition opacity .3s ease-out
+    width 100%
+    z-index 200
+
+#application.open-mobile-nav
+  .exports.region
+    > .sidebar
+      transform translate3d(0, 0, 0)
+    > .overlay
+      opacity .5
+      transform translate3d(0, 0, 0)
+  > .main
+    transform translate3d(200px, 0, 0)
+

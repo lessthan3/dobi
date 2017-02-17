@@ -1,3 +1,263 @@
+**2.0.2** (2015-10-12)
+
+ - fix regress: dobi-lint failed on cson files after season upgrade
+
+**2.0.1** (2015-10-02)
+
+ - upgrade dobi-lint to use season
+
+**2.0.0** (2015-10-02)
+
+ - ditch cson for season
+
+**1.8.16** (2015-09-09)
+
+ - require lowercase alphanumeric or hyphen for dobi rename
+
+**1.8.15** (2015-09-09)
+
+ - update cson
+
+**1.8.14** (2015-09-09)
+
+ - rename command to move sites to new slugs
+
+**1.8.13** (2015-06-30)
+
+ - make sure security settings is defined when cloning
+
+**1.8.12** (2015-06-03)
+
+ - validate input on css to protect against javascript injection in css
+
+**1.8.11** (2015-06-03)
+
+ - remove sensitive package information on production
+
+**1.8.10** (2015-06-01)
+
+ - watch out for XSS vulnerability: script in invalid filenames
+
+**1.8.9** (2015-05-13)
+
+ - allow clone for sites with more than 1000 pages
+
+**1.8.8** (2015-04-30)
+
+ - leave token in request
+
+**1.8.7** (2015-04-23)
+
+ - setup.cson data bug fix
+
+**1.8.6** (2015-03-13)
+
+ - extra parens lint check
+
+**1.8.5** (2015-03-11)
+
+ - use core 2.0.0 style package build if core is defined in config
+
+**1.8.4** (2015-02-19)
+ 
+ - do not crash on lstat error
+
+**1.8.2** (2015-02-18)
+
+ - --secure option for dobi run
+
+**v1.8.1** (2015-02-12)
+
+ - upgrade stylus linter
+
+**v1.8.0** (2015-01-06)
+
+ - fix references in dobi clone
+
+**v1.7.9** (2015-01-06)
+
+ - change lessthan3.com references to maestro.io
+
+**v1.7.8** (2014-12-19)
+
+ - multiple files linting with -p
+
+**v1.7.7** (2014-12-08)
+
+ - update stylus-help to 1.7.3
+
+**v1.7.6** (2014-12-05)
+
+ - return proper exit code from dobi lint
+
+**v1.7.5** (2014-12-04)
+
+ - fix watch issue for non-cluster mode
+
+**v1.7.4** (2014-12-03)
+
+ - fix lint issue
+
+**v1.7.3** (2014-12-03)
+
+ - revert cluster for now
+ - allow linting on a per file basis
+
+**v1.7.2** (2014-11-17)
+
+ - fix connect/updates for clustered dev
+ - update chokidar to 0.11
+
+**v1.7.1** (2014-11-17)
+
+ - allow developer to not have a config file yet
+
+**v1.7.0** (2014-11-17)
+
+ - allow custom cache age for js/css
+ - bump version on chokidar depedency
+ - cluster on dobi run for dev
+
+**v1.6.9** (2014-08-21)
+
+ - file update fix for windows because of path separator
+ - preprocess partial coffee files
+
+**v1.6.8** (2014-08-17)
+
+ - added source maps for coffee -> js partials
+
+**v1.6.7** (2014-08-10)
+
+ - fix .exports replacement for partial stylesheet loads
+
+**v1.6.6** (2014-08-10)
+
+ - clone bug fix
+
+**v1.6.5** (2014-08-10)
+
+ - watch out for bad args on dobi lint
+
+**v1.6.4** (2014-08-10)
+
+ - add logout command
+
+**v1.6.3** (2014-08-10)
+
+ - fix bug with create command
+ - fix login bug
+
+**v1.6.2** (2014-08-10)
+
+ - cache unauthorized cache clears
+
+**v1.6.1** (2014-08-10)
+
+ - remove prefix slash from files.json paths
+
+**v1.6.0** (2014-08-10)
+
+ - add files.json dev server api call
+
+**v1.5.4** (2014-08-01)
+
+ - use firebase safe uids
+
+**v1.5.3** (2014-07-30)
+
+ - shortcut req.db and req.method on api calls
+
+**v1.5.2** (2014-07-30)
+
+ - have cache bust use live api instead of local
+
+**v1.5.1** (2014-07-29)
+
+ - add cache:bust
+
+**v1.5.0** (2014-07-27)
+
+ - pass in api.coffee arguments as the first variable instead of as 'this'
+
+**v1.4.1** (2014-07-23)
+
+ - add option to lint specific files
+
+**v1.4.0** (2014-07-18)
+
+ - fix partial reload media query issues for stylus
+
+**v1.3.2** (2014-07-07)
+
+ - bump mongofb to 0.9.x to fix non-unique insert ids
+
+**v1.3.1** (2014-06-13)
+
+ - allow dev cache to use 1 (next) or 3 params (req, res, next)
+
+**v1.3.0** (2014-05-31)
+
+ - add lint to usage
+ - exit cli after sett.ing up a new site
+ - add dobi clone
+
+**v1.2.0** (2014-05-25)
+
+ - add dobi lint
+ - rename dobi.coffee to cli.coffee
+
+**v1.1.1** (2014-05-24)
+
+ - coffee-script/register needed in 1.7.x
+
+**v1.1.0** (2014-05-24)
+
+ - update mongofb to 0.8.x
+ - rename install to setup
+ - update coffee-script to 1.7.x
+ - update cson: updates dependencies (including CS)
+ - update async: various updates
+ - update findit: adds optional custom fs
+ - update jwt-simple: adds new algorithm
+
+**v1.0.3** (2014-05-23)
+
+ - store files in base64 on deploy
+
+**v1.0.2** (2014-05-23)
+
+ - update bin in package.json
+
+**v1.0.1** (2014-05-23)
+
+ - remove crypto from package.json
+
+**v1.0.0** (2014-05-22)
+
+ - change name from lessthan3 to dobi
+ - refactor lt3/lpm tools into new dobi binary
+
+**v0.8.3** (2014-05-12)
+
+ - typo in new cache code
+
+**v0.8.2** (2014-05-12)
+
+ - clean up clone code
+
+**v0.8.1** (2014-05-11)
+
+ - cache most requests for a full day
+
+**v0.8.0** (2014-05-11)
+
+ - allow for custom cache function
+
+**v0.7.0** (2014-05-11)
+
+ - update asset-wrap to 0.8.0 which updates uglifyjs
+
 **v0.6.9** (2014-04-30)
 
  - update setup to use uid instead of _id

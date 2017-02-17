@@ -1,0 +1,149 @@
+
+// resets
+global-reset()
+
+// load fonts
+$font_base = s('/pkg/font/1/public/%s', unquote($title_font))
+$font_eot = s('%s.eot', $font_base)
+$font_woff = s('%s.woff', $font_base)
+$font_ttf = s('%s.ttf', $font_base)
+$font_svg = s('%s.svg', $font_base)
+@font-face {
+  font-family: $title_font_family;
+  src: url($font_eot);
+  src: local('☺'), url($font_woff) format('woff'), url($font_ttf) format('truetype'), url($font_svg) format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+$font_base = s('/pkg/font/1/public/%s', unquote($body_font))
+$font_eot = s('%s.eot', $font_base)
+$font_woff = s('%s.woff', $font_base)
+$font_ttf = s('%s.ttf', $font_base)
+$font_svg = s('%s.svg', $font_base)
+@font-face {
+  font-family: $body_font_family;
+  src: url($font_eot);
+  src: local('☺'), url($font_woff) format('woff'), url($font_ttf) format('truetype'), url($font_svg) format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+$color = #3b96b2
+
+// styles
+html.exports
+  body
+    background-color $background_color
+    if $body_background_image
+      background-attachment fixed
+      background-image url($body_background_image)
+      background-size cover
+    color $text_color
+    font-family $body_font_family, sans-serif
+    font-size 14px
+    line-height 1.3em
+
+  h1, h2, h3, h4, h5, h6
+    font-family $title_font
+    font-weight 300
+    margin-bottom 20px
+    margin-top 10px
+  h1
+    color $color
+    font-size 22px
+    text-transform uppercase
+  h2
+    font-size 1.8em
+  h3
+    font-size 1.6em
+  h4
+    color $color
+    font-size 1.4em
+  h5
+    font-size 1.2em
+  h6
+    font-size 1.0em
+  p
+    font-size 1.0em
+    margin-bottom 20px
+
+  i, a
+    color $text_color
+    text-decoration none
+    &:hover
+      color $color
+      cursor pointer
+  .bullet
+    list-style disc outside
+    padding-left 10px
+    margin-left 20px
+  .main
+    transition all .3s ease-out
+    .middle
+      margin 0 40px 100px
+      max-width 100%
+      min-height 760px
+      margin-top 38px
+      position relative
+      width 1200px
+      z-index 8
+      #sidebar
+        display inline-block
+        vertical-align top
+        position relative
+        z-index 8
+      #content
+        display inline-block
+        vertical-align top
+        margin 0px 0px 0px 30px
+        max-width 100%
+        overflow hidden
+        width 880px
+        h3
+          margin-top 27px
+        h4
+          margin-top 24px
+        div.paragraph
+          margin 20px 0px 20px 0px
+        .section
+          > h3
+            background $dobi_blue
+            padding 10px 10px
+            > a
+              color white
+      > .collection
+        width unit($site_width, 'px')
+
+  // new styles added for 2.0.0
+  pre
+    background #EDF0F3
+    border 1px solid gray
+    border-radius 4px
+    font-family 'Consolas', monospace
+    font-size 14px
+    margin 10px 5px 5px 10px
+    padding 10px
+
+  table
+    border 1px solid black
+    width 100%
+    margin-top 10px
+    tr
+      &:nth-child(odd)
+        background-color #f9f9f9
+      &:nth-child(even)
+        background-color #fff
+      td
+        border-top 1px solid #ddd
+        padding 10px 6px 10px 6px
+        vertical-align top
+        &:nth-child(odd)
+          border-right 1px solid #ddd
+          font-weight 600
+
+
+@media screen and (max-width: 980px)
+  html.exports
+    .main
+      padding-top $mobile_header_height

@@ -1,0 +1,63 @@
+
+.exports.region
+  // background linear-gradient(lighten($frame_bg_color, 5), $frame_bg_color)
+  // background-color $frame_bg_color
+  background-color $sidebar_background_color
+  color $text_color
+  font-size 14px
+  margin-top 40px
+  position relative
+  z-index 9
+  > .content
+    box-sizing border-box
+    margin 0px auto
+    max-width 100%
+    padding 20px
+    text-align right
+    width unit($site_width, 'px')
+    &:after
+      clear both
+      content ''
+      display block
+    > .info
+      float left
+      width 250px
+      > .copyright
+        float left
+        margin-bottom 10px
+        text-align left
+        vertical-align top
+      > .network
+        float left
+        display block
+      > .privacy, > .terms
+        float left
+        display block
+        > a
+          cursor pointer
+          display block
+          padding 4px 6px 0px 0px
+          text-decoration none
+    > ul.social
+      margin-bottom 10px
+      float right
+      > li
+        display inline-block
+        > a
+          display block
+          font-size 20px
+          padding 4px
+          text-decoration none
+
+@media (max-width: 600px)
+  .exports.region
+    margin-top 0px
+    > .content
+      text-align center
+      .links
+        display none
+      > .privacy, > .terms
+        > a
+          margin-left 10px
+          margin-right 10px
+

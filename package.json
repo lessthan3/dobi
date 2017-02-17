@@ -4,11 +4,10 @@
     "email": "dev@maestro.io"
   },
   "bin": {
-    "lpm": "./bin/lpm.js",
-    "lt3": "./bin/lt3.js"
+    "dobi": "./bin/dobi.js"
   },
   "bugs": {
-    "url": "https://github.com/lessthan3/lessthan3/issues",
+    "url": "https://github.com/lessthan3/dobi/issues",
     "email": "bryant@lessthan3.com"
   },
   "config": {
@@ -16,35 +15,47 @@
   },
   "contributors": [],
   "dependencies": {
-    "asset-wrap":     "0.7.x",
-    "async":          "0.2.x",
-    "chokidar":       "0.7.1",
-    "coffee-script":  "1.4.x",
-    "connect":        "2.4.x",
-    "cson":           "1.4.x",
+    "asset-wrap":     "0.9.x",
+    "async":          "0.9.x",
+    "chokidar":       "0.11.x",
+    "coffeelint":     "1.x.x",
+    "coffee-script":  "1.7.x",
+    "colors":         "0.6.2",
+    "columnify":      "1.2.1",
+    "connect":        "2.17.x",
+    "copy-paste":     "0.3.x",
     "express":        "3.4.x",
-    "findit":         "1.1.x",
+    "findit":         "1.2.x",
     "firebase":       "1.0.x",
-    "jwt-simple":     "0.1.x",
+    "htmlparser2":    "3.7.x",
+    "jsonlint":       "1.6.0",
+    "mkdirp":         "0.5.x",
+    "jwt-simple":     "0.2.x",
     "lru-cache":      "2.5.x",
-    "mongofb":        "0.6.x",
+    "minimist":       "1.1.0",
+    "mongofb":        "0.9.x",
+    "ncp":            "0.5.1",
     "node.extend":    "1.0.x",
     "open":           "0.0.x",
-    "optimist":       "0.6.x"
+    "optimist":       "0.6.x",
+    "request":        "2.39.x",
+    "season":         "5.3.0",
+    "stylus-help":    "1.7.4",
+    "xml2js":         "0.4.x"
   },
-  "description": "LessThan3 Developer Tools",
+  "description": "Dobi.io Developer Tools",
   "directories": {
     "lib": "./lib",
     "bin": "./bin"
   },
-  "homepage": "http://dev.lessthan3.com",
-  "keywords": "lessthan3",
+  "homepage": "http://www.dobi.io",
+  "keywords": "dobi.io,lessthan3",
   "main": "./lib/server",
-  "name": "lessthan3",
+  "name": "dobi",
   "preferGlobal": true,
   "repository": {
     "type": "git",
-    "url": "git://github.com/lessthan3/lessthan3.git"
+    "url": "git://github.com/lessthan3/dobi.git"
   },
-  "version": "0.7.0"
+  "version": "2.0.4"
 }

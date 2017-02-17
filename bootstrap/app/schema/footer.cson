@@ -1,0 +1,15 @@
+{
+  copyright: 'string'
+  social: [{
+    service: {type: 'string', legend: true, enum: [
+      'beatport'
+      'facebook'
+      'instagram'
+      'mixcloud'
+      'soundcloud'
+      'twitter'
+      'youtube'
+    ]}
+    username: 'string'
+  }]
+}

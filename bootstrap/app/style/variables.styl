@@ -1,0 +1,60 @@
+@import 'nib'
+
+// defaults
+$color = #3b98c0 // unless $color is a 'color'
+$theme = 'light' unless $theme is defined
+$title_font = $title_font_family unless $title_font is defined
+$title_font_family = "'Helvetica Neue', Helvetica, Arial, sans-serif"
+$body_font = $body_font_family unless $body_font is defined
+$body_font_family = "'Helvetica Neue', Helvetica, Arial, sans-serif"
+$body_background_image = null unless $body_background_image is defined
+
+// generated colors
+if $theme == 'light'
+  $background_color = #f4f4f4
+  $frame_bg_color = #3b96b2
+  $text_color = #3f3f3f
+else
+  $background_color = #232323
+  $frame_bg_color = #121212
+  $text_color = #f4f4f4
+
+$link_color = #3b96b2
+
+// social colors
+$dobi_blue = #34a8c0
+$facebook_blue = #3B5998
+$instagram_blue = #517FA4
+$google_plus_red = #DD4B39
+$skype_blue = #12A5F4
+$soundcloud_orange = #FF6600
+$twitter_blue = #4099FF
+$youtube_red = #BB0000
+$green = #39ca74
+
+$dobi_light_80 = lighten($dobi_blue, 40)
+$dobi_light_50 = lighten($dobi_blue, 45)
+$dobi_light_40 = lighten($dobi_blue, 40)
+$dobi_light_30 = lighten($dobi_blue, 30)
+$dobi_light_20 = lighten($dobi_blue, 20)
+$dobi_light_10 = lighten($dobi_blue, 10)
+$secondary_light = #e2e2e2
+
+// quick color changes
+$color_light_20 = lighten($color, 20)
+$color_light_15 = lighten($color, 15)
+$color_light_10 = lighten($color, 10)
+$color_light_5 = lighten($color, 5)
+$color_light_1 = lighten($color, 1)
+$color_dark_20 = darken($color, 20)
+$color_dark_15 = darken($color, 15)
+$color_dark_10 = darken($color, 10)
+$color_dark_5 = darken($color, 5)
+
+
+// dimensions
+$mobile_header_height = 50
+$web_header_height = 60
+$site_width = 960
+$sidebar_border_color = #d4ccc8
+$sidebar_background_color = #eeeeea
