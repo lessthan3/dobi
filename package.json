@@ -7,7 +7,7 @@
     "dobi": "./bin/dobi.js"
   },
   "bugs": {
-    "url": "https://github.com/lessthan3/lessthan3/issues",
+    "url": "https://github.com/lessthan3/dobi/issues",
     "email": "dev@maestro.io"
   },
   "config": {
