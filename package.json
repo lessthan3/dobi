@@ -7,8 +7,8 @@
     "dobi": "./bin/dobi.js"
   },
   "bugs": {
-    "url": "https://github.com/lessthan3/dobi/issues",
-    "email": "bryant@lessthan3.com"
+    "url": "https://github.com/lessthan3/lessthan3/issues",
+    "email": "dev@maestro.io"
   },
   "config": {
     "port": 3002
@@ -43,7 +43,7 @@
     "stylus-help":    "1.7.4",
     "xml2js":         "0.4.x"
   },
-  "description": "Dobi.io Developer Tools",
+  "description": "LessThan3 Developer Tools",
   "directories": {
     "lib": "./lib",
     "bin": "./bin"
@@ -51,11 +51,11 @@
   "homepage": "http://www.dobi.io",
   "keywords": "dobi.io,lessthan3",
   "main": "./lib/server",
-  "name": "dobi",
+  "name": "lessthan3",
   "preferGlobal": true,
   "repository": {
     "type": "git",
-    "url": "git://github.com/lessthan3/dobi.git"
+    "url": "git://github.com/lessthan3/lessthan3.git"
   },
-  "version": "2.0.4"
+  "version": "0.8.4"
 }
