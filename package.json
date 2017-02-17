@@ -1,7 +1,7 @@
 {
   "author": {
-    "name": "Bryant Williams",
-    "email": "b.n.williams@gmail.com"
+    "name": "maestro_io",
+    "email": "dev@maestro.io"
   },
   "bin": {
     "lpm": "./bin/lpm.js",
@@ -14,12 +14,7 @@
   "config": {
     "port": 3002
   },
-  "contributors": [
-    {
-      "name": "Bryant Williams",
-      "email": "b.n.williams@gmail.com"
-    }
-  ],
+  "contributors": [],
   "dependencies": {
     "asset-wrap":     "0.7.x",
     "async":          "0.2.x",
@@ -51,5 +46,5 @@
     "type": "git",
     "url": "git://github.com/lessthan3/lessthan3.git"
   },
-  "version": "0.6.9"
+  "version": "0.7.0"
 }
