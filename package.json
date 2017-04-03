@@ -15,30 +15,30 @@
   },
   "contributors": [],
   "dependencies": {
-    "asset-wrap":     "0.9.x",
-    "async":          "0.9.x",
-    "chokidar":       "0.11.x",
+    "async":          "2.3.x",
+    "chokidar":       "1.6.x",
     "coffeelint":     "1.x.x",
     "coffee-script":  "1.7.x",
     "colors":         "0.6.2",
     "columnify":      "1.2.1",
     "connect":        "2.17.x",
     "copy-paste":     "0.3.x",
+    "dobi-asset-wrap":     "1.00.x",
+    "dobi-mongofb":        "file:/Users/stevenanderson/dev/lessthan3/dobi-mongofb",
     "express":        "3.4.x",
     "findit":         "1.2.x",
-    "firebase":       "1.0.x",
+    "firebase":       "2.2.9",
     "htmlparser2":    "3.7.x",
     "jsonlint":       "1.6.0",
     "mkdirp":         "0.5.x",
     "jwt-simple":     "0.2.x",
     "lru-cache":      "2.5.x",
     "minimist":       "1.1.0",
-    "mongofb":        "0.9.x",
     "ncp":            "0.5.1",
-    "node.extend":    "1.0.x",
+    "node.extend":    "1.1.x",
     "open":           "0.0.x",
     "optimist":       "0.6.x",
-    "request":        "2.39.x",
+    "request":        "2.81.x",
     "season":         "5.3.0",
     "stylus-help":    "1.7.4",
     "xml2js":         "0.4.x"
@@ -57,5 +57,8 @@
     "type": "git",
     "url": "git://github.com/lessthan3/dobi.git"
   },
-  "version": "2.0.5"
+  "version": "2.0.5",
+  "engines": {
+    "node": "6.10.1"
+  }
 }
