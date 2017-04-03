@@ -10,7 +10,7 @@ findit = require 'findit'
 fs = require 'fs'
 jwt = require 'jwt-simple'
 path = require 'path'
-wrap = require 'asset-wrap'
+wrap = require 'dobi-asset-wrap'
 
 USER_HOME = process.env.HOME or process.env.HOMEPATH or process.env.USERPROFILE
 
