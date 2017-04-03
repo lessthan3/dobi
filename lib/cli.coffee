@@ -132,7 +132,7 @@ login = (require_logged_in, next) ->
         rl.question "Enter Token: ", (token) ->
           exit 'must specify token' unless token
           fb = new Firebase FIREBASE_URL
-          fb.auth token, (err, data) ->
+          fb.authWithCustomToken token, (err, data) ->
             exit 'invalid token' if err
             user_config.user = data.auth
             user_config.token = token
