@@ -1,3 +1,6 @@
+**3.0.0** (2017-04-03)
+ - updates for node v6+
+
 **2.0.2** (2015-10-12)
 
  - fix regress: dobi-lint failed on cson files after season upgrade
@@ -59,7 +62,7 @@
  - use core 2.0.0 style package build if core is defined in config
 
 **1.8.4** (2015-02-19)
- 
+
  - do not crash on lstat error
 
 **1.8.2** (2015-02-18)

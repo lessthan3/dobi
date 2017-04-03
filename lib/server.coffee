@@ -427,7 +427,7 @@ exports = module.exports = (cfg) ->
     watcher.on 'change', (filepath) ->
       try
         {user_id, token} = JSON.parse fs.readFileSync filepath
-        firebase.authWithCustomToken token
+        firebase.authWithCustomToken token, (err) ->
         return
       catch err
         console.log err
