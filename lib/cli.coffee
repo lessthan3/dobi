@@ -625,6 +625,7 @@ switch command
 
     src_slug = args[0]
     dst_slug = args[1]
+    is_mirror = args[2] is 'mirror'
 
     # check arguments
     exit "must specify site src_slug" unless src_slug
@@ -711,7 +712,7 @@ switch command
           data = src_object.val()
           src_id = data._id
           delete data._id
-          data.seo = {}
+          data.seo = {} unless is_mirror
           data.created = Date.now()
           data.last_modified = Date.now()
           data.site_id = dst_site.get('_id').val()
@@ -738,6 +739,7 @@ switch command
           data = JSON.parse data
           dst_site.get('regions').set data
 
+        dst_site.get('id_mapping').set ids if is_mirror
         next null, {db, dst_objects, ids, dst_site}
 
       # update object references
