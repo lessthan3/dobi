@@ -22,6 +22,7 @@ path = require 'path'
 readline = require 'readline'
 request = require 'request'
 xml2js = require 'xml2js'
+_ = require 'underscore'
 
 # usage
 USAGE = """
@@ -739,7 +740,7 @@ switch command
           data = JSON.parse data
           dst_site.get('regions').set data
 
-        dst_site.get('id_mapping').set ids if is_mirror
+        dst_site.get('id_mapping').set _.invert(ids) if is_mirror
         next null, {db, dst_objects, ids, dst_site}
 
       # update object references
