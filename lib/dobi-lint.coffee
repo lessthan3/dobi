@@ -45,10 +45,11 @@ module.exports = (filename, next) ->
       fail index + 1, msg, line
 
   # trailing commas not allowed is not allowed
-  msg = 'Trailing commas are not allowed'
-  for line, index in lines
-    if /,$/.test line
-      fail index + 1, msg, line
+  if ext isnt 'cson'
+    msg = 'Trailing commas are not allowed'
+    for line, index in lines
+      if /,$/.test line
+        fail index + 1, msg, line
 
   # must be no spaces before a comma
   msg = 'No spaces allowed before a comma'
