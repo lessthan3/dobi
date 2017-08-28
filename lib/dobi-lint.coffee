@@ -41,11 +41,10 @@ module.exports = (filename, next) ->
   if ext is 'js'
 
     # don't allow => will crash in prod
-    if ext is 'js'
-      msg = 'Not allowed to have => inside js files'
-      for line, index in lines
-        if /\=\s*\>/.test line
-          fail index + 1, msg, line
+    msg = 'Not allowed to have => inside js files'
+    for line, index in lines
+      if /\=\s*\>/.test line
+        fail index + 1, msg, line
   else
 
     # trailing whitespace is not allowed
