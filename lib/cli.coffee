@@ -730,18 +730,17 @@ switch command
       # fix references in regions
      ({db, dst_objects, ids, dst_site}, next) ->
         log 'fixing region refs'
-        data = JSON.stringify dst_site.get('regions').val()
+        data = JSON.stringify dst_site.val()
         updated = false
         for src_id, dst_id of ids
-          if data.indexOf(src_id) > -1
-            data = data.replace new RegExp(src_id, 'g'), dst_id
-            updated = true
-        if updated
-          data = JSON.parse data
-          dst_site.get('regions').set data
-
-        dst_site.get('id_mapping').set _.invert(ids) if is_mirror
-        next null, {db, dst_objects, ids, dst_site}
+          continue unless data.indexOf(src_id) > -1
+          data = data.replace new RegExp(src_id, 'g'), dst_id
+          updated = true
+        return next null, {dst_objects, ids} unless updated
+        data = JSON.parse data
+        dst_site.set data, (err) ->
+          return next err if err
+          next null, {dst_objects, ids}
 
       # update object references
       ({db, dst_objects, ids}, next) ->
