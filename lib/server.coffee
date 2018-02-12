@@ -10,7 +10,7 @@ findit = require 'findit'
 fs = require 'fs'
 jwt = require 'jwt-simple'
 path = require 'path'
-wrap = require 'asset-wrap'
+wrap = require 'dobi-asset-wrap'
 
 USER_HOME = process.env.HOME or process.env.HOMEPATH or process.env.USERPROFILE
 
@@ -47,7 +47,8 @@ exports = module.exports = (cfg) ->
   # read a full package config
   readConfig = (id, version, next) ->
     root = path.join pkgDir(id, version)
-    console.log 'read', path.join(root, 'config.cson')
+    if not prod
+      console.log 'read', path.join(root, 'config.cson')
     readCSON path.join(root, 'config.cson'), (err, config) ->
       return next err if err
 
@@ -173,10 +174,12 @@ exports = module.exports = (cfg) ->
                   p2 = "#{pkg}.Pages['#{name}']"
 
                   substitutions = [
-                    ['exports.App',       "#{p} = #{pkg}.App"] # todo: deprecate
-                    ['exports.Header',    "#{p} = #{pkg}.Header"]
-                    ['exports.Footer',    "#{p} = #{pkg}.Footer"]
-                    ['exports.Component', "#{p} = #{pkg}.Component"] # todo: dep
+                    # todo: deprecate
+                    ['exports.App',       "#{p} = #{pkg}.App"],
+                    ['exports.Header',    "#{p} = #{pkg}.Header"],
+                    ['exports.Footer',    "#{p} = #{pkg}.Footer"],
+                    # todo: dep
+                    ['exports.Component', "#{p} = #{pkg}.Component"]
                     ['exports.Template',  "#{t}"]
                     ['exports.Page',      "#{p} = #{p2}"]
                   ]
@@ -430,7 +433,7 @@ exports = module.exports = (cfg) ->
         firebase.auth token
         return
       catch err
-        console.log err
+        console.error err
 
     # watch for package file changes
     watcher = chokidar.watch pkg_dir, {
@@ -448,7 +451,7 @@ exports = module.exports = (cfg) ->
       file = file.join path.sep
       console.log "#{id} v#{version} updated"
       readConfig id, version, (err, config) ->
-        return console.log(err) if err
+        return console.error(err) if err
         delete config.changelog
         ref = firebase.child "users/#{user_id}/developer/listener"
 
@@ -463,7 +466,7 @@ exports = module.exports = (cfg) ->
           file_ext: path.extname(file).replace '.', ''
           file_name: path.basename file, path.extname(file)
         ref.set config, (err) ->
-          console.log(err) if err
+          console.error(err) if err
 
   # Middleware
   (req, res, next) ->
@@ -525,7 +528,7 @@ exports = module.exports = (cfg) ->
             user_id: user_id
             timestamp: Date.now()
           }, null, 2), 'utf8', (err) ->
-            return console.log err if err
+            return console.error err if err
 
             # respond to user
             pkgs = {}
@@ -537,7 +540,7 @@ exports = module.exports = (cfg) ->
                 for i, version of fs.readdirSync pkg_path
                   pkgs[id][version] = 1
               catch err
-                console.log 'WARNING: ', err
+                console.error 'WARNING: ', err
             res.send pkgs
 
     # Package Config

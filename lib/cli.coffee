@@ -13,7 +13,7 @@ findit = require 'findit'
 fs = require 'fs'
 htmlparser = require 'htmlparser2'
 mkdirp = require 'mkdirp'
-mongofb = require 'mongofb'
+mongofb = require 'dobi-mongofb'
 ncp = require('ncp').ncp
 open = require 'open'
 optimist = require 'optimist'
@@ -1154,6 +1154,7 @@ switch command
 
       # listen
       # http
+
       if optimist.argv.secure
         root = "#{__dirname}/ssl"
         https.createServer({
