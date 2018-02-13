@@ -54,7 +54,7 @@ where <command> [command-specific-options] is one of:
 
 # constants
 CWD = process.cwd()
-DATABASE_URL = 'http://www.dobi.io/db/1.0'
+DATABASE_URL = 'https://www.maestro.io/db/1.0'
 FIREBASE_URL = 'https://lessthan3.firebaseio.com'
 USER_HOME = process.env.HOME or process.env.HOMEPATH or process.env.USERPROFILE
 USER_CONFIG_PATH = "#{USER_HOME}/.lt3_config"
@@ -345,17 +345,18 @@ switch command
 
       # query DB for domains of site slugs
       getSiteDomains = (sites, done) ->
-        SLUGS = for site in sites
+        SLUGS = []
+        for site in sites
           slug_test = new RegExp "#{DOMAIN}/(.+)", "gi"
           slug = slug_test.exec(site)?[1]
-          slug if slug
+          SLUGS.push(slug) if slug
 
         getDomains = (next) ->
           DOMAINS = []
           db_sites = db.collection 'sites'
 
           buckets = []
-          bucket_size = 100
+          bucket_size = 50
           for i in [0... Math.ceil SLUGS.length / bucket_size]
             start = i * bucket_size
             end = i * bucket_size + bucket_size
