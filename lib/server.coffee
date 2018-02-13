@@ -174,12 +174,10 @@ exports = module.exports = (cfg) ->
                   p2 = "#{pkg}.Pages['#{name}']"
 
                   substitutions = [
-                    # todo: deprecate
-                    ['exports.App',       "#{p} = #{pkg}.App"],
-                    ['exports.Header',    "#{p} = #{pkg}.Header"],
-                    ['exports.Footer',    "#{p} = #{pkg}.Footer"],
-                    # todo: dep
-                    ['exports.Component', "#{p} = #{pkg}.Component"]
+                    ['exports.App',       "#{p} = #{pkg}.App"] # todo: deprecate
+                    ['exports.Header',    "#{p} = #{pkg}.Header"]
+                    ['exports.Footer',    "#{p} = #{pkg}.Footer"]
+                    ['exports.Component', "#{p} = #{pkg}.Component"] # todo: dep
                     ['exports.Template',  "#{t}"]
                     ['exports.Page',      "#{p} = #{p2}"]
                   ]
