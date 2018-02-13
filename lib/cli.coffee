@@ -948,12 +948,13 @@ switch command
   when 'lint'
 
     # target and silent_fail arguments
-    targets = optimist.argv.p
-    silent_fail = optimist.argv.s
+    targets = minimist.p
+    silent_fail = minimist.s
+
 
     getPath = (next) ->
       if targets
-        targets = [targets].concat optimist.argv._[1..]
+        targets = [targets].concat minimist._[1..]
         files = []
         for target in targets
           return next 'must specify file path' unless typeof target is 'string'
@@ -1153,7 +1154,7 @@ switch command
       # listen
       # http
 
-      if optimist.argv.secure
+      if minimist.secure
         root = "#{__dirname}/ssl"
         https.createServer({
           key: fs.readFileSync("#{root}/localhost.maestro.io.key").toString()
