@@ -13,10 +13,10 @@ findit = require 'findit'
 fs = require 'fs'
 htmlparser = require 'htmlparser2'
 mkdirp = require 'mkdirp'
+minimist = require('minimist') process.argv.slice 2
 mongofb = require 'dobi-mongofb'
 ncp = require('ncp').ncp
 open = require 'open'
-optimist = require 'optimist'
 os = require 'os'
 path = require 'path'
 readline = require 'readline'
@@ -159,10 +159,9 @@ saveUserConfig = (data, next) ->
     next()
 
 # get arguments and options
-argv = optimist.argv._
+argv = minimist._
 command = argv[0]
 args = argv[1...argv.length]
-opts = optimist.argv
 
 switch command
 
