@@ -425,7 +425,7 @@ exports = module.exports = (cfg) ->
     watcher = chokidar.watch USER_CONNECT_PATH, {
       ignored: -> false
       usePolling: true
-      interval: 500
+      interval: 5000
     }
     watcher.on 'change', (filepath) ->
       try
@@ -439,7 +439,7 @@ exports = module.exports = (cfg) ->
     watcher = chokidar.watch pkg_dir, {
       ignored: /(^\.|\.swp$|\.tmp$|~$)/
       usePolling: true
-      interval: 500
+      interval: 2000
     }
     watcher.on 'change', (filepath) ->
       if not user_id
