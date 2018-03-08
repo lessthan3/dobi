@@ -467,7 +467,7 @@ exports = module.exports = (cfg) ->
           console.error(err) if err
 
   # Middleware
-  (req, res, next) ->
+  return (req, res, next) ->
 
     # Helpers
     auth = (req, res, next) ->
@@ -504,16 +504,16 @@ exports = module.exports = (cfg) ->
       """
 
     # Routes
-    router = new express.Router()
+    router = express.Router()
 
     # Access Control Allow Origin
-    router.route 'GET', '*', (req, res, next) ->
+    router.get '*', (req, res, next) ->
       res.header "Access-Control-Allow-Origin", "*"
       next()
 
     # Development Token
     unless prod
-      router.route 'GET', '/connect', (req, res, next) ->
+      router.get '/connect', (req, res, next) ->
         token = req.query.token
         firebase.auth token, (err, data) ->
           return error 400 if err
@@ -542,7 +542,7 @@ exports = module.exports = (cfg) ->
             res.send pkgs
 
     # Package Config
-    router.route 'GET', '/pkg/:id/:version/config.json', (req, res, next) ->
+    router.get '/pkg/:id/:version/config.json', (req, res, next) ->
       contentType 'application/json'
       cache({age: cache_age}, (req, res, next) ->
         readConfig req.params.id, req.params.version, (err, data) ->
@@ -551,7 +551,7 @@ exports = module.exports = (cfg) ->
       )(req, res, next)
 
     # Package Schema
-    router.route 'GET', '/pkg/:id/:version/schema.json', (req, res, next) ->
+    router.get '/pkg/:id/:version/schema.json', (req, res, next) ->
       contentType 'application/json'
       cache({age: cache_age}, (req, res, next) ->
         readSchema req.params.id, req.params.version, (err, data) ->
@@ -561,7 +561,7 @@ exports = module.exports = (cfg) ->
 
     # Package Files
     unless prod
-      router.route 'GET', '/pkg/:id/:version/files.json', (req, res, next) ->
+      router.get '/pkg/:id/:version/files.json', (req, res, next) ->
         contentType 'application/json'
         root = path.join pkgDir(req.params.id, req.params.version)
 
@@ -712,13 +712,13 @@ exports = module.exports = (cfg) ->
                   res.send asset.data
             else
               error 400, "invalid file type"
-      router.route 'GET', '/pkg/:id/:version/partial.:ext', partial
-      router.route 'GET', '/pkg/:id/:version/partial.js.map', (req, res, next) ->
+      router.get '/pkg/:id/:version/partial.:ext', partial
+      router.get '/pkg/:id/:version/partial.js.map', (req, res, next) ->
         req.params.ext = 'js.map'
         partial req, res, next
 
     # Package Javascript
-    router.route 'GET', '/pkg/:id/:version/main.js', (req, res, next) ->
+    router.get '/pkg/:id/:version/main.js', (req, res, next) ->
       contentType 'text/javascript'
       cache({age: cache_age}, (req, res, next) ->
         gatherJS [], req.params.id, req.params.version, (err, assets) ->
@@ -729,7 +729,8 @@ exports = module.exports = (cfg) ->
       )(req, res, next)
 
     # Package Stylesheet
-    router.route 'GET', '/pkg/:id/:version/style.css', (req, res, next) ->
+    router.get '/pkg/:id/:version/style.css', (req, res, next) ->
+      console.log 'HIT HIT'
       contentType 'text/css'
       cache({age: cache_age, qs: true}, (req, res, next) ->
         gatherCSS [], req.params.id, req.params.version, (err, assets) ->
@@ -746,7 +747,7 @@ exports = module.exports = (cfg) ->
       )(req, res, next)
 
     # Public/Static Files
-    router.route 'GET', '/pkg/:id/:version/public/*', (req, res, next) ->
+    router.get '/pkg/:id/:version/public/*', (req, res, next) ->
       id = req.params.id
       version = req.params.version
       file = req.params[0]
@@ -801,8 +802,7 @@ exports = module.exports = (cfg) ->
         user: req.user
       }
       svr[method].apply args, [args]
-    router.route 'GET', '/pkg/:id/:version/api/*', auth, apiCallHandler
-    router.route 'POST', '/pkg/:id/:version/api/*', auth, apiCallHandler
+    router.get '/pkg/:id/:version/api/*', auth, apiCallHandler
+    router.post '/pkg/:id/:version/api/*', auth, apiCallHandler
 
-    # Execute Routes
-    router._dispatch req, res, next
+    router.handle req, res, next
