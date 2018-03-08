@@ -730,7 +730,6 @@ exports = module.exports = (cfg) ->
 
     # Package Stylesheet
     router.get '/pkg/:id/:version/style.css', (req, res, next) ->
-      console.log 'HIT HIT'
       contentType 'text/css'
       cache({age: cache_age, qs: true}, (req, res, next) ->
         gatherCSS [], req.params.id, req.params.version, (err, assets) ->
