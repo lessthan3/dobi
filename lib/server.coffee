@@ -759,7 +759,7 @@ exports = module.exports = (cfg) ->
       filepath = path.join "#{pkgDir id, version}", 'public', file
       fs.exists filepath, (exists) ->
         if exists
-          res.sendfile filepath, {maxAge: 1000*60*5}
+          res.sendFile filepath, {maxAge: 1000*60*5}
         else
           if prod
             error 404, "File does not exists"
