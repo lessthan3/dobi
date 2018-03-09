@@ -47,7 +47,7 @@ exports = module.exports = (cfg) ->
   # read a full package config
   readConfig = (id, version, next) ->
     root = path.join pkgDir(id, version)
-    if not prod
+    if process.env.DOBI_DEBUG
       console.log 'read', path.join(root, 'config.cson')
     readCSON path.join(root, 'config.cson'), (err, config) ->
       return next err if err
