@@ -449,7 +449,7 @@ exports = module.exports = (cfg) ->
       file = file.join path.sep
       console.log "#{id} v#{version} updated"
       readConfig id, version, (err, config) ->
-        return console.error(err) if err
+        return console.error err if err
         delete config.changelog
         ref = firebase.child "users/#{user_id}/developer/listener"
 
@@ -464,7 +464,7 @@ exports = module.exports = (cfg) ->
           file_ext: path.extname(file).replace '.', ''
           file_name: path.basename file, path.extname(file)
         ref.set config, (err) ->
-          console.error(err) if err
+          console.error err if err
 
   # Middleware
   return (req, res, next) ->
