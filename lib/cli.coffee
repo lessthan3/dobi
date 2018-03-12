@@ -345,11 +345,11 @@ switch command
 
       # query DB for domains of site slugs
       getSiteDomains = (sites, done) ->
-        SLUGS = []
-        for site in sites
+        SLUGS = sites.map((site) ->
           slug_test = new RegExp "#{DOMAIN}/(.+)", "gi"
           slug = slug_test.exec(site)?[1]
-          SLUGS.push(slug) if slug
+          return slug
+        ).filter (slug) -> return slug?
 
         getDomains = (next) ->
           DOMAINS = []
