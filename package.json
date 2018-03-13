@@ -24,7 +24,7 @@
     "connect": "2.17.x",
     "copy-paste": "1.3.x",
     "dobi-asset-wrap": "2.0.3",
-    "dobi-mongofb": "1.3.0",
+    "dobi-mongofb": "1.3.3",
     "express": "4.16.x",
     "findit": "1.2.x",
     "firebase": "2.2.9",
@@ -60,5 +60,5 @@
     "type": "git",
     "url": "git://github.com/lessthan3/dobi.git"
   },
-  "version": "3.0.0"
+  "version": "3.0.1"
 }
