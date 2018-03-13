@@ -23,7 +23,7 @@
     "columnify": "1.5.4",
     "connect": "2.17.x",
     "copy-paste": "1.3.x",
-    "dobi-asset-wrap": "2.0.2",
+    "dobi-asset-wrap": "2.0.3",
     "dobi-mongofb": "1.3.0",
     "express": "4.16.x",
     "findit": "1.2.x",
