@@ -425,13 +425,6 @@ exports = module.exports = (cfg) ->
       usePolling: true
       interval: 5000
     }
-    watcher.on 'change', (filepath) ->
-      try
-        {user_id, token} = JSON.parse fs.readFileSync filepath
-        firebase.authWithCustomToken token
-        return
-      catch err
-        console.error err
 
     # watch for package file changes
     watcher = chokidar.watch pkg_dir, {
