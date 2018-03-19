@@ -398,7 +398,7 @@ exports = module.exports = (cfg) ->
 
       # response
       url = if options.qs then req.url else req._parsedUrl.pathname
-      key = "#{req.protocol}://#{req.host}#{url}"
+      key = "#{req.protocol}://#{req.hostname}#{url}"
       if prod and lru_cache.has key
         res.send lru_cache.get key
       else
@@ -495,7 +495,7 @@ exports = module.exports = (cfg) ->
 
       === ERROR: #{code} ===
       """
-      res.send code, msg
+      res.status(code).send msg
       console.error """
       ===
       #{msg}

@@ -1129,28 +1129,61 @@ switch command
       log "worker #{process.pid}: running"
 
       # dependencies
-      connect = require 'connect'
       express = require 'express'
       dobi = require './server'
       http = require 'http'
       https = require 'https'
       pkg = require path.join '..', 'package'
+      methodOverride = require 'method-override'
+      cookieParser = require 'cookie-parser'
+      bodyParser = require 'body-parser'
+      errorhandler = require 'errorhandler'
+      strftime = require 'strftime'
+
+      # logging
+      expressWinston = require 'express-winston'
+      winston = require 'winston'
+      logFormat = [
+        '[{{req.logDate}}] {{req.method}} {{req.url}}'
+        '{{res.statusCode}} {{res.responseTime}}ms'
+      ].join ' '
+
+      transports = [
+        new winston.transports.Console {
+          colorize: true
+          json: false
+        }
+      ]
+
+      logConfig = {
+        level: 'info'
+        expressFormat: false
+        msg: logFormat
+        meta: false
+        transports: transports
+      }
+
+      requestLogger = expressWinston.logger logConfig
+      errorLogger = expressWinston.errorLogger logConfig
 
       # configuration
       app = express()
-      app.use express.logger '[:date] :status :method :url'
-      app.use connect.urlencoded()
-      app.use connect.json()
-      app.use express.methodOverride()
-      app.use express.cookieParser()
+      app.use (req, res, next) ->
+        req.logDate = strftime '%d/%b/%Y:%H:%M:%S %z'
+        next()
+      app.use errorhandler {dumpExceptions: true, showStack: true}
+      app.use requestLogger
+      app.use methodOverride()
+      app.use bodyParser.json()
+      app.use bodyParser.urlencoded {extended: true}
+      app.use cookieParser()
       app.use dobi {
         firebase: config.firebase or null
         mongodb: config.mongo or null
         pkg_dir: path.join workspace, 'pkg'
         watch: process.env.CLUSTER_INDEX in ['0', undefined]
       }
-      app.use app.router
-      app.use express.errorHandler {dumpExceptions: true, showStack: true}
+      app.use errorLogger
 
       # listen
       # http
