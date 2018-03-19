@@ -1153,7 +1153,6 @@ switch command
       logConfig = {
         level: 'info'
         expressFormat: true
-        # msg: logFormat
         meta: false
         transports: transports
       }
