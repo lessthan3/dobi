@@ -1138,15 +1138,10 @@ switch command
       cookieParser = require 'cookie-parser'
       bodyParser = require 'body-parser'
       errorhandler = require 'errorhandler'
-      strftime = require 'strftime'
 
       # logging
       expressWinston = require 'express-winston'
       winston = require 'winston'
-      logFormat = [
-        '[{{req.logDate}}] {{req.method}} {{req.url}}'
-        '{{res.statusCode}} {{res.responseTime}}ms'
-      ].join ' '
 
       transports = [
         new winston.transports.Console {
@@ -1157,8 +1152,8 @@ switch command
 
       logConfig = {
         level: 'info'
-        expressFormat: false
-        msg: logFormat
+        expressFormat: true
+        # msg: logFormat
         meta: false
         transports: transports
       }
@@ -1168,9 +1163,6 @@ switch command
 
       # configuration
       app = express()
-      app.use (req, res, next) ->
-        req.logDate = strftime '%d/%b/%Y:%H:%M:%S %z'
-        next()
       app.use errorhandler {dumpExceptions: true, showStack: true}
       app.use requestLogger
       app.use methodOverride()

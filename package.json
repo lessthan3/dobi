@@ -43,7 +43,6 @@
     "open": "0.0.x",
     "request": "^2.81.0",
     "season": "6.0.2",
-    "strftime": "^0.10.0",
     "stylus-help": "1.7.5",
     "underscore": "1.8.x",
     "winston": "^2.4.1",

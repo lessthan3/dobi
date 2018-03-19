@@ -428,7 +428,7 @@ exports = module.exports = (cfg) ->
     watcher.on 'change', (filepath) ->
       try
         {user_id, token} = JSON.parse fs.readFileSync filepath
-        firebase.auth token
+        firebase.authWithCustomToken token
         return
       catch err
         console.error err
@@ -515,7 +515,7 @@ exports = module.exports = (cfg) ->
     unless prod
       router.get '/connect', (req, res, next) ->
         token = req.query.token
-        firebase.auth token, (err, data) ->
+        firebase.authWithCustomToken token, (err, data) ->
           return error 400 if err
           user_id = req.query.user._id
 
