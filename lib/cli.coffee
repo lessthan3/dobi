@@ -1128,56 +1128,18 @@ switch command
     else
       log "worker #{process.pid}: running"
 
-      # dependencies
-      express = require 'express'
-      dobi = require './server'
-      http = require 'http'
-      https = require 'https'
-      pkg = require path.join '..', 'package'
-      methodOverride = require 'method-override'
-      cookieParser = require 'cookie-parser'
-      bodyParser = require 'body-parser'
-      errorhandler = require 'errorhandler'
+      cluster = require 'cluster'
 
-      # logging
-      expressWinston = require 'express-winston'
-      winston = require 'winston'
 
-      transports = [
-        new winston.transports.Console {
-          colorize: true
-          json: false
-        }
-      ]
+      cluster.on 'listening', (worker) ->
+        console.log "[#{os.hostname}] worker #{worker.process.pid}: server is listening"
 
-      logConfig = {
-        level: 'info'
-        expressFormat: true
-        meta: false
-        transports: transports
-      }
-
-      requestLogger = expressWinston.logger logConfig
-      errorLogger = expressWinston.errorLogger logConfig
-
-      # configuration
-      app = express()
-      app.use errorhandler {dumpExceptions: true, showStack: true}
-      app.use requestLogger
-      app.use methodOverride()
-      app.use bodyParser.json()
-      app.use bodyParser.urlencoded {extended: true}
-      app.use cookieParser()
-      app.use dobi {
-        firebase: config.firebase or null
-        mongodb: config.mongo or null
-        pkg_dir: path.join workspace, 'pkg'
-        watch: process.env.CLUSTER_INDEX in ['0', undefined]
-      }
-      app.use errorLogger
-
-      # listen
-      # http
+      cluster.on 'exit', (worker, code, signal) ->
+        if signal
+          msg = "killed by signal #{signal}. restarting..."
+        else
+          msg = "exited with code #{code}. restarting..."
+        cluster.fork()
 
       if minimist.secure
         root = "#{__dirname}/ssl"
