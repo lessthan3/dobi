@@ -1,4 +1,5 @@
 # dependencies
+app = require './localServer'
 CSON = require 'season'
 Firebase = require 'firebase'
 async = require 'async'
