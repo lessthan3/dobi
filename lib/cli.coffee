@@ -1116,6 +1116,7 @@ switch command
   # run a development server
   when 'run'
     workspace = getWorkspacePathSync()
+    pkg = require path.join '..', 'package'
     exit 'must be in a workspace to run the server' unless workspace
 
     # can add back a command line option for cluster in the future
