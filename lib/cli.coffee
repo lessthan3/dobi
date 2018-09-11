@@ -6,7 +6,7 @@ async = require 'async'
 cluster = require 'cluster'
 colors = require 'colors'
 columnify = require 'columnify'
-clipboard = require 'copy-paste'
+clipboardy = require 'clipboardy'
 crypto = require 'crypto'
 dobiLint = require './dobi-lint'
 extend =  require 'node.extend'
@@ -17,7 +17,7 @@ mkdirp = require 'mkdirp'
 minimist = require('minimist') process.argv.slice 2
 mongofb = require 'dobi-mongofb'
 ncp = require('ncp').ncp
-open = require 'open'
+opn = require 'opn'
 os = require 'os'
 path = require 'path'
 readline = require 'readline'
@@ -130,7 +130,7 @@ login = (require_logged_in, next) ->
       log 'not logged in: must authenticate'
       log 'opening login portal in just a few moments'
       setTimeout ( ->
-        open 'http://www.maestro.io/developers/auth'
+        opn 'http://www.maestro.io/developers/auth'
         rl.question "Enter Token: ", (token) ->
           exit 'must specify token' unless token
           fb = new Firebase FIREBASE_URL
@@ -517,9 +517,8 @@ switch command
         {ERRORS} = RAW_DATA
         return next() unless ERRORS.length > 0
         err_format = "```js\n#{JSON.stringify ERRORS, null, 2}\n```"
-        clipboard.copy err_format, ->
-          log "Errors copied to clipboard"
-          next()
+        clipboardy.write(err_format)
+          .then(next)
 
       # compile raw data to pretty tables
       compileData = (next) ->
@@ -927,7 +926,7 @@ switch command
 
   # open the dobi docs
   when 'docs'
-    open 'http://www.dobi.io'
+    opn 'http://www.dobi.io'
     exit()
 
   # show usage
@@ -1049,7 +1048,7 @@ switch command
   when 'open'
     url = 'http://www.maestro.io'
     url += "/#{arg}" for arg in args
-    open url
+    opn url
     exit()
 
   # move a site to a new slug
@@ -1244,7 +1243,7 @@ switch command
             log 'objects have been created'
             log 'loading site in just a moment'
             setTimeout ( ->
-              open "http://www.maestro.io/#{slug}?dev=1"
+              opn "http://www.maestro.io/#{slug}?dev=1"
               exit()
             ), 3000
 
