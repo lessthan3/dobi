@@ -27,7 +27,7 @@
     "colors": "1.1.2",
     "columnify": "1.5.4",
     "cookie-parser": "^1.4.3",
-    "dobi-asset-wrap": "^4.0.1",
+    "dobi-asset-wrap": "^4.0.2",
     "dobi-mongofb": "^3.0.2",
     "errorhandler": "^1.5.0",
     "express": "4.16.x",
@@ -69,7 +69,7 @@
     "type": "git",
     "url": "git://github.com/lessthan3/dobi.git"
   },
-  "version": "4.0.0",
+  "version": "4.0.1",
   "devDependencies": {
     "eslint": "^5.3.0",
     "eslint-config-airbnb-base": "^13.1.0",
