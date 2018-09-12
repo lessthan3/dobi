@@ -1,5 +1,6 @@
 # dependencies
 app = require './localServer'
+build = require '../lib/build'
 CSON = require 'season'
 Firebase = require 'firebase'
 async = require 'async'
@@ -31,6 +32,7 @@ Usage: dobi <command> [command-specific-options]
 
 where <command> [command-specific-options] is one of:
   backup <site-slug>                backup a site
+  build                             prepares for production
   cache:bust <site-slug>            clear the cache for a site
   cache:warm <www.domain.com>       warm a cache for a domain. takes 'debug'
   clone <src-slug> <dst-slug>       clone a site
@@ -165,6 +167,15 @@ command = argv[0]
 args = argv[1...argv.length]
 
 switch command
+
+  # build javascript files
+  when 'build'
+    build()
+      .then ->
+        process.exit()
+      .catch (err) ->
+        console.error(err)
+        process.exit(1)
 
   # backup your site data
   when 'backup'
