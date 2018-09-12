@@ -1,5 +1,4 @@
 # dependencies
-app = require './localServer'
 build = require '../lib/build'
 CSON = require 'season'
 Firebase = require 'firebase'
@@ -1125,6 +1124,7 @@ switch command
 
   # run a development server
   when 'run'
+    app = require './localServer'
     workspace = getWorkspacePathSync()
     pkg = require path.join '..', 'package'
     exit 'must be in a workspace to run the server' unless workspace
