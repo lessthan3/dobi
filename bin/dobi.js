@@ -1,4 +1,6 @@
 #!/usr/bin/env node
 
-require('coffeescript/register')
+'use strict';
+
+require('coffeescript/register');
 require('../lib/cli');
