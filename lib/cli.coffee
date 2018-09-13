@@ -173,7 +173,7 @@ switch command
       .then ->
         process.exit()
       .catch (err) ->
-        console.error(err)
+        console.error(err.stack)
         process.exit(1)
 
   # backup your site data
