@@ -31,7 +31,7 @@ Usage: dobi <command> [command-specific-options]
 
 where <command> [command-specific-options] is one of:
   backup <site-slug>                backup a site
-  build                             prepares for production
+  build <src-dir> <dest-dir>        build package
   cache:bust <site-slug>            clear the cache for a site
   cache:warm <www.domain.com>       warm a cache for a domain. takes 'debug'
   clone <src-slug> <dst-slug>       clone a site
@@ -169,7 +169,14 @@ switch command
 
   # build javascript files
   when 'build'
-    build()
+    if args.length < 2
+      console.error 'src-dir and dest-dir required'
+      process.exit 1
+
+    build({
+      pkgDir: path.resolve args[0]
+      distDir: path.resolve args[1]
+    })
       .then ->
         process.exit()
       .catch (err) ->
@@ -1125,7 +1132,11 @@ switch command
   # run a development server
   when 'run'
     app = require './localServer'
-    workspace = getWorkspacePathSync()
+    if args[0]
+      workspace = path.join(CWD, args[0])
+    else
+      workspace = args[0] or getWorkspacePathSync()
+    console.log(workspace)
     pkg = require path.join '..', 'package'
     exit 'must be in a workspace to run the server' unless workspace
 
