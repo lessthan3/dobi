@@ -1,0 +1,7 @@
+{
+  core: '2.0.0'
+  dependencies: {}
+  id: 'dobi-plugin'
+  type: 'plugin'
+  version: '1.0'
+}

@@ -2,5 +2,4 @@
 
 'use strict';
 
-require('coffeescript/register');
-require('../lib/cli');
+require('../lib/cli/index.js');
