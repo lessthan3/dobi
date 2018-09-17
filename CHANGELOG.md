@@ -1,4 +1,4 @@
-**4.0.24** (2018-09-16)
+**4.0.25** (2018-09-16)
   - converted cli and server to javascript
   - deprecations:
     - cache:warm
