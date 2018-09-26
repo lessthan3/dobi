@@ -31,7 +31,7 @@
     "cp-file": "^6.0.0",
     "dobi-asset-wrap": "4.0.7",
     "dobi-cache-2": "3.0.9",
-    "dobi-mongofb": "4.0.3",
+    "dobi-mongofb": "4.0.4",
     "errorhandler": "1.5.0",
     "express": "4.16.x",
     "express-winston": "2.5.0",
@@ -77,7 +77,7 @@
     "type": "git",
     "url": "git://github.com/lessthan3/dobi.git"
   },
-  "version": "5.0.0",
+  "version": "5.0.1",
   "devDependencies": {
     "eslint": "5.3.0",
     "eslint-config-airbnb-base": "13.1.0",
