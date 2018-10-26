@@ -2,6 +2,18 @@
 module.exports = {
   extends: 'airbnb-base',
   overrides: [
+    // MJS files
+    {
+      env: {es6: true},
+      files: [
+        'lib/**/*.mjs',
+      ],
+      parserOptions: {
+        allowImportExportEverywhere: true,
+        ecmaVersion: 9,
+        sourceType: 'module',
+      },
+    },
     // JS files
     {
       files: [
@@ -41,6 +53,7 @@ module.exports = {
     },
   ],
   rules: {
+    'import/no-absolute-path': 'off',
     /*
       This rule gets in the way when writing a module that will contain multiple exports in the
       future.

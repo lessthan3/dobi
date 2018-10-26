@@ -11,7 +11,7 @@
     "email": "dev@maestro.io"
   },
   "scripts": {
-    "lint": "eslint . --ext js"
+    "lint": "eslint . --ext js,mjs"
   },
   "config": {
     "port": 3002
