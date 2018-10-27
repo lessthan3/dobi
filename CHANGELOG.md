@@ -1,3 +1,13 @@
+**4.0.25** (2018-09-16)
+  - converted cli and server to javascript
+  - deprecations:
+    - cache:warm
+    - deploy
+    - rename
+    - setup
+    - start
+    - stop
+
 **2.0.2** (2015-10-12)
 
  - fix regress: dobi-lint failed on cson files after season upgrade
@@ -59,7 +69,7 @@
  - use core 2.0.0 style package build if core is defined in config
 
 **1.8.4** (2015-02-19)
- 
+
  - do not crash on lstat error
 
 **1.8.2** (2015-02-18)

@@ -4,53 +4,71 @@
     "email": "dev@maestro.io"
   },
   "bin": {
-    "dobi": "./bin/dobi.js"
+    "dobi": "./bin/dobi.mjs"
   },
   "bugs": {
     "url": "https://github.com/lessthan3/dobi/issues",
     "email": "dev@maestro.io"
+  },
+  "scripts": {
+    "lint": "eslint . --ext js,mjs"
   },
   "config": {
     "port": 3002
   },
   "contributors": [],
   "dependencies": {
-    "asset-wrap": "0.9.x",
-    "async": "0.9.x",
-    "chokidar": "0.11.x",
+    "axios": "^0.18.0",
+    "body-parser": "1.18.2",
+    "chokidar": "2.0.4",
+    "clipboardy": "1.2.3",
     "coffeelint": "1.x.x",
-    "coffee-script": "1.7.x",
-    "colors": "0.6.2",
-    "columnify": "1.2.1",
-    "connect": "2.17.x",
-    "copy-paste": "0.3.x",
-    "express": "3.4.x",
+    "coffeescript": "1.12.x",
+    "colors": "^1.1.2",
+    "columnify": "1.5.4",
+    "cookie-parser": "1.4.3",
+    "copy-dir": "^0.4.0",
+    "cp-file": "^6.0.0",
+    "dobi-asset-wrap": "4.0.7",
+    "errorhandler": "1.5.0",
+    "express": "4.16.x",
+    "express-winston": "2.5.0",
     "findit": "1.2.x",
-    "firebase": "1.0.x",
-    "htmlparser2": "3.7.x",
+    "firebase": "^5.5.0",
+    "firebase-admin": "^6.0.0",
+    "folder-hash": "2.1.1",
+    "inquirer": "^6.2.0",
     "jsonlint": "1.6.0",
-    "mkdirp": "0.5.x",
-    "jwt-simple": "0.2.x",
+    "jwt-simple": "0.5.1",
+    "lodash": "^4.17.11",
     "lru-cache": "2.5.x",
-    "minimist": "1.1.0",
-    "mongofb": "0.9.x",
-    "ncp": "0.5.1",
-    "node.extend": "1.0.x",
-    "open": "0.0.x",
-    "optimist": "0.6.x",
-    "request": "2.39.x",
-    "season": "5.3.0",
+    "method-override": "2.3.10",
+    "minimist": "1.2.x",
+    "mkdirp": "0.5.1",
+    "ncp": "2.0.x",
+    "node.extend": "2.0.x",
+    "opn": "5.3.0",
+    "progress": "2.0.0",
+    "retry-as-promised": "^3.0.0",
+    "rimraf": "2.6.2",
+    "season": "6.0.2",
     "stylus-help": "1.7.5",
-    "xml2js": "0.4.x",
-    "underscore": "1.5.x"
+    "winston": "2.4.1"
   },
   "description": "LessThan3 Developer Tools",
   "directories": {
     "lib": "./lib",
     "bin": "./bin"
   },
+  "engines": {
+    "node": ">= 10",
+    "yarn": "~1.10.1"
+  },
   "homepage": "http://www.dobi.io",
-  "keywords": "dobi.io,lessthan3",
+  "keywords": [
+    "dobi.io",
+    "maestro"
+  ],
   "main": "./lib/server",
   "name": "dobi",
   "preferGlobal": true,
@@ -58,5 +76,10 @@
     "type": "git",
     "url": "git://github.com/lessthan3/dobi.git"
   },
-  "version": "2.0.10"
+  "version": "5.0.19",
+  "devDependencies": {
+    "eslint": "5.3.0",
+    "eslint-config-airbnb-base": "13.1.0",
+    "eslint-plugin-import": "2.14.0"
+  }
 }
