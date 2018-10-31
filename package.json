@@ -66,14 +66,14 @@
     "dobi.io",
     "maestro"
   ],
-  "main": "./lib/server",
+  "main": "./lib/server/index.mjs",
   "name": "dobi",
   "preferGlobal": true,
   "repository": {
     "type": "git",
     "url": "git://github.com/lessthan3/dobi.git"
   },
-  "version": "6.0.2",
+  "version": "6.0.3",
   "devDependencies": {
     "eslint": "5.3.0",
     "eslint-config-airbnb-base": "13.1.0",
