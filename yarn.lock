@@ -1277,10 +1277,10 @@ dir-glob@^2.0.0:
     arrify "^1.0.1"
     path-type "^3.0.0"
 
-dobi-asset-wrap@4.0.8:
-  version "4.0.8"
-  resolved "https://registry.yarnpkg.com/dobi-asset-wrap/-/dobi-asset-wrap-4.0.8.tgz#9afe9e13bff88942363fd3ccf23ac4a1a64aef4c"
-  integrity sha512-Nq1XRNwLC/d79q4W7R+V188O6VPDPM9QRq+GzVqqN/S7Edhlt2Oqtfv5580wU225a94bcjbuMuk20l3pyXYEzw==
+dobi-asset-wrap@4.0.9:
+  version "4.0.9"
+  resolved "https://registry.yarnpkg.com/dobi-asset-wrap/-/dobi-asset-wrap-4.0.9.tgz#33e471e71350db69642930bb75a27a21b127cab5"
+  integrity sha512-4tfmj92uKINvQlkimhsMT+apVTiurl2kWaLqiCK/6SyKv2eQN/HkYdYhUhtaCAYZaxt0Ft7WDvFXKa/JAo9nXQ==
   dependencies:
     chokidar "^2.0.4"
     clean-css "4.1.x"
