@@ -73,7 +73,7 @@
     "type": "git",
     "url": "git://github.com/lessthan3/dobi.git"
   },
-  "version": "6.0.6",
+  "version": "6.0.7",
   "devDependencies": {
     "eslint": "5.3.0",
     "eslint-config-airbnb-base": "13.1.0",
