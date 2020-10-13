@@ -51,7 +51,8 @@
     "retry-as-promised": "^3.0.0",
     "rimraf": "2.6.2",
     "season": "6.0.2",
-    "stylus-help": "1.7.5"
+    "stylus-help": "1.7.5",
+    "upath": "^2.0.0"
   },
   "description": "LessThan3 Developer Tools",
   "directories": {
@@ -73,7 +74,7 @@
     "type": "git",
     "url": "git://github.com/lessthan3/dobi.git"
   },
-  "version": "6.0.12",
+  "version": "6.0.15",
   "devDependencies": {
     "eslint": "5.3.0",
     "eslint-config-airbnb-base": "13.1.0",
