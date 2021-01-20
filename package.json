@@ -28,6 +28,7 @@
     "copy-dir": "^0.4.0",
     "cp-file": "^6.0.0",
     "dobi-asset-wrap": "4.0.10",
+    "dotenv": "^8.2.0",
     "findit": "1.2.x",
     "firebase": "^5.5.0",
     "firebase-admin": "^6.0.0",
@@ -74,7 +75,7 @@
     "type": "git",
     "url": "git://github.com/lessthan3/dobi.git"
   },
-  "version": "6.0.15",
+  "version": "6.0.16",
   "devDependencies": {
     "eslint": "5.3.0",
     "eslint-config-airbnb-base": "13.1.0",

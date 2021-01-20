@@ -3,3 +3,5 @@ node_modules
 .DS_Store
 *.swp
 npm-debug.log
+dobi-server.js
+.env
