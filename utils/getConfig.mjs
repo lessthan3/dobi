@@ -1,9 +1,9 @@
 import dotenv from 'dotenv';
-dotenv.config();
-
 import { existsSync, readFileSync } from 'fs';
 
-export const CONFIG_PATH = '/u/config/dobi-server.js';
+dotenv.config();
+
+export const CONFIG_PATH = './u/config/dobi-server.js';
 
 export const getConfig = () => {
   if (existsSync(CONFIG_PATH)) {
@@ -13,10 +13,10 @@ export const getConfig = () => {
       throw new Error(`error parsing config at ${CONFIG_PATH} - ${err.toString()}`);
     }
 
-  // eslint-disable-next-line no-process-env
+
   } else if (process.env.DOBI_SERVER) {
     try {
-      // eslint-disable-next-line no-process-env
+
       return JSON.parse(process.env.DOBI_SERVER);
     } catch (err) {
       throw new Error(`error parsing config at ${CONFIG_PATH} - ${err.toString()}`);

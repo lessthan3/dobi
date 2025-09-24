@@ -1,5 +1,3 @@
-#!/bin/sh
+#!/usr/bin/env node
 
-":" //# comment; exec /usr/bin/env node --experimental-modules "$0" "$@"
-
-import '../lib/cli';
+import '../lib/cli/index.mjs';
