@@ -3,9 +3,7 @@
     "name": "maestro_io",
     "email": "dev@maestro.io"
   },
-  "bin": {
-    "dobi": "./bin/dobi.mjs"
-  },
+  "bin": "./bin/dobi.mjs",
   "bugs": {
     "url": "https://github.com/lessthan3/dobi/issues",
     "email": "dev@maestro.io"
@@ -30,8 +28,8 @@
     "dobi-asset-wrap": "4.0.10",
     "dotenv": "^8.2.0",
     "findit": "1.2.x",
-    "firebase": "^5.5.0",
-    "firebase-admin": "^6.0.0",
+    "firebase": "^7.0.0",
+    "firebase-admin": "^9.12.0",
     "folder-hash": "2.1.1",
     "fs-extra": "^7.0.0",
     "inquirer": "^6.2.0",
@@ -70,15 +68,21 @@
   ],
   "main": "./lib/server/index.mjs",
   "name": "dobi",
+  "type": "module",
   "preferGlobal": true,
   "repository": {
     "type": "git",
     "url": "git://github.com/lessthan3/dobi.git"
   },
-  "version": "6.0.16",
+  "version": "6.0.20",
   "devDependencies": {
-    "eslint": "5.3.0",
+    "@eslint/js": "^9.12.0",
+    "eslint": "^9.12.0",
     "eslint-config-airbnb-base": "13.1.0",
-    "eslint-plugin-import": "2.14.0"
+    "eslint-plugin-esm": "^0.2.0",
+    "eslint-plugin-import": "2.14.0",
+    "eslint-plugin-import-esm": "^2.0.0",
+    "eslint-plugin-n": "^17.11.1",
+    "globals": "^15.11.0"
   }
 }
