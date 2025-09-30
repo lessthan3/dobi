@@ -16,7 +16,7 @@
   },
   "contributors": [],
   "dependencies": {
-    "axios": "^0.18.0",
+    "axios": "^0.30.2",
     "chokidar": "2.0.4",
     "circular-json": "^0.5.9",
     "coffeelint": "1.x.x",
