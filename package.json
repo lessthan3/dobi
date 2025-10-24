@@ -74,7 +74,7 @@
     "type": "git",
     "url": "git://github.com/lessthan3/dobi.git"
   },
-  "version": "6.0.20",
+  "version": "7.0.0",
   "devDependencies": {
     "@eslint/js": "^9.12.0",
     "eslint": "^9.12.0",
@@ -84,5 +84,6 @@
     "eslint-plugin-import-esm": "^2.0.0",
     "eslint-plugin-n": "^17.11.1",
     "globals": "^15.11.0"
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
 }

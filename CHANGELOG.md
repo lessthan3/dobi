@@ -1,3 +1,34 @@
+**7.0.0** (2025-01-24)
+
+**BREAKING CHANGES:**
+  - Removed `NODE_ENV` from application logic - now uses explicit `DOBI_*` environment variables
+  - Changed default `pkgDir` from `pkg` to `dist` (override with `DOBI_PKG_DIR=pkg` if needed)
+  - Unified dev/prod behavior - both environments now use pre-built files by default with fallback to build-on-demand
+  - `getConfig()` now async and supports JavaScript ES modules in addition to JSON
+
+**New Environment Variables:**
+  - `DOBI_PKG_DIR` - Package directory to serve from (default: `dist`)
+  - `DOBI_ENABLE_DEV_ROUTES` - Enable dev-only routes like /connect, /partial (default: `true`)
+  - `DOBI_STRIP_SENSITIVE_CONFIG` - Strip sensitive config like author, changelog (default: `false`)
+  - `DOBI_VERBOSE_ERRORS` - Show verbose error messages with file paths (default: `true`)
+  - `DOBI_USE_COMPRESSION` - Use compression for JS/CSS output (default: `false`)
+
+**Bug Fixes:**
+  - Fixed dev/prod parity issues where behavior differed between environments
+  - Fixed jQuery and other dependencies not being included in production builds
+  - Fixed production reading from source directory instead of build directory
+
+**Features:**
+  - Added comprehensive logging to `gatherJS` and `wrapJS` for debugging dependency issues
+  - `dobi-server.js` config files can now use ES6 module syntax (`export const data = {...}`)
+  - Server now explicitly logs which package directory it's using on startup
+
+**Migration Guide:**
+  - Update your production deployment to set `DOBI_ENABLE_DEV_ROUTES=false` and `DOBI_USE_COMPRESSION=true`
+  - Ensure your build process outputs to `dist/` directory or set `DOBI_PKG_DIR` appropriately
+  - If you were relying on `NODE_ENV=production` for application behavior, use the new `DOBI_*` env vars instead
+  - Review server logs on startup to confirm correct package directory is being used
+
 **4.0.25** (2018-09-16)
   - converted cli and server to javascript
   - deprecations:
