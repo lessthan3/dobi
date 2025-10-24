@@ -1,3 +1,11 @@
+**7.0.1** (2025-01-24)
+
+**Bug Fixes:**
+  - Fixed `dobi build` command failing when `dobi-server.js` config file exists locally
+  - Changed config loading to be lazy (only loads when actually needed, not on module import)
+  - Commands like `build` that don't need the config file no longer try to load it
+  - Prevents "Unexpected token 'e'" JSON parse errors when config file uses JavaScript syntax
+
 **7.0.0** (2025-01-24)
 
 **BREAKING CHANGES:**
